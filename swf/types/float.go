@@ -7,6 +7,6 @@ import (
 // Float16 TODO: check if proper values
 type Float16 float16.Float16
 
-func (f *Float16) SWFRead(r DataReader, swfVersion uint8) (err error) {
+func (f *Float16) SWFRead(r DataReader, ctx ReaderContext) (err error) {
 	panic("todo")
 }

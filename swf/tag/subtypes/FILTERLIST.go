@@ -26,7 +26,7 @@ const (
 	FilterGradientBevel
 )
 
-func (f *FILTER) SWFRead(r types.DataReader, swfVersion uint8) (err error) {
+func (f *FILTER) SWFRead(r types.DataReader, ctx types.ReaderContext) (err error) {
 	err = types.ReadU8(r, &f.ID)
 	if err != nil {
 		return err
@@ -35,56 +35,56 @@ func (f *FILTER) SWFRead(r types.DataReader, swfVersion uint8) (err error) {
 	switch f.ID {
 	case FilterDropShadow:
 		var value DROPSHADOWFILTER
-		err = types.ReadType(r, swfVersion, &value)
+		err = types.ReadType(r, ctx, &value)
 		if err != nil {
 			return err
 		}
 		f.Data = value
 	case FilterBlur:
 		var value BLURFILTER
-		err = types.ReadType(r, swfVersion, &value)
+		err = types.ReadType(r, ctx, &value)
 		if err != nil {
 			return err
 		}
 		f.Data = value
 	case FilterGlow:
 		var value GLOWFILTER
-		err = types.ReadType(r, swfVersion, &value)
+		err = types.ReadType(r, ctx, &value)
 		if err != nil {
 			return err
 		}
 		f.Data = value
 	case FilterBevel:
 		var value BEVELFILTER
-		err = types.ReadType(r, swfVersion, &value)
+		err = types.ReadType(r, ctx, &value)
 		if err != nil {
 			return err
 		}
 		f.Data = value
 	case FilterGradientGlow:
 		var value GRADIENTGLOWFILTER
-		err = types.ReadType(r, swfVersion, &value)
+		err = types.ReadType(r, ctx, &value)
 		if err != nil {
 			return err
 		}
 		f.Data = value
 	case FilterConvolution:
 		var value CONVOLUTIONFILTER
-		err = types.ReadType(r, swfVersion, &value)
+		err = types.ReadType(r, ctx, &value)
 		if err != nil {
 			return err
 		}
 		f.Data = value
 	case FilterColorMatrix:
 		var value COLORMATRIXFILTER
-		err = types.ReadType(r, swfVersion, &value)
+		err = types.ReadType(r, ctx, &value)
 		if err != nil {
 			return err
 		}
 		f.Data = value
 	case FilterGradientBevel:
 		var value GRADIENTBEVELFILTER
-		err = types.ReadType(r, swfVersion, &value)
+		err = types.ReadType(r, ctx, &value)
 		if err != nil {
 			return err
 		}
@@ -164,7 +164,7 @@ type CONVOLUTIONFILTER struct {
 	PreserveAlpha    bool
 }
 
-func (f *CONVOLUTIONFILTER) MatrixSize(swfVersion uint8) uint64 {
+func (f *CONVOLUTIONFILTER) MatrixSize(ctx types.ReaderContext) uint64 {
 	return uint64(f.MatrixX) * uint64(f.MatrixY)
 }
 

@@ -3,15 +3,19 @@ package tag
 type Code uint16
 
 const (
-	_ = Code(iota)
+	RecordEnd = Code(iota)
 	RecordShowFrame
-	_
+	RecordDefineShape
 	_
 	RecordPlaceObject
 	RecordRemoveObject
 	_
 	_
 	_
+	RecordSetBackgroundColor
+	_
+	_
+	RecordDoAction
 	_
 	_
 	_
@@ -21,13 +25,9 @@ const (
 	_
 	_
 	_
+	RecordDefineShape2
 	_
-	_
-	_
-	_
-	_
-	_
-	_
+	RecordProtect
 	_
 	RecordPlaceObject2
 	_
@@ -35,6 +35,18 @@ const (
 	_
 	_
 	_
+	RecordDefineShape3
+	_
+	_
+	_
+	_
+	_
+	_
+	_
+	_
+	_
+	_
+	RecordFrameLabel
 	_
 	_
 	_
@@ -47,6 +59,10 @@ const (
 	_
 	_
 	_
+	RecordExportAssets
+	RecordImportAssets
+	_
+	RecordDoInitAction
 	_
 	_
 	_
@@ -56,22 +72,22 @@ const (
 	_
 	_
 	_
-	_
-	_
-	_
-	_
-	_
-	_
-	_
-	_
-	_
-	_
-	_
-	_
-	_
-	_
-	_
-	_
-	_
+	RecordFileAttributes
 	RecordPlaceObject3
+	RecordImportAssets2
+	_
+	_
+	_
+	_
+	RecordSymbolClass
+	RecordMetadata
+	RecordDefineScalingGrid
+	_
+	_
+	_
+	_
+	RecordDefineShape4
+	_
+	_
+	RecordDefineSceneAndFrameLabelData
 )

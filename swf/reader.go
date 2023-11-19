@@ -55,7 +55,9 @@ func NewReader(reader io.Reader) (*Reader, error) {
 		return nil, fmt.Errorf("unsupported signature %s", string(r.header.Signature[:]))
 	}
 
-	err := types.ReadType(r.r, r.header.Version, &r.header.FrameSize)
+	err := types.ReadType(r.r, types.ReaderContext{
+		Version: r.header.Version,
+	}, &r.header.FrameSize)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +81,9 @@ func (r *Reader) Header() types.Header {
 
 func (r *Reader) readTagRecord() (record *tag.Record, err error) {
 	record = &tag.Record{}
-	err = types.ReadType(r.r, r.header.Version, record)
+	err = types.ReadType(r.r, types.ReaderContext{
+		Version: r.header.Version,
+	}, record)
 	if err != nil {
 		return nil, err
 	}
@@ -107,6 +111,34 @@ func (r *Reader) Tag() (readTag tag.Tag, err error) {
 		readTag = &tag.RemoveObject2{}
 	case tag.RecordPlaceObject3:
 		readTag = &tag.PlaceObject3{}
+	case tag.RecordEnd:
+		readTag = &tag.End{}
+	case tag.RecordSetBackgroundColor:
+		readTag = &tag.SetBackgroundColor{}
+	case tag.RecordProtect:
+		readTag = &tag.Protect{}
+	case tag.RecordFrameLabel:
+		readTag = &tag.FrameLabel{}
+	case tag.RecordDefineShape:
+		readTag = &tag.DefineShape{}
+	case tag.RecordDoAction:
+		readTag = &tag.DoAction{}
+	case tag.RecordDefineShape2:
+		readTag = &tag.DefineShape2{}
+	case tag.RecordDefineShape3:
+		readTag = &tag.DefineShape3{}
+	case tag.RecordDoInitAction:
+		readTag = &tag.DoInitAction{}
+	case tag.RecordFileAttributes:
+		readTag = &tag.FileAttributes{}
+	case tag.RecordMetadata:
+		readTag = &tag.Metadata{}
+	case tag.RecordDefineScalingGrid:
+		readTag = &tag.DefineScalingGrid{}
+	case tag.RecordDefineShape4:
+		readTag = &tag.DefineShape4{}
+	case tag.RecordDefineSceneAndFrameLabelData:
+		readTag = &tag.DefineSceneAndFrameLabelData{}
 
 	}
 
@@ -114,9 +146,14 @@ func (r *Reader) Tag() (readTag tag.Tag, err error) {
 		fmt.Printf("%d: len %d UNKNOWN\n", record.Code(), len(record.Data))
 	} else {
 		fmt.Printf("%d: len %d KNOWN %s\n", record.Code(), len(record.Data), reflect.ValueOf(readTag).Elem().Type().Name())
-		err = types.ReadType(bitReader, r.header.Version, readTag)
+		err = types.ReadType(bitReader, types.ReaderContext{
+			Version: r.header.Version,
+		}, readTag)
 		if err != nil {
 			return nil, err
+		}
+		if readTag.Code() != record.Code() {
+			panic("mismatch!")
 		}
 	}
 

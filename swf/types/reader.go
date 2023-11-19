@@ -14,6 +14,8 @@ import (
 	"unsafe"
 )
 
+const DoParserDebug = false
+
 type DataReader interface {
 	io.ByteReader
 	io.Reader
@@ -21,17 +23,24 @@ type DataReader interface {
 	Align() (skipped uint8)
 }
 
+type ReaderContext struct {
+	Version   uint8
+	Root      reflect.Value
+	Flags     []string
+	FieldType reflect.StructField
+}
+
 type TypeReader interface {
-	SWFRead(reader DataReader, swfVersion uint8) error
+	SWFRead(reader DataReader, ctx ReaderContext) error
 }
 
 type TypeDefault interface {
-	SWFDefault(swfVersion uint8)
+	SWFDefault(ctx ReaderContext)
 }
 
-type TypeFuncConditional func(swfVersion uint8) bool
+type TypeFuncConditional func(ctx ReaderContext) bool
 
-type TypeFuncNumber func(swfVersion uint8) uint64
+type TypeFuncNumber func(ctx ReaderContext) uint64
 
 func ReadBool(r DataReader) (d bool, err error) {
 	v, err := r.ReadBits(1)
@@ -289,13 +298,18 @@ var typeFuncConditionalReflect = reflect.TypeOf((*TypeFuncConditional)(nil)).Ele
 
 var typeFuncNumberReflect = reflect.TypeOf((*TypeFuncNumber)(nil)).Elem()
 
-func getNestedType(el reflect.Value, fields ...string) reflect.Value {
+func getNestedType(ctx ReaderContext, fields ...string) reflect.Value {
+	if len(fields) == 2 && fields[0] == "context" {
+		return reflect.ValueOf(slices.Contains(ctx.Flags, fields[1]))
+	}
+
+	el := ctx.Root
 	for len(fields) > 0 && fields[0] != "" {
 		if strings.HasSuffix(fields[0], "()") {
 			n := strings.TrimSuffix(fields[0], "()")
-			m := el.MethodByName(n)
+			m := el.Addr().MethodByName(n)
 			if !m.IsValid() {
-				m = el.Addr().MethodByName(n)
+				m = el.MethodByName(n)
 			}
 			el = m
 		} else {
@@ -306,12 +320,12 @@ func getNestedType(el reflect.Value, fields ...string) reflect.Value {
 	return el
 }
 
-func ReadType(r DataReader, swfVersion uint8, data any) (err error) {
+func ReadType(r DataReader, ctx ReaderContext, data any) (err error) {
 	if tr, ok := data.(TypeDefault); ok {
-		tr.SWFDefault(swfVersion)
+		tr.SWFDefault(ctx)
 	}
 	if tr, ok := data.(TypeReader); ok {
-		return tr.SWFRead(r, swfVersion)
+		return tr.SWFRead(r, ctx)
 	}
 
 	dataValue := reflect.ValueOf(data)
@@ -319,26 +333,32 @@ func ReadType(r DataReader, swfVersion uint8, data any) (err error) {
 		return errors.New("not a pointer")
 	}
 
-	return ReadTypeInner(r, swfVersion, dataValue.Elem(), "", data)
+	if !ctx.Root.IsValid() {
+		ctx.Root = dataValue.Elem()
+	}
+	return ReadTypeInner(r, ctx, data)
 }
 
-func ReadTypeInner(r DataReader, swfVersion uint8, root reflect.Value, tags reflect.StructTag, data any) (err error) {
-	if tr, ok := data.(TypeDefault); ok {
-		tr.SWFDefault(swfVersion)
-	}
-	if tr, ok := data.(TypeReader); ok {
-		return tr.SWFRead(r, swfVersion)
-	}
-
+func ReadTypeInner(r DataReader, ctx ReaderContext, data any) (err error) {
 	dataValue := reflect.ValueOf(data)
 	dataType := dataValue.Type()
-
-	if dataType.Kind() != reflect.Pointer {
-		return errors.New("not a pointer")
-	}
-
 	dataElement := dataValue.Elem()
 	dataElementType := dataElement.Type()
+
+	if DoParserDebug {
+		fmt.Printf("    reading %s %s(%s) from root %s\n", ctx.FieldType.Name, dataElementType.Name(), dataElementType.Kind().String(), ctx.Root.Type().Name())
+	}
+
+	if tr, ok := data.(TypeDefault); ok {
+		tr.SWFDefault(ctx)
+	}
+	if tr, ok := data.(TypeReader); ok {
+		return tr.SWFRead(r, ctx)
+	}
+
+	if dataType.Kind() != reflect.Pointer {
+		return fmt.Errorf("not a pointer: %s is %s", dataType.Name(), dataType.Kind().String())
+	}
 
 	switch dataElementType.Kind() {
 	case reflect.Struct:
@@ -349,29 +369,47 @@ func ReadTypeInner(r DataReader, swfVersion uint8, root reflect.Value, tags refl
 			flags = strings.Split(flagsField.Tag.Get("swfFlags"), ",")
 		}
 
-		structRoot := root
-
 		if slices.Contains(flags, "align") {
 			r.Align()
 		}
 
+		structCtx := ctx
 		if slices.Contains(flags, "root") {
-			structRoot = dataElement
+			structCtx.Root = dataElement
 		}
+
+		structCtx.Flags = append(structCtx.Flags, flags...)
 
 		n := dataElementType.NumField()
 		for i := 0; i < n; i++ {
 			fieldValue := dataElement.Field(i)
 			fieldType := dataElementType.Field(i)
 
-			if _, ok := fieldType.Tag.Lookup("swfIgnore"); ok || fieldType.Name == "_" {
+			if fieldType.Name == "_" {
 				continue
 			}
+
+			fieldCtx := structCtx
+			fieldCtx.FieldType = fieldType
+
+			fieldFlags := strings.Split(fieldType.Tag.Get("swfFlags"), ",")
+			if slices.Contains(fieldFlags, "skip") {
+				continue
+			}
+			if slices.Contains(fieldFlags, "encoded") {
+				value, err := ReadEncodedU32[uint32](r)
+				if err != nil {
+					return err
+				}
+				fieldValue.SetUint(uint64(value))
+				continue
+			}
+			fieldCtx.Flags = append(fieldCtx.Flags, fieldFlags...)
 
 			//Check if we should read this entry or not
 			if swfTag := fieldType.Tag.Get("swfCondition"); swfTag != "" {
 				splits := strings.Split(swfTag, ".")
-				el := getNestedType(structRoot, splits...)
+				el := getNestedType(fieldCtx, splits...)
 
 				switch el.Kind() {
 				case reflect.Bool:
@@ -380,7 +418,7 @@ func ReadTypeInner(r DataReader, swfVersion uint8, root reflect.Value, tags refl
 					}
 				case reflect.Func:
 					if el.Type().AssignableTo(typeFuncConditionalReflect) {
-						values := el.Call([]reflect.Value{reflect.ValueOf(swfVersion)})
+						values := el.Call([]reflect.Value{reflect.ValueOf(fieldCtx)})
 						if !values[0].Bool() {
 							continue
 						}
@@ -392,10 +430,23 @@ func ReadTypeInner(r DataReader, swfVersion uint8, root reflect.Value, tags refl
 				}
 			}
 
+			if slices.Contains(fieldFlags, "align") {
+				r.Align()
+			}
+
 			if swfTag := fieldType.Tag.Get("swfBits"); swfTag != "" {
 				entries := strings.Split(swfTag, ",")
 				splits := strings.Split(entries[0], ".")
-				el := getNestedType(structRoot, splits...)
+				addition := strings.Split(splits[len(splits)-1], "+")
+				var offset int64
+				if len(addition) == 2 {
+					splits[len(splits)-1] = addition[0]
+					offset, err = strconv.ParseInt(addition[1], 10, 0)
+					if err != nil {
+						return err
+					}
+				}
+				el := getNestedType(fieldCtx, splits...)
 
 				bitFlags := entries[1:]
 
@@ -415,7 +466,7 @@ func ReadTypeInner(r DataReader, swfVersion uint8, root reflect.Value, tags refl
 						nbits = uint64(el.Int())
 					case reflect.Func:
 						if el.Type().AssignableTo(typeFuncNumberReflect) {
-							values := el.Call([]reflect.Value{reflect.ValueOf(swfVersion)})
+							values := el.Call([]reflect.Value{reflect.ValueOf(fieldCtx)})
 							nbits = values[0].Uint()
 						} else {
 							return fmt.Errorf("invalid nbits method %s", swfTag)
@@ -423,6 +474,12 @@ func ReadTypeInner(r DataReader, swfVersion uint8, root reflect.Value, tags refl
 					default:
 						return fmt.Errorf("invalid nbits type %s", swfTag)
 					}
+				}
+
+				nbits = uint64(int64(nbits) + offset)
+
+				if DoParserDebug {
+					fmt.Printf("        reading %s %s(%s) from struct %s\n", fieldType.Name, fieldType.Type.Name(), fieldType.Type.Kind().String(), dataElementType.Name())
 				}
 
 				if slices.Contains(bitFlags, "signed") {
@@ -441,10 +498,14 @@ func ReadTypeInner(r DataReader, swfVersion uint8, root reflect.Value, tags refl
 				continue
 			}
 
-			err = ReadTypeInner(r, swfVersion, structRoot, fieldType.Tag, fieldValue.Addr().Interface())
+			err = ReadTypeInner(r, fieldCtx, fieldValue.Addr().Interface())
 			if err != nil {
 				return err
 			}
+		}
+
+		if slices.Contains(flags, "alignend") {
+			r.Align()
 		}
 	case reflect.Slice:
 		var number uint64
@@ -456,9 +517,9 @@ func ReadTypeInner(r DataReader, swfVersion uint8, root reflect.Value, tags refl
 
 		sliceType := dataElementType.Elem()
 
-		if swfTag := tags.Get("swfCount"); swfTag != "" {
+		if swfTag := ctx.FieldType.Tag.Get("swfCount"); swfTag != "" {
 			splits := strings.Split(swfTag, ".")
-			el := getNestedType(root, splits...)
+			el := getNestedType(ctx, splits...)
 
 			switch el.Kind() {
 			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
@@ -467,7 +528,7 @@ func ReadTypeInner(r DataReader, swfVersion uint8, root reflect.Value, tags refl
 				number = uint64(el.Int())
 			case reflect.Func:
 				if el.Type().AssignableTo(typeFuncNumberReflect) {
-					values := el.Call([]reflect.Value{reflect.ValueOf(swfVersion)})
+					values := el.Call([]reflect.Value{reflect.ValueOf(ctx)})
 					number = values[0].Uint()
 				} else {
 					return fmt.Errorf("invalid count method %s", swfTag)
@@ -475,15 +536,15 @@ func ReadTypeInner(r DataReader, swfVersion uint8, root reflect.Value, tags refl
 			default:
 				return fmt.Errorf("invalid count type %s", swfTag)
 			}
-		} else if swfTag := tags.Get("swfMore"); swfTag != "" {
+		} else if swfTag := ctx.FieldType.Tag.Get("swfMore"); swfTag != "" {
 			splits := strings.Split(swfTag, ".")
-			el := getNestedType(root, splits...)
+			el := getNestedType(ctx, splits...)
 
 			switch el.Kind() {
 			case reflect.Func:
 				if el.Type().AssignableTo(typeFuncConditionalReflect) {
 					readMoreRecords = func() bool {
-						values := el.Call([]reflect.Value{reflect.ValueOf(swfVersion)})
+						values := el.Call([]reflect.Value{reflect.ValueOf(ctx)})
 						return values[0].Bool()
 					}
 				} else {
@@ -501,7 +562,7 @@ func ReadTypeInner(r DataReader, swfVersion uint8, root reflect.Value, tags refl
 		newSlice := reflect.MakeSlice(dataElementType, 0, int(number))
 		for readMoreRecords() {
 			value := reflect.New(sliceType)
-			err = ReadTypeInner(r, swfVersion, root, tags, value.Interface())
+			err = ReadTypeInner(r, ctx, value.Interface())
 			if err != nil {
 				return err
 			}
@@ -509,13 +570,16 @@ func ReadTypeInner(r DataReader, swfVersion uint8, root reflect.Value, tags refl
 		}
 		//TODO: check this
 		dataElement.Set(newSlice)
+		if DoParserDebug {
+			fmt.Printf("read %d %s(%s) elements into array\n", newSlice.Len(), sliceType.Name(), sliceType.Kind().String())
+		}
 	case reflect.Array:
 		if dataElementType.Elem().Kind() == reflect.Pointer {
 			return errors.New("unsupported pointer in slice")
 		}
 
 		for i := 0; i < dataElement.Len(); i++ {
-			err = ReadTypeInner(r, swfVersion, root, tags, dataElement.Index(i).Addr().Interface())
+			err = ReadTypeInner(r, ctx, dataElement.Index(i).Addr().Interface())
 			if err != nil {
 				return err
 			}
@@ -583,7 +647,7 @@ func ReadTypeInner(r DataReader, swfVersion uint8, root reflect.Value, tags refl
 		}
 		dataElement.SetInt(value)
 	case reflect.String:
-		value, err := ReadString(r, swfVersion)
+		value, err := ReadString(r, ctx.Version)
 		if err != nil {
 			return err
 		}
@@ -601,9 +665,11 @@ func ReadTypeInner(r DataReader, swfVersion uint8, root reflect.Value, tags refl
 		if err != nil {
 			return err
 		}
-		dataElement.SetFloat(float64(math.Float64frombits(value)))
+		dataElement.SetFloat(math.Float64frombits(value))
+	case reflect.Interface:
+		return ReadTypeInner(r, ctx, dataElement.Interface())
 	default:
-		return fmt.Errorf("unsupported type: %s", dataElementType.Name())
+		return fmt.Errorf("unsupported type: %s %s", dataElementType.Name(), dataElementType.String())
 	}
 
 	return nil

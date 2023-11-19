@@ -1,7 +1,7 @@
 package types
 
 type Rectangle struct {
-	_     struct{} `swfFlags:"root,align"`
+	_     struct{} `swfFlags:"root,alignend"`
 	NBits uint8    `swfBits:",5"`
 	Xmin  Twip     `swfBits:"NBits,signed"`
 	Xmax  Twip     `swfBits:"NBits,signed"`

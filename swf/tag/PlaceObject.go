@@ -17,7 +17,7 @@ type PlaceObject struct {
 	ColorTransform *types.ColorTransform
 }
 
-func (t *PlaceObject) SWFRead(r types.DataReader, swfVersion uint8) (err error) {
+func (t *PlaceObject) SWFRead(r types.DataReader, ctx types.ReaderContext) (err error) {
 	err = types.ReadU16(r, &t.CharacterId)
 	if err != nil {
 		return err
@@ -26,7 +26,7 @@ func (t *PlaceObject) SWFRead(r types.DataReader, swfVersion uint8) (err error) 
 	if err != nil {
 		return err
 	}
-	err = types.ReadType(r, swfVersion, &t.Matrix)
+	err = types.ReadType(r, ctx, &t.Matrix)
 	if err != nil {
 		return err
 	}
@@ -37,7 +37,7 @@ func (t *PlaceObject) SWFRead(r types.DataReader, swfVersion uint8) (err error) 
 	}
 	if len(data) > 0 {
 		ct := &types.ColorTransform{}
-		err = types.ReadType(bitio.NewReader(bytes.NewReader(data)), swfVersion, ct)
+		err = types.ReadType(bitio.NewReader(bytes.NewReader(data)), ctx, ct)
 		if err != nil {
 			return err
 		}

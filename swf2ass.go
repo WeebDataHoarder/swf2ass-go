@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/tag"
 	"io"
 	"os"
 )
@@ -24,13 +25,27 @@ func main() {
 	}
 
 	for {
-		tag, err := swfReader.Tag()
+		readTag, err := swfReader.Tag()
 		if err != nil {
 			if errors.Is(err, io.EOF) {
 				break
 			}
 			panic(err)
 		}
-		_ = tag
+
+		if readTag == nil {
+			//not decoded
+			continue
+		}
+
+		if readTag.Code() == tag.RecordEnd {
+			break
+		}
+
+		switch t := readTag.(type) {
+
+		default:
+			_ = t
+		}
 	}
 }

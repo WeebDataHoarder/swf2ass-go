@@ -1,5 +1,7 @@
 package tag
 
+import "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
+
 type Tag interface {
 	Code() Code
 }
@@ -11,11 +13,11 @@ type Record struct {
 	Data             []byte `swfCount:"DataLength()"`
 }
 
-func (r *Record) HasExtraLength(swfVersion uint8) bool {
+func (r *Record) HasExtraLength(ctx types.ReaderContext) bool {
 	return (r.TagCodeAndLength & 0x3f) == 0x3f
 }
 
-func (r *Record) DataLength(swfVersion uint8) uint64 {
+func (r *Record) DataLength(ctx types.ReaderContext) uint64 {
 	if (r.TagCodeAndLength & 0x3f) == 0x3f {
 		return uint64(r.ExtraLength)
 	}

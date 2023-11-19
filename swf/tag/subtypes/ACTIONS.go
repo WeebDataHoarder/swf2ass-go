@@ -13,10 +13,10 @@ type CLIPACTIONS struct {
 
 type CLIPACTIONRECORDS []CLIPACTIONRECORD
 
-func (records *CLIPACTIONRECORDS) SWFRead(r types.DataReader, swfVersion uint8) (err error) {
+func (records *CLIPACTIONRECORDS) SWFRead(r types.DataReader, ctx types.ReaderContext) (err error) {
 	for {
 		var flags CLIPEVENTFLAGS
-		err = types.ReadType(r, swfVersion, &flags)
+		err = types.ReadType(r, ctx, &flags)
 		if err != nil {
 			return err
 		}
@@ -26,7 +26,7 @@ func (records *CLIPACTIONRECORDS) SWFRead(r types.DataReader, swfVersion uint8) 
 		record := CLIPACTIONRECORD{
 			EventFlags: flags,
 		}
-		err = types.ReadType(r, swfVersion, &record)
+		err = types.ReadType(r, ctx, &record)
 		if err != nil {
 			return err
 		}
@@ -42,7 +42,7 @@ type CLIPACTIONRECORD struct {
 	Actions          []ACTIONRECORD
 }
 
-func (clipRecord *CLIPACTIONRECORD) SWFRead(r types.DataReader, swfVersion uint8) (err error) {
+func (clipRecord *CLIPACTIONRECORD) SWFRead(r types.DataReader, ctx types.ReaderContext) (err error) {
 	err = types.ReadU32(r, &clipRecord.ActionRecordSize)
 	if err != nil {
 		return err
@@ -58,7 +58,7 @@ func (clipRecord *CLIPACTIONRECORD) SWFRead(r types.DataReader, swfVersion uint8
 	//TODO: check
 	for uint32(countReader.BitsCount/8) < clipRecord.ActionRecordSize {
 		var record ACTIONRECORD
-		err = types.ReadType(countReader, swfVersion, &record)
+		err = types.ReadType(countReader, ctx, &record)
 		if err != nil {
 			return err
 		}
@@ -104,17 +104,113 @@ func (f *CLIPEVENTFLAGS) IsEnd() bool {
 	return *f == CLIPEVENTFLAGS{}
 }
 
-func (f *CLIPEVENTFLAGS) IsSWF6OrGreater(swfVersion uint8) bool {
-	return swfVersion >= 6
+func (f *CLIPEVENTFLAGS) IsSWF6OrGreater(ctx types.ReaderContext) bool {
+	return ctx.Version >= 6
 }
+
+type ActionCode uint8
+
+// TODO: complete lists
+const (
+	_ = ActionCode(iota)
+	_
+	_
+	_
+	ActionNextFrame
+	ActionPreviousFrame
+	ActionPlay
+	ActionStop
+	ActionToggleQuality
+	ActionStopSounds
+	ActionAdd
+	ActionSubtract
+	ActionMultiply
+	ActionDivide
+	ActionEquals
+	ActionLess
+	ActionAnd
+	ActionOr
+	ActionNot
+	ActionStringEquals
+	ActionStringLength
+	ActionStringAdd
+	ActionStringExtract
+	ActionPop
+	ActionToInteger
+	_
+	_
+	_
+	ActionGetVariable
+	ActionSetVariable
+	_
+	_
+	ActionSetTarget2
+	_
+	ActionGetProperty
+	ActionSetProperty
+	ActionCloneSprite
+	ActionRemoveSprite
+	ActionTrace
+	ActionStartDrag
+	ActionEndDrag
+	ActionStringLess
+	_
+	_
+	_
+	_
+	_
+	_
+	ActionRandomNumber
+	ActionMBStringLength
+	ActionCharToAscii
+	ActionAsciiToChar
+	ActionGetTime
+	ActionMBStringExtract
+	ActionMBCharToAscii
+	ActionMBAsciiToChar
+)
+const (
+	_ = ActionCode(iota) + 0x80
+	ActionGotoFrame
+	ActionGetURL
+	_ //83
+	_
+	_
+	_
+	_
+	_
+	_
+	ActionWaitForFrame // 0x8A
+	ActionSetTarget
+	ActionGoToLabel
+	ActionWaitForFrame2
+	_
+	_
+	_ //0x90
+	_
+	_
+	_
+	_
+	_
+	ActionPush
+	_
+	_
+	ActionJump
+	ActionGetURL2
+	_
+	_
+	ActionIf
+	ActionCall
+	ActionGotoFrame2
+)
 
 type ACTIONRECORD struct {
 	_          struct{} `swfFlags:"root"`
-	ActionCode uint8
+	ActionCode ActionCode
 	Length     uint16  `swfCondition:"HasActionLength()"`
 	Data       []uint8 `swfCount:"Length"`
 }
 
-func (a *ACTIONRECORD) HasActionLength(swfVersion uint8) bool {
+func (a *ACTIONRECORD) HasActionLength(ctx types.ReaderContext) bool {
 	return a.ActionCode > 0x80
 }

@@ -41,7 +41,7 @@ type PlaceObject3 struct {
 	ClipActions       subtypes.CLIPACTIONS          `swfCondition:"Flag.HasClipActions"`
 }
 
-func (t *PlaceObject3) HasClassName(swfVersion uint8) bool {
+func (t *PlaceObject3) HasClassName(ctx types.ReaderContext) bool {
 	return t.Flag.HasClassName || (t.Flag.HasName && t.Flag.HasImage)
 }
 
