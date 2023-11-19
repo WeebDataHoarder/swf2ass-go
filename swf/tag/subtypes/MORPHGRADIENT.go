@@ -5,8 +5,8 @@ import (
 )
 
 type MORPHGRADIENT struct {
-	_            struct{}          `swfFlags:"root"`
-	NumGradients uint8             `swfBits:",4"`
+	_            struct{} `swfFlags:"root"`
+	NumGradients uint8
 	Records      []MORPHGRADRECORD `swfCount:"NumGradients"`
 }
 

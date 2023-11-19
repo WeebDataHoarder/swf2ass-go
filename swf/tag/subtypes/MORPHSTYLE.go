@@ -56,15 +56,11 @@ func (s *MORPHFILLSTYLE) HasRGB(ctx types.ReaderContext) bool {
 }
 
 func (s *MORPHFILLSTYLE) HasGradientMatrix(ctx types.ReaderContext) bool {
-	return s.HasGradient(ctx) || s.HasFocalGradient(ctx)
+	return s.HasGradient(ctx)
 }
 
 func (s *MORPHFILLSTYLE) HasGradient(ctx types.ReaderContext) bool {
 	return s.FillStyleType == FillStyleLinearGradient || s.FillStyleType == FillStyleRadialGradient
-}
-
-func (s *MORPHFILLSTYLE) HasFocalGradient(ctx types.ReaderContext) bool {
-	return s.FillStyleType == FillStyleFocalRadialGradient
 }
 
 func (s *MORPHFILLSTYLE) HasBitmap(ctx types.ReaderContext) bool {
@@ -119,7 +115,7 @@ type MORPHLINESTYLE2 struct {
 		EndCapStyle        uint8 `swfBits:",2"`
 	}
 	MitterLimitFactor    uint16         `swfCondition:"HasMitterLimitFactor()"`
-	StartColor, EndColor color.RGBA     `swfCondition:"Flag.HasColor()"`
+	StartColor, EndColor color.RGBA     `swfCondition:"HasColor()"`
 	FillType             MORPHFILLSTYLE `swfCondition:"Flag.HasFill"`
 }
 
