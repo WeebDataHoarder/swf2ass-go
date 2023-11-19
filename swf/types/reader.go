@@ -11,7 +11,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"unsafe"
 )
 
 const DoParserDebug = false
@@ -673,78 +672,4 @@ func ReadTypeInner(r DataReader, ctx ReaderContext, data any) (err error) {
 	}
 
 	return nil
-}
-
-var basicTypes = []reflect.Type{
-	reflect.Bool:          reflect.TypeOf(false),
-	reflect.Int:           reflect.TypeOf(int(0)),
-	reflect.Int8:          reflect.TypeOf(int8(0)),
-	reflect.Int16:         reflect.TypeOf(int16(0)),
-	reflect.Int32:         reflect.TypeOf(int32(0)),
-	reflect.Int64:         reflect.TypeOf(int64(0)),
-	reflect.Uint:          reflect.TypeOf(uint(0)),
-	reflect.Uint8:         reflect.TypeOf(uint8(0)),
-	reflect.Uint16:        reflect.TypeOf(uint16(0)),
-	reflect.Uint32:        reflect.TypeOf(uint32(0)),
-	reflect.Uint64:        reflect.TypeOf(uint64(0)),
-	reflect.Uintptr:       reflect.TypeOf(uintptr(0)),
-	reflect.Float32:       reflect.TypeOf(float32(0)),
-	reflect.Float64:       reflect.TypeOf(float64(0)),
-	reflect.Complex64:     reflect.TypeOf(complex64(0)),
-	reflect.Complex128:    reflect.TypeOf(complex128(0)),
-	reflect.String:        reflect.TypeOf(""),
-	reflect.UnsafePointer: reflect.TypeOf(unsafe.Pointer(nil)),
-}
-
-func underlyingType(t reflect.Type) (ret reflect.Type) {
-	if t.Name() == "" {
-		// t is an unnamed type. the underlying type is t itself
-		return t
-	}
-	kind := t.Kind()
-	if ret = basicTypes[kind]; ret != nil {
-		return ret
-	}
-	switch kind {
-	case reflect.Array:
-		ret = reflect.ArrayOf(t.Len(), t.Elem())
-	case reflect.Chan:
-		ret = reflect.ChanOf(t.ChanDir(), t.Elem())
-	case reflect.Map:
-		ret = reflect.MapOf(t.Key(), t.Elem())
-	case reflect.Func:
-		n_in := t.NumIn()
-		n_out := t.NumOut()
-		in := make([]reflect.Type, n_in)
-		out := make([]reflect.Type, n_out)
-		for i := 0; i < n_in; i++ {
-			in[i] = t.In(i)
-		}
-		for i := 0; i < n_out; i++ {
-			out[i] = t.Out(i)
-		}
-		ret = reflect.FuncOf(in, out, t.IsVariadic())
-	case reflect.Interface:
-		// not supported
-	case reflect.Ptr:
-		ret = reflect.PtrTo(t.Elem())
-	case reflect.Slice:
-		ret = reflect.SliceOf(t.Elem())
-	case reflect.Struct:
-		// only partially supported: embedded fields
-		// and unexported fields may cause panic in reflect.StructOf()
-		defer func() {
-			// if a panic happens, return t unmodified
-			if recover() != nil && ret == nil {
-				ret = t
-			}
-		}()
-		n := t.NumField()
-		fields := make([]reflect.StructField, n)
-		for i := 0; i < n; i++ {
-			fields[i] = t.Field(i)
-		}
-		ret = reflect.StructOf(fields)
-	}
-	return ret
 }
