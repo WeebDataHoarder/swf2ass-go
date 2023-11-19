@@ -379,6 +379,11 @@ func ReadTypeInner(r DataReader, ctx ReaderContext, data any) (err error) {
 
 		structCtx.Flags = append(structCtx.Flags, flags...)
 
+		var lastBitsCachedPath string
+		var lastBitsCachedValue uint64
+		var lastConditionCachedPath string
+		var lastConditionCachedValue bool
+
 		n := dataElementType.NumField()
 		for i := 0; i < n; i++ {
 			fieldValue := dataElement.Field(i)
@@ -407,25 +412,34 @@ func ReadTypeInner(r DataReader, ctx ReaderContext, data any) (err error) {
 
 			//Check if we should read this entry or not
 			if swfTag := fieldType.Tag.Get("swfCondition"); swfTag != "" {
-				splits := strings.Split(swfTag, ".")
-				el := getNestedType(fieldCtx, splits...)
-
-				switch el.Kind() {
-				case reflect.Bool:
-					if !el.Bool() {
+				if swfTag == lastConditionCachedPath && lastConditionCachedPath != "" {
+					if !lastConditionCachedValue {
 						continue
 					}
-				case reflect.Func:
-					if el.Type().AssignableTo(typeFuncConditionalReflect) {
-						values := el.Call([]reflect.Value{reflect.ValueOf(fieldCtx)})
-						if !values[0].Bool() {
+				} else {
+					splits := strings.Split(swfTag, ".")
+					el := getNestedType(fieldCtx, splits...)
+
+					switch el.Kind() {
+					case reflect.Bool:
+						lastConditionCachedPath = swfTag
+						lastConditionCachedValue = el.Bool()
+						if !lastConditionCachedValue {
 							continue
 						}
-					} else {
-						return fmt.Errorf("invalid conditional method %s", swfTag)
+					case reflect.Func:
+						if el.Type().AssignableTo(typeFuncConditionalReflect) {
+							lastConditionCachedPath = swfTag
+							lastConditionCachedValue = el.Interface().(func(ctx ReaderContext) bool)(fieldCtx)
+							if !lastConditionCachedValue {
+								continue
+							}
+						} else {
+							return fmt.Errorf("invalid conditional method %s", swfTag)
+						}
+					default:
+						return fmt.Errorf("invalid conditional type %s", swfTag)
 					}
-				default:
-					return fmt.Errorf("invalid conditional type %s", swfTag)
 				}
 			}
 
@@ -434,48 +448,54 @@ func ReadTypeInner(r DataReader, ctx ReaderContext, data any) (err error) {
 			}
 
 			if swfTag := fieldType.Tag.Get("swfBits"); swfTag != "" {
-				entries := strings.Split(swfTag, ",")
-				splits := strings.Split(entries[0], ".")
-				addition := strings.Split(splits[len(splits)-1], "+")
-				var offset int64
-				if len(addition) == 2 {
-					splits[len(splits)-1] = addition[0]
-					offset, err = strconv.ParseInt(addition[1], 10, 0)
-					if err != nil {
-						return err
-					}
-				}
-				el := getNestedType(fieldCtx, splits...)
-
-				bitFlags := entries[1:]
 
 				var nbits uint64
+				entries := strings.Split(swfTag, ",")
+				bitFlags := entries[1:]
 
-				if len(splits) == 1 && len(splits[0]) == 0 && len(bitFlags) > 0 {
-					//numerical fixed
-					nbits, err = strconv.ParseUint(bitFlags[0], 10, 0)
-					if err != nil {
-						return err
-					}
+				if entries[0] == lastBitsCachedPath && lastBitsCachedPath != "" {
+					nbits = lastBitsCachedValue
 				} else {
-					switch el.Kind() {
-					case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-						nbits = el.Uint()
-					case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-						nbits = uint64(el.Int())
-					case reflect.Func:
-						if el.Type().AssignableTo(typeFuncNumberReflect) {
-							values := el.Call([]reflect.Value{reflect.ValueOf(fieldCtx)})
-							nbits = values[0].Uint()
-						} else {
-							return fmt.Errorf("invalid nbits method %s", swfTag)
+					splits := strings.Split(entries[0], ".")
+					addition := strings.Split(splits[len(splits)-1], "+")
+					var offset int64
+					if len(addition) == 2 {
+						splits[len(splits)-1] = addition[0]
+						offset, err = strconv.ParseInt(addition[1], 10, 0)
+						if err != nil {
+							return err
 						}
-					default:
-						return fmt.Errorf("invalid nbits type %s", swfTag)
 					}
-				}
 
-				nbits = uint64(int64(nbits) + offset)
+					el := getNestedType(fieldCtx, splits...)
+
+					if len(splits) == 1 && len(splits[0]) == 0 && len(bitFlags) > 0 {
+						//numerical fixed
+						nbits, err = strconv.ParseUint(bitFlags[0], 10, 0)
+						if err != nil {
+							return err
+						}
+					} else {
+						switch el.Kind() {
+						case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+							nbits = el.Uint()
+						case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+							nbits = uint64(el.Int())
+						case reflect.Func:
+							if el.Type().AssignableTo(typeFuncNumberReflect) {
+								nbits = el.Interface().(func(ctx ReaderContext) uint64)(fieldCtx)
+							} else {
+								return fmt.Errorf("invalid nbits method %s", swfTag)
+							}
+						default:
+							return fmt.Errorf("invalid nbits type %s", swfTag)
+						}
+					}
+
+					nbits = uint64(int64(nbits) + offset)
+					lastBitsCachedValue = nbits
+					lastBitsCachedPath = entries[0]
+				}
 
 				if DoParserDebug {
 					fmt.Printf("        reading %s %s(%s) from struct %s\n", fieldType.Name, fieldType.Type.Name(), fieldType.Type.Kind().String(), dataElementType.Name())
@@ -527,8 +547,7 @@ func ReadTypeInner(r DataReader, ctx ReaderContext, data any) (err error) {
 				number = uint64(el.Int())
 			case reflect.Func:
 				if el.Type().AssignableTo(typeFuncNumberReflect) {
-					values := el.Call([]reflect.Value{reflect.ValueOf(ctx)})
-					number = values[0].Uint()
+					number = el.Interface().(func(ctx ReaderContext) uint64)(ctx)
 				} else {
 					return fmt.Errorf("invalid count method %s", swfTag)
 				}
@@ -542,9 +561,9 @@ func ReadTypeInner(r DataReader, ctx ReaderContext, data any) (err error) {
 			switch el.Kind() {
 			case reflect.Func:
 				if el.Type().AssignableTo(typeFuncConditionalReflect) {
+					fnPtr := el.Interface().(func(ctx ReaderContext) bool)
 					readMoreRecords = func() bool {
-						values := el.Call([]reflect.Value{reflect.ValueOf(ctx)})
-						return values[0].Bool()
+						return fnPtr(ctx)
 					}
 				} else {
 					return fmt.Errorf("invalid more method %s", swfTag)
@@ -558,7 +577,21 @@ func ReadTypeInner(r DataReader, ctx ReaderContext, data any) (err error) {
 			return errors.New("unsupported pointer in slice")
 		}
 
-		newSlice := reflect.MakeSlice(dataElementType, 0, int(number))
+		//shortcuts
+		if number > 0 {
+			switch dataElement.Interface().(type) {
+			case []uint8:
+				d := make([]byte, number)
+				_, err = io.ReadFull(r, d)
+				if err != nil {
+					return err
+				}
+				dataElement.SetBytes(d)
+				return nil
+			}
+		}
+
+		newSlice := reflect.MakeSlice(dataElementType, 0, max(256, int(number)))
 		for readMoreRecords() {
 			value := reflect.New(sliceType)
 			err = ReadTypeInner(r, ctx, value.Interface())
