@@ -9,9 +9,9 @@ const (
 	_
 	RecordPlaceObject
 	RecordRemoveObject
+	RecordDefineBits
 	_
-	_
-	_
+	RecordJPEGTables
 	RecordSetBackgroundColor
 	_
 	_
@@ -23,8 +23,8 @@ const (
 	_
 	_
 	_
-	_
-	_
+	RecordDefineBitsLossless
+	RecordDefineBitsJPEG2
 	RecordDefineShape2
 	_
 	RecordProtect
@@ -38,18 +38,18 @@ const (
 	RecordDefineShape3
 	_
 	_
+	RecordDefineBitsJPEG3
+	RecordDefineBitsLossless2
 	_
 	_
-	_
-	_
-	_
+	RecordDefineSprite
 	_
 	_
 	_
 	RecordFrameLabel
 	_
 	_
-	_
+	RecordDefineMorphShape
 	_
 	_
 	_
@@ -87,7 +87,11 @@ const (
 	_
 	_
 	RecordDefineShape4
-	_
+	RecordDefineMorphShape2
 	_
 	RecordDefineSceneAndFrameLabelData
+	_
+	_
+	_
+	RecordDefineBitsJPEG4
 )

@@ -146,6 +146,7 @@ type LINESTYLE2 struct {
 		NoHScale, NoVScale bool
 		PixelHinting       bool
 		Reserved           uint8 `swfBits:",5"`
+		NoClose            bool
 		EndCapStyle        uint8 `swfBits:",2"`
 	}
 	MitterLimitFactor uint16     `swfCondition:"HasMitterLimitFactor()"`

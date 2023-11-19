@@ -6,7 +6,7 @@ import (
 )
 
 type DefineShape struct {
-	_           struct{} `swfFlags:"root,align"`
+	_           struct{} `swfFlags:"root"`
 	ShapeId     uint16
 	ShapeBounds types.Rectangle
 	Shapes      subtypes.SHAPEWITHSTYLE

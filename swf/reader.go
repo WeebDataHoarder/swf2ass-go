@@ -1,7 +1,6 @@
 package swf
 
 import (
-	"bytes"
 	"compress/zlib"
 	"encoding/binary"
 	"fmt"
@@ -96,65 +95,12 @@ func (r *Reader) Tag() (readTag tag.Tag, err error) {
 		return nil, err
 	}
 
-	bitReader := bitio.NewReader(bytes.NewReader(record.Data))
-
-	switch record.Code() {
-	case tag.RecordShowFrame:
-		readTag = &tag.ShowFrame{}
-	case tag.RecordPlaceObject:
-		readTag = &tag.PlaceObject{}
-	case tag.RecordRemoveObject:
-		readTag = &tag.RemoveObject{}
-	case tag.RecordPlaceObject2:
-		readTag = &tag.PlaceObject2{}
-	case tag.RecordRemoveObject2:
-		readTag = &tag.RemoveObject2{}
-	case tag.RecordPlaceObject3:
-		readTag = &tag.PlaceObject3{}
-	case tag.RecordEnd:
-		readTag = &tag.End{}
-	case tag.RecordSetBackgroundColor:
-		readTag = &tag.SetBackgroundColor{}
-	case tag.RecordProtect:
-		readTag = &tag.Protect{}
-	case tag.RecordFrameLabel:
-		readTag = &tag.FrameLabel{}
-	case tag.RecordDefineShape:
-		readTag = &tag.DefineShape{}
-	case tag.RecordDoAction:
-		readTag = &tag.DoAction{}
-	case tag.RecordDefineShape2:
-		readTag = &tag.DefineShape2{}
-	case tag.RecordDefineShape3:
-		readTag = &tag.DefineShape3{}
-	case tag.RecordDoInitAction:
-		readTag = &tag.DoInitAction{}
-	case tag.RecordFileAttributes:
-		readTag = &tag.FileAttributes{}
-	case tag.RecordMetadata:
-		readTag = &tag.Metadata{}
-	case tag.RecordDefineScalingGrid:
-		readTag = &tag.DefineScalingGrid{}
-	case tag.RecordDefineShape4:
-		readTag = &tag.DefineShape4{}
-	case tag.RecordDefineSceneAndFrameLabelData:
-		readTag = &tag.DefineSceneAndFrameLabelData{}
-
-	}
+	readTag, err = record.Decode()
 
 	if readTag == nil {
 		fmt.Printf("%d: len %d UNKNOWN\n", record.Code(), len(record.Data))
 	} else {
 		fmt.Printf("%d: len %d KNOWN %s\n", record.Code(), len(record.Data), reflect.ValueOf(readTag).Elem().Type().Name())
-		err = types.ReadType(bitReader, types.ReaderContext{
-			Version: r.header.Version,
-		}, readTag)
-		if err != nil {
-			return nil, err
-		}
-		if readTag.Code() != record.Code() {
-			panic("mismatch!")
-		}
 	}
 
 	return readTag, nil
