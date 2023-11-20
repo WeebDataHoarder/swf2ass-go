@@ -12,7 +12,7 @@ type RenderedObject struct {
 	MatrixTransform MatrixTransform
 }
 
-func (o RenderedObject) GetDepth() Depth {
+func (o *RenderedObject) GetDepth() Depth {
 	if len(o.Depth) > 0 && o.Depth[0] == 0 {
 		return o.Depth[1:]
 	}

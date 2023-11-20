@@ -32,6 +32,49 @@ type Line struct {
 	cachedEncode *string
 }
 
+func (l *Line) Transition(frameInfo types.FrameInformation, object *types.RenderedObject) *Line {
+	line := *l
+	line.End = frameInfo.GetFrameNumber()
+	line.Tags = make([]Tag, 0, len(l.Tags))
+	//TODO: clip?
+
+	if object.GetDepth().Equals(l.Layer) && object.ObjectId == l.ObjectId {
+		if len(object.DrawPathList) <= line.ShapeIndex {
+			return nil
+		}
+		command := object.DrawPathList[line.ShapeIndex]
+		for _, tag := range l.Tags {
+			if positioningTag, ok := tag.(PositioningTag); ok {
+				tag = positioningTag.TransitionMatrixTransform(&line, object.MatrixTransform)
+				if tag == nil {
+					return nil
+				}
+			}
+			if colorTag, ok := tag.(ColorTag); ok {
+				tag = colorTag.TransitionColor(&line, object.ColorTransform)
+				if tag == nil {
+					return nil
+				}
+			}
+			if colorTag, ok := tag.(PathTag); ok {
+				tag = colorTag.TransitionShape(&line, command.Commands)
+				if tag == nil {
+					return nil
+				}
+			}
+			if colorTag, ok := tag.(ClipPathTag); ok {
+				tag = colorTag.TransitionClipPath(&line, object.Clip)
+				if tag == nil {
+					return nil
+				}
+			}
+			line.Tags = append(line.Tags, tag)
+		}
+	}
+	line.DropCache()
+	return &line
+}
+
 func (l *Line) Encode(frameDuration time.Duration) string {
 	if frameDuration == 1000*time.Millisecond && l.cachedEncode != nil {
 		return *l.cachedEncode
@@ -92,10 +135,10 @@ func (l *Line) Equalish(o *Line) bool {
 		l.Encode(1000*time.Millisecond) == o.Encode(1000*time.Millisecond)
 }
 
-func LinesFromRenderObject(frameInfo types.FrameInformation, object types.RenderedObject, bakeTransforms bool) (out []Line) {
-	out = make([]Line, 0, len(object.DrawPathList))
+func LinesFromRenderObject(frameInfo types.FrameInformation, object *types.RenderedObject, bakeTransforms bool) (out []*Line) {
+	out = make([]*Line, 0, len(object.DrawPathList))
 	for i := range object.DrawPathList {
-		out = append(out, Line{
+		out = append(out, &Line{
 			Layer:      object.GetDepth(),
 			ShapeIndex: i,
 			ObjectId:   object.ObjectId,
