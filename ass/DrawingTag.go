@@ -4,12 +4,14 @@ import (
 	"fmt"
 	swftypes "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/records"
 	"strings"
 )
 
 type DrawingTag interface {
 	Tag
-	ApplyMatrixTransform(transform types.MatrixTransform, applyTranslation bool) DrawingTag
+	ApplyMatrixTransform(transform math.MatrixTransform, applyTranslation bool) DrawingTag
 	AsShape() *types.Shape
 	GetCommands(scale, precision int64) []string
 }
@@ -19,7 +21,7 @@ const DefaultDrawingPrecision = 2
 
 type BaseDrawingTag types.Shape
 
-func twipEntryToPrecisionAndScaleTag(tag string, scale, precision int64, vectors ...types.Vector2[swftypes.Twip]) string {
+func twipEntryToPrecisionAndScaleTag(tag string, scale, precision int64, vectors ...math.Vector2[swftypes.Twip]) string {
 	result := make([]string, 0, len(vectors)+1)
 	if len(tag) > 0 {
 		result = append(result, tag)
@@ -30,7 +32,7 @@ func twipEntryToPrecisionAndScaleTag(tag string, scale, precision int64, vectors
 	return strings.Join(result, " ")
 }
 
-func twipVectorToPrecisionAndScale(scale, precision int64, v types.Vector2[swftypes.Twip]) string {
+func twipVectorToPrecisionAndScale(scale, precision int64, v math.Vector2[swftypes.Twip]) string {
 	coords := v.Multiply(swftypes.Twip(scale))
 	return fmt.Sprintf("%.*f %.*f", precision, coords.X.Float64(), precision, coords.Y.Float64())
 }
@@ -41,10 +43,10 @@ func (b *BaseDrawingTag) AsShape() *types.Shape {
 
 func (b *BaseDrawingTag) GetCommands(scale, precision int64) []string {
 	commands := make([]string, 0, len(b.Edges)*2)
-	var lastEdge types.Record
+	var lastEdge records.Record
 
 	for _, edge := range b.Edges {
-		moveRecord, isMoveRecord := edge.(*types.MoveRecord)
+		moveRecord, isMoveRecord := edge.(*records.MoveRecord)
 		if !isMoveRecord {
 			if lastEdge == nil {
 				commands = append(commands, twipEntryToPrecisionAndScaleTag("m ", scale, precision, edge.GetStart()))
@@ -56,23 +58,23 @@ func (b *BaseDrawingTag) GetCommands(scale, precision int64) []string {
 
 		if isMoveRecord {
 			commands = append(commands, twipEntryToPrecisionAndScaleTag("m ", scale, precision, moveRecord.To))
-		} else if lineRecord, ok := edge.(*types.LineRecord); ok {
-			if _, ok = lastEdge.(*types.LineRecord); ok {
+		} else if lineRecord, ok := edge.(*records.LineRecord); ok {
+			if _, ok = lastEdge.(*records.LineRecord); ok {
 				commands = append(commands, twipEntryToPrecisionAndScaleTag("", scale, precision, lineRecord.To))
 			} else {
 				commands = append(commands, twipEntryToPrecisionAndScaleTag("l ", scale, precision, lineRecord.To))
 			}
-		} else if quadraticRecord, ok := edge.(*types.QuadraticCurveRecord); ok {
-			edge = types.CubicCurveFromQuadraticRecord(quadraticRecord)
+		} else if quadraticRecord, ok := edge.(*records.QuadraticCurveRecord); ok {
+			edge = records.CubicCurveFromQuadraticRecord(quadraticRecord)
 		}
 
-		if cubicRecord, ok := edge.(*types.CubicCurveRecord); ok {
-			if _, ok = lastEdge.(*types.CubicCurveRecord); ok {
+		if cubicRecord, ok := edge.(*records.CubicCurveRecord); ok {
+			if _, ok = lastEdge.(*records.CubicCurveRecord); ok {
 				commands = append(commands, twipEntryToPrecisionAndScaleTag("", scale, precision, cubicRecord.Control1, cubicRecord.Control2, cubicRecord.Anchor))
 			} else {
 				commands = append(commands, twipEntryToPrecisionAndScaleTag("b ", scale, precision, cubicRecord.Control1, cubicRecord.Control2, cubicRecord.Anchor))
 			}
-		} else if cubicSplineRecord, ok := edge.(*types.CubicSplineCurveRecord); ok {
+		} else if cubicSplineRecord, ok := edge.(*records.CubicSplineCurveRecord); ok {
 			_ = cubicSplineRecord
 			panic("not implemented")
 		}

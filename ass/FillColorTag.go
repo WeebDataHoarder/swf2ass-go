@@ -3,16 +3,17 @@ package ass
 import (
 	"fmt"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 )
 
 type FillColorTag struct {
-	Color         *types.Color
-	OriginalColor *types.Color
+	Color         *math.Color
+	OriginalColor *math.Color
 }
 
 func (t *FillColorTag) FromStyleRecord(record types.StyleRecord) StyleTag {
 	if fillStyleRecord, ok := record.(*types.FillStyleRecord); ok {
-		if color, ok := fillStyleRecord.Fill.(types.Color); ok {
+		if color, ok := fillStyleRecord.Fill.(math.Color); ok {
 			t.Color = &color
 			t.OriginalColor = &color
 		} else if gradient, ok := fillStyleRecord.Fill.(types.Gradient); ok {
@@ -36,7 +37,7 @@ func (t *FillColorTag) TransitionStyleRecord(line *Line, record types.StyleRecor
 	return t2
 }
 
-func (t *FillColorTag) ApplyColorTransform(transform types.ColorTransform) ColorTag {
+func (t *FillColorTag) ApplyColorTransform(transform math.ColorTransform) ColorTag {
 	color := t.Color
 	if t.OriginalColor != nil {
 		color2 := transform.ApplyToColor(*t.OriginalColor)
@@ -48,13 +49,13 @@ func (t *FillColorTag) ApplyColorTransform(transform types.ColorTransform) Color
 	}
 }
 
-func (t *FillColorTag) TransitionColor(line *Line, transform types.ColorTransform) ColorTag {
+func (t *FillColorTag) TransitionColor(line *Line, transform math.ColorTransform) ColorTag {
 	return t.ApplyColorTransform(transform)
 }
 
 func (t *FillColorTag) Equals(tag Tag) bool {
 	if o, ok := tag.(*LineColorTag); ok {
-		return (t.Color == o.Color || (t.Color != nil && t.Color.Equals(o.Color, true))) && (t.OriginalColor == o.OriginalColor || (t.OriginalColor != nil && t.OriginalColor.Equals(o.OriginalColor, true)))
+		return (t.Color == o.Color || (t.Color != nil && t.Color.Equals(*o.Color, true))) && (t.OriginalColor == o.OriginalColor || (t.OriginalColor != nil && t.OriginalColor.Equals(*o.OriginalColor, true)))
 	}
 	return false
 }

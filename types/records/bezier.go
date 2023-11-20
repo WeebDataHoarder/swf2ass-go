@@ -1,6 +1,7 @@
-package types
+package records
 
 import (
+	math2 "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"math"
 )
 
@@ -8,7 +9,7 @@ const BezierRecursionLimit = 32
 const BezierCurveCollinearityEpsilon = math.SmallestNonzeroFloat64
 const BezierCurveAngleToleranceEpsilon = 0.01
 
-func CubicRecursiveBezier(points []Vector2[float64], cuspLimit, angleTolerance, distanceToleranceSquare float64, v1, v2, v3, v4 Vector2[float64], level uint) []Vector2[float64] {
+func CubicRecursiveBezier(points []math2.Vector2[float64], cuspLimit, angleTolerance, distanceToleranceSquare float64, v1, v2, v3, v4 math2.Vector2[float64], level uint) []math2.Vector2[float64] {
 	if level > BezierRecursionLimit {
 		return points
 	}
@@ -72,7 +73,7 @@ func CubicRecursiveBezier(points []Vector2[float64], cuspLimit, angleTolerance, 
 			} else if d2 >= 1 {
 				d2 = v2.SquaredDistance(v4)
 			} else {
-				d2 = v2.SquaredDistance(v1.AddVector(NewVector2(d2*dx, d2*dy)))
+				d2 = v2.SquaredDistance(v1.AddVector(math2.NewVector2(d2*dx, d2*dy)))
 			}
 
 			if d3 <= 0 {
@@ -80,7 +81,7 @@ func CubicRecursiveBezier(points []Vector2[float64], cuspLimit, angleTolerance, 
 			} else if d3 >= 1 {
 				d3 = v3.SquaredDistance(v4)
 			} else {
-				d3 = v3.SquaredDistance(v1.AddVector(NewVector2(d2*dx, d2*dy)))
+				d3 = v3.SquaredDistance(v1.AddVector(math2.NewVector2(d2*dx, d2*dy)))
 			}
 		}
 		if d2 > d3 {
@@ -99,7 +100,7 @@ func CubicRecursiveBezier(points []Vector2[float64], cuspLimit, angleTolerance, 
 		//----------------------
 		if d3*d3 <= distanceToleranceSquare*(dx*dx+dy*dy) {
 			if angleTolerance < BezierCurveAngleToleranceEpsilon {
-				return append(points, NewVector2(x23, y23))
+				return append(points, math2.NewVector2(x23, y23))
 			}
 
 			// Angle Condition
@@ -126,7 +127,7 @@ func CubicRecursiveBezier(points []Vector2[float64], cuspLimit, angleTolerance, 
 		//----------------------
 		if d2*d2 <= distanceToleranceSquare*(dx*dx+dy*dy) {
 			if angleTolerance < BezierCurveAngleToleranceEpsilon {
-				return append(points, NewVector2(x23, y23))
+				return append(points, math2.NewVector2(x23, y23))
 			}
 
 			// Angle Condition
@@ -156,7 +157,7 @@ func CubicRecursiveBezier(points []Vector2[float64], cuspLimit, angleTolerance, 
 			// we tend to finish subdivisions.
 			//----------------------
 			if angleTolerance < BezierCurveAngleToleranceEpsilon {
-				return append(points, NewVector2(x23, y23))
+				return append(points, math2.NewVector2(x23, y23))
 			}
 
 			// Angle & Cusp Condition
@@ -174,7 +175,7 @@ func CubicRecursiveBezier(points []Vector2[float64], cuspLimit, angleTolerance, 
 			if da1+da2 < angleTolerance {
 				// Finally we can stop the recursion
 				//----------------------
-				return append(points, NewVector2(x23, y23))
+				return append(points, math2.NewVector2(x23, y23))
 			}
 
 			if cuspLimit != 0.0 {
@@ -192,11 +193,11 @@ func CubicRecursiveBezier(points []Vector2[float64], cuspLimit, angleTolerance, 
 
 	// Continue subdivision
 	//----------------------
-	points = append(points, CubicRecursiveBezier(points, cuspLimit, angleTolerance, distanceToleranceSquare, v1, NewVector2(x12, y12), NewVector2(x123, y123), NewVector2(x1234, y1234), level+1)...)
-	return append(points, CubicRecursiveBezier(points, cuspLimit, angleTolerance, distanceToleranceSquare, NewVector2(x1234, y1234), NewVector2(x234, y234), NewVector2(x34, y34), v4, level+1)...)
+	points = append(points, CubicRecursiveBezier(points, cuspLimit, angleTolerance, distanceToleranceSquare, v1, math2.NewVector2(x12, y12), math2.NewVector2(x123, y123), math2.NewVector2(x1234, y1234), level+1)...)
+	return append(points, CubicRecursiveBezier(points, cuspLimit, angleTolerance, distanceToleranceSquare, math2.NewVector2(x1234, y1234), math2.NewVector2(x234, y234), math2.NewVector2(x34, y34), v4, level+1)...)
 }
 
-func QuadraticRecursiveBezier(points []Vector2[float64], angleTolerance, distanceToleranceSquare float64, v1, v2, v3 Vector2[float64], level uint) []Vector2[float64] {
+func QuadraticRecursiveBezier(points []math2.Vector2[float64], angleTolerance, distanceToleranceSquare float64, v1, v2, v3 math2.Vector2[float64], level uint) []math2.Vector2[float64] {
 	if level > BezierRecursionLimit {
 		return points
 	}
@@ -222,7 +223,7 @@ func QuadraticRecursiveBezier(points []Vector2[float64], angleTolerance, distanc
 			// we tend to finish subdivisions.
 			//----------------------
 			if angleTolerance < BezierCurveAngleToleranceEpsilon {
-				return append(points, NewVector2(x123, y123))
+				return append(points, math2.NewVector2(x123, y123))
 			}
 
 			// Angle & Cusp Condition
@@ -235,7 +236,7 @@ func QuadraticRecursiveBezier(points []Vector2[float64], angleTolerance, distanc
 			if da < angleTolerance {
 				// Finally we can stop the recursion
 				//----------------------
-				return append(points, NewVector2(x123, y123))
+				return append(points, math2.NewVector2(x123, y123))
 			}
 		}
 	} else {
@@ -257,7 +258,7 @@ func QuadraticRecursiveBezier(points []Vector2[float64], angleTolerance, distanc
 			} else if d >= 1 {
 				d = v2.SquaredDistance(v3)
 			} else {
-				d = v2.SquaredDistance(v1.AddVector(NewVector2(d*dx, d*dy)))
+				d = v2.SquaredDistance(v1.AddVector(math2.NewVector2(d*dx, d*dy)))
 			}
 		}
 		if d < distanceToleranceSquare {
@@ -267,6 +268,6 @@ func QuadraticRecursiveBezier(points []Vector2[float64], angleTolerance, distanc
 
 	// Continue subdivision
 	//----------------------
-	points = append(points, QuadraticRecursiveBezier(points, angleTolerance, distanceToleranceSquare, v1, NewVector2(x12, y12), NewVector2(x123, y123), level+1)...)
-	return append(points, QuadraticRecursiveBezier(points, angleTolerance, distanceToleranceSquare, NewVector2(x123, y123), NewVector2(x23, y23), v3, level+1)...)
+	points = append(points, QuadraticRecursiveBezier(points, angleTolerance, distanceToleranceSquare, v1, math2.NewVector2(x12, y12), math2.NewVector2(x123, y123), level+1)...)
+	return append(points, QuadraticRecursiveBezier(points, angleTolerance, distanceToleranceSquare, math2.NewVector2(x123, y123), math2.NewVector2(x23, y23), v3, level+1)...)
 }

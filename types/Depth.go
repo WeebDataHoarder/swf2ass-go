@@ -11,16 +11,19 @@ type Depth []uint16
 // Segment depth into specific layers, leaving 2^16 for first, at least 2^8 for second (and 2^8 for third), if no third it'll use whole for second TODO: handle higher depths gracefully
 // It is known layers CAN overlap, TODO: check if limiting range might make sense?
 // TODO: change this to a truly dynamic mode. might need 2-pass to check for hole overlap
-func (d Depth) GetPackedLayer() (layer uint32) {
+// libass reads this onto an int32, TODO it overflows onto negative?
+// Additionally the order of fields has extra read order. earlier lines have lower effective layer than later lines, if layers are equal
+func (d Depth) GetPackedLayer() (layer int32) {
 	if len(d) == 0 {
 		return 0
 	}
-	layer = uint32(d[0]) << 16
+
+	layer = int32(d[0]) << 16
 	if len(d) > 2 {
-		layer |= uint32(d[1]&0xFF) << 8
-		layer |= uint32(d[2] & 0xFF)
+		layer |= int32(d[1]&0xFF) << 8
+		layer |= int32(d[2] & 0xFF)
 	} else if len(d) > 1 {
-		layer |= uint32(d[1])
+		layer |= int32(d[1])
 	}
 	return layer
 }

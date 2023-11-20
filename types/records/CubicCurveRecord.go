@@ -1,21 +1,22 @@
-package types
+package records
 
 import (
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
+	math2 "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"math"
 )
 
 type CubicCurveRecord struct {
-	Control1, Control2 Vector2[types.Twip]
-	Anchor             Vector2[types.Twip]
-	Start              Vector2[types.Twip]
+	Control1, Control2 math2.Vector2[types.Twip]
+	Anchor             math2.Vector2[types.Twip]
+	Start              math2.Vector2[types.Twip]
 }
 
-func (r *CubicCurveRecord) GetStart() Vector2[types.Twip] {
+func (r *CubicCurveRecord) GetStart() math2.Vector2[types.Twip] {
 	return r.Start
 }
 
-func (r *CubicCurveRecord) GetEnd() Vector2[types.Twip] {
+func (r *CubicCurveRecord) GetEnd() math2.Vector2[types.Twip] {
 	return r.Anchor
 }
 
@@ -28,13 +29,13 @@ func (r *CubicCurveRecord) Reverse() Record {
 	}
 }
 
-func (r *CubicCurveRecord) ApplyMatrixTransform(transform MatrixTransform, applyTranslation bool) Record {
+func (r *CubicCurveRecord) ApplyMatrixTransform(transform math2.MatrixTransform, applyTranslation bool) Record {
 	//TODO: see how accurate this is
 	return &CubicCurveRecord{
-		Control1: Vector2ToType[float64, types.Twip](transform.ApplyToVector(r.Control1.Float64().Divide(types.TwipFactor), applyTranslation).Multiply(types.TwipFactor)),
-		Control2: Vector2ToType[float64, types.Twip](transform.ApplyToVector(r.Control2.Float64().Divide(types.TwipFactor), applyTranslation).Multiply(types.TwipFactor)),
-		Anchor:   Vector2ToType[float64, types.Twip](transform.ApplyToVector(r.Anchor.Float64().Divide(types.TwipFactor), applyTranslation).Multiply(types.TwipFactor)),
-		Start:    Vector2ToType[float64, types.Twip](transform.ApplyToVector(r.Start.Float64().Divide(types.TwipFactor), applyTranslation).Multiply(types.TwipFactor)),
+		Control1: math2.Vector2ToType[float64, types.Twip](transform.ApplyToVector(r.Control1.Float64().Divide(types.TwipFactor), applyTranslation).Multiply(types.TwipFactor)),
+		Control2: math2.Vector2ToType[float64, types.Twip](transform.ApplyToVector(r.Control2.Float64().Divide(types.TwipFactor), applyTranslation).Multiply(types.TwipFactor)),
+		Anchor:   math2.Vector2ToType[float64, types.Twip](transform.ApplyToVector(r.Anchor.Float64().Divide(types.TwipFactor), applyTranslation).Multiply(types.TwipFactor)),
+		Start:    math2.Vector2ToType[float64, types.Twip](transform.ApplyToVector(r.Start.Float64().Divide(types.TwipFactor), applyTranslation).Multiply(types.TwipFactor)),
 	}
 }
 
@@ -81,7 +82,7 @@ func (r *CubicCurveRecord) ToLineRecords(scale int64) []*LineRecord {
 	var current = r.Start
 
 	for _, point := range points {
-		tp := Vector2ToType[float64, types.Twip](point.Multiply(types.TwipFactor))
+		tp := math2.Vector2ToType[float64, types.Twip](point.Multiply(types.TwipFactor))
 		result = append(result, &LineRecord{
 			To:    tp,
 			Start: current,

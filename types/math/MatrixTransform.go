@@ -1,4 +1,4 @@
-package types
+package math
 
 import (
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
@@ -72,6 +72,12 @@ func (m MatrixTransform) Multiply(o MatrixTransform) MatrixTransform {
 	}
 }
 
+var identityTransform = IdentityTransform()
+
+func (m MatrixTransform) IsIdentity() bool {
+	return m.EqualsExact(identityTransform)
+}
+
 func (m MatrixTransform) GetA() float64 {
 	return m.matrix.At(0, 0)
 }
@@ -114,15 +120,6 @@ func (m MatrixTransform) ApplyToVector(v Vector2[float64], applyTranslation bool
 		r.Mul(mat.NewVecDense(2, []float64{v.X, v.Y}), m.matrix.Slice(0, 0, 1, 1))
 	}
 	return NewVector2[float64](r.At(0, 0), r.At(0, 1))
-}
-
-func (m MatrixTransform) ApplyToShape(shape *Shape, applyTranslation bool) *Shape {
-	newShape := NewShape(nil)
-	newShape.Edges = make([]Record, 0, len(shape.Edges))
-	for _, edge := range shape.Edges {
-		newShape.AddRecord(edge.ApplyMatrixTransform(m, applyTranslation))
-	}
-	return newShape
 }
 
 func (m MatrixTransform) EqualsExact(o MatrixTransform) bool {

@@ -4,19 +4,20 @@ import (
 	"fmt"
 	swftypes "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 )
 
 type BorderTag struct {
-	Size types.Vector2[swftypes.Twip]
+	Size math.Vector2[swftypes.Twip]
 }
 
 func (t *BorderTag) FromStyleRecord(record types.StyleRecord) StyleTag {
 	if lineStyleRecord, ok := record.(*types.LineStyleRecord); ok {
-		t.Size = types.NewVector2[swftypes.Twip](lineStyleRecord.Width, lineStyleRecord.Width)
+		t.Size = math.NewVector2[swftypes.Twip](lineStyleRecord.Width, lineStyleRecord.Width)
 	} else if fillStyleRecord, ok := record.(*types.FillStyleRecord); ok && fillStyleRecord.Border != nil {
-		t.Size = types.NewVector2[swftypes.Twip](fillStyleRecord.Border.Width, fillStyleRecord.Border.Width)
+		t.Size = math.NewVector2[swftypes.Twip](fillStyleRecord.Border.Width, fillStyleRecord.Border.Width)
 	} else {
-		t.Size = types.NewVector2[swftypes.Twip](0, 0)
+		t.Size = math.NewVector2[swftypes.Twip](0, 0)
 	}
 	return t
 }

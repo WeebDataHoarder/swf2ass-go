@@ -3,6 +3,7 @@ package ass
 import (
 	"fmt"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"strings"
 )
 
@@ -18,9 +19,9 @@ func NewDrawTag(shape *types.Shape, scale int64) *DrawTag {
 	}
 }
 
-func (t *DrawTag) ApplyMatrixTransform(transform types.MatrixTransform, applyTranslation bool) DrawingTag {
+func (t *DrawTag) ApplyMatrixTransform(transform math.MatrixTransform, applyTranslation bool) DrawingTag {
 	return &DrawTag{
-		BaseDrawingTag: BaseDrawingTag(*transform.ApplyToShape(t.AsShape(), applyTranslation)),
+		BaseDrawingTag: BaseDrawingTag(*t.AsShape().ApplyMatrixTransform(transform, applyTranslation)),
 	}
 }
 
@@ -39,7 +40,7 @@ func (t *DrawTag) Equals(tag Tag) bool {
 }
 
 func (t *DrawTag) Encode(event EventTime) string {
-	scaleMultiplier := 1 << t.Scale
+	scaleMultiplier := int64(1 << t.Scale)
 	precision := DefaultDrawingPrecision
 	if t.Scale >= 5 {
 		precision = 0

@@ -1,4 +1,4 @@
-package types
+package math
 
 import (
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
@@ -20,26 +20,30 @@ type ColorTransform struct {
 	}
 }
 
-func (t ColorTransform) ApplyToStyleRecord(record StyleRecord) StyleRecord {
-	if lineStyleRecord, ok := record.(*LineStyleRecord); ok {
-		return &LineStyleRecord{
-			Width: lineStyleRecord.Width,
-			Color: t.ApplyToColor(lineStyleRecord.Color),
-		}
-	} else if fillStyleRecord, ok := record.(*FillStyleRecord); ok {
-		fill := fillStyleRecord.Fill
-		if color, ok := fill.(Color); ok {
-			fill = t.ApplyToColor(color)
-		} else if gradient, ok := fill.(Gradient); ok {
-			fill = gradient.ApplyColorTransform(t)
-		}
-		return &FillStyleRecord{
-			Border: fillStyleRecord.Border,
-			Fill:   fill,
-		}
-	} else {
-		panic("not implemented")
+func IdentityColorTransform() ColorTransform {
+	return ColorTransform{
+		Multiply: struct {
+			Red   types.Fixed8
+			Green types.Fixed8
+			Blue  types.Fixed8
+			Alpha types.Fixed8
+		}{
+			Red:   256,
+			Green: 256,
+			Blue:  256,
+			Alpha: 256,
+		},
+		Add: struct {
+			Red   int16
+			Green int16
+			Blue  int16
+			Alpha int16
+		}{},
 	}
+}
+
+func (t ColorTransform) IsIdentity() bool {
+	return t.Add.Red == 0 && t.Add.Green == 0 && t.Add.Blue == 0 && t.Add.Alpha == 0 && t.Multiply.Red == 256 && t.Multiply.Green == 256 && t.Multiply.Blue == 256 && t.Multiply.Alpha == 256
 }
 
 func (t ColorTransform) ApplyMultiplyToColor(color Color) Color {

@@ -3,17 +3,17 @@ package ass
 import (
 	"fmt"
 	swftypes "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
+	math2 "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"math"
 )
 
 type PositionTag struct {
-	From, To   types.Vector2[swftypes.Twip]
+	From, To   math2.Vector2[swftypes.Twip]
 	Start, End int64
 }
 
-func (t *PositionTag) TransitionMatrixTransform(line *Line, transform types.MatrixTransform) PositioningTag {
-	translation := types.Vector2ToType[float64, swftypes.Twip](transform.ApplyToVector(types.NewVector2[float64](0, 0), true).Multiply(swftypes.TwipFactor))
+func (t *PositionTag) TransitionMatrixTransform(line *Line, transform math2.MatrixTransform) PositioningTag {
+	translation := math2.Vector2ToType[float64, swftypes.Twip](transform.ApplyToVector(math2.NewVector2[float64](0, 0), true).Multiply(swftypes.TwipFactor))
 
 	frame := line.End - line.Start
 
@@ -103,8 +103,8 @@ func (t *PositionTag) Equals(tag Tag) bool {
 	return false
 }
 
-func (t *PositionTag) FromMatrixTransform(transform types.MatrixTransform) PositioningTag {
-	translation := types.Vector2ToType[float64, swftypes.Twip](transform.ApplyToVector(types.NewVector2[float64](0, 0), true).Multiply(swftypes.TwipFactor))
+func (t *PositionTag) FromMatrixTransform(transform math2.MatrixTransform) PositioningTag {
+	translation := math2.Vector2ToType[float64, swftypes.Twip](transform.ApplyToVector(math2.NewVector2[float64](0, 0), true).Multiply(swftypes.TwipFactor))
 	t.From = translation
 	t.To = translation
 	t.Start = 1

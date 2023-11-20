@@ -1,21 +1,22 @@
-package types
+package records
 
 import (
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
+	math2 "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"math"
 )
 
 type QuadraticCurveRecord struct {
-	Control Vector2[types.Twip]
-	Anchor  Vector2[types.Twip]
-	Start   Vector2[types.Twip]
+	Control math2.Vector2[types.Twip]
+	Anchor  math2.Vector2[types.Twip]
+	Start   math2.Vector2[types.Twip]
 }
 
-func (r *QuadraticCurveRecord) GetStart() Vector2[types.Twip] {
+func (r *QuadraticCurveRecord) GetStart() math2.Vector2[types.Twip] {
 	return r.Start
 }
 
-func (r *QuadraticCurveRecord) GetEnd() Vector2[types.Twip] {
+func (r *QuadraticCurveRecord) GetEnd() math2.Vector2[types.Twip] {
 	return r.Anchor
 }
 
@@ -27,12 +28,12 @@ func (r *QuadraticCurveRecord) Reverse() Record {
 	}
 }
 
-func (r *QuadraticCurveRecord) ApplyMatrixTransform(transform MatrixTransform, applyTranslation bool) Record {
+func (r *QuadraticCurveRecord) ApplyMatrixTransform(transform math2.MatrixTransform, applyTranslation bool) Record {
 	//TODO: see how accurate this is
 	return &QuadraticCurveRecord{
-		Control: Vector2ToType[float64, types.Twip](transform.ApplyToVector(r.Control.Float64().Divide(types.TwipFactor), applyTranslation).Multiply(types.TwipFactor)),
-		Anchor:  Vector2ToType[float64, types.Twip](transform.ApplyToVector(r.Anchor.Float64().Divide(types.TwipFactor), applyTranslation).Multiply(types.TwipFactor)),
-		Start:   Vector2ToType[float64, types.Twip](transform.ApplyToVector(r.Start.Float64().Divide(types.TwipFactor), applyTranslation).Multiply(types.TwipFactor)),
+		Control: math2.Vector2ToType[float64, types.Twip](transform.ApplyToVector(r.Control.Float64().Divide(types.TwipFactor), applyTranslation).Multiply(types.TwipFactor)),
+		Anchor:  math2.Vector2ToType[float64, types.Twip](transform.ApplyToVector(r.Anchor.Float64().Divide(types.TwipFactor), applyTranslation).Multiply(types.TwipFactor)),
+		Start:   math2.Vector2ToType[float64, types.Twip](transform.ApplyToVector(r.Start.Float64().Divide(types.TwipFactor), applyTranslation).Multiply(types.TwipFactor)),
 	}
 }
 
@@ -65,7 +66,7 @@ func (r *QuadraticCurveRecord) ToLineRecords(scale int64) []*LineRecord {
 	var current = r.Start
 
 	for _, point := range points {
-		tp := Vector2ToType[float64, types.Twip](point.Multiply(types.TwipFactor))
+		tp := math2.Vector2ToType[float64, types.Twip](point.Multiply(types.TwipFactor))
 		result = append(result, &LineRecord{
 			To:    tp,
 			Start: current,

@@ -2,7 +2,7 @@ package ass
 
 import (
 	"fmt"
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
+	math2 "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"math"
 )
 
@@ -10,7 +10,7 @@ type RotationTag struct {
 	RotationX, RotationY, RotationZ float64
 }
 
-func (t *RotationTag) TransitionMatrixTransform(line *Line, transform types.MatrixTransform) PositioningTag {
+func (t *RotationTag) TransitionMatrixTransform(line *Line, transform math2.MatrixTransform) PositioningTag {
 	panic("not implemented")
 }
 
@@ -26,7 +26,7 @@ func (t *RotationTag) Equals(tag Tag) bool {
 	return false
 }
 
-func (t *RotationTag) FromMatrixTransform(transform types.MatrixTransform) PositioningTag {
+func (t *RotationTag) FromMatrixTransform(transform math2.MatrixTransform) PositioningTag {
 	//maybe qr decomposition?
 	panic("not implemented")
 }

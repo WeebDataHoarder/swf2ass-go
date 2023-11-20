@@ -2,14 +2,14 @@ package ass
 
 import (
 	"fmt"
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 )
 
 type ShearingTag struct {
-	Shear types.Vector2[float64]
+	Shear math.Vector2[float64]
 }
 
-func (t *ShearingTag) TransitionMatrixTransform(line *Line, transform types.MatrixTransform) PositioningTag {
+func (t *ShearingTag) TransitionMatrixTransform(line *Line, transform math.MatrixTransform) PositioningTag {
 	panic("not implemented")
 }
 
@@ -25,7 +25,7 @@ func (t *ShearingTag) Equals(tag Tag) bool {
 	return false
 }
 
-func (t *ShearingTag) FromMatrixTransform(transform types.MatrixTransform) PositioningTag {
+func (t *ShearingTag) FromMatrixTransform(transform math.MatrixTransform) PositioningTag {
 	//maybe qr decomposition?
 	panic("not implemented")
 }

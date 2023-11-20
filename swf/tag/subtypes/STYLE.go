@@ -2,7 +2,6 @@ package subtypes
 
 import (
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
-	"image/color"
 	"slices"
 )
 
@@ -150,7 +149,7 @@ type LINESTYLE2 struct {
 		EndCapStyle        uint8 `swfBits:",2"`
 	}
 	MitterLimitFactor uint16     `swfCondition:"HasMitterLimitFactor()"`
-	Color             color.RGBA `swfCondition:"HasColor()"`
+	Color             types.RGBA `swfCondition:"HasColor()"`
 	FillType          FILLSTYLE  `swfCondition:"Flag.HasFill"`
 }
 

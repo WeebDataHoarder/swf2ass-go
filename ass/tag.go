@@ -2,6 +2,7 @@ package ass
 
 import (
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 )
 
 type Tag interface {
@@ -17,8 +18,8 @@ type StyleTag interface {
 
 type PositioningTag interface {
 	Tag
-	TransitionMatrixTransform(line *Line, transform types.MatrixTransform) PositioningTag
-	FromMatrixTransform(transform types.MatrixTransform) PositioningTag
+	TransitionMatrixTransform(line *Line, transform math.MatrixTransform) PositioningTag
+	FromMatrixTransform(transform math.MatrixTransform) PositioningTag
 }
 
 type PathTag interface {
@@ -33,6 +34,6 @@ type ClipPathTag interface {
 
 type ColorTag interface {
 	Tag
-	ApplyColorTransform(transform types.ColorTransform) ColorTag
-	TransitionColor(line *Line, transform types.ColorTransform) ColorTag
+	ApplyColorTransform(transform math.ColorTransform) ColorTag
+	TransitionColor(line *Line, transform math.ColorTransform) ColorTag
 }

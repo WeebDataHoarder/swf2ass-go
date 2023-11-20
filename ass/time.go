@@ -93,3 +93,15 @@ func (t EventTime) Slice(frameOffset uint64, frameDuration uint64) EventTime {
 	return NewEventTime(t.StartFrame+frameOffset, t.FrameDuration)
 }
 */
+
+// StringToTimecode Emulates libass parsing
+func StringToTimecode(p string) int64 {
+	var h, m, s, ms int
+	var tm int64
+	res, _ := fmt.Sscanf(p, "%d:%d:%d.%d", &h, &m, &s, &ms)
+	if res < 4 {
+		return 0
+	}
+	tm = ((int64(h)*60+int64(m))*60+int64(s))*1000 + int64(ms)*10
+	return tm
+}

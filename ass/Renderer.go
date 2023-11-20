@@ -4,6 +4,8 @@ import (
 	"fmt"
 	swftypes "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
 	"slices"
 )
 
@@ -12,7 +14,7 @@ type Renderer struct {
 	RunningBuffer []*Line
 }
 
-func NewRenderer(frameRate float64, viewPort types.Rectangle[swftypes.Twip]) *Renderer {
+func NewRenderer(frameRate float64, viewPort shapes.Rectangle[swftypes.Twip]) *Renderer {
 	display := viewPort.Divide(swftypes.TwipFactor)
 
 	width := int64(display.Width()) * GlobalSettings.VideoScaleMultiplier
@@ -64,7 +66,7 @@ func (r *Renderer) RenderFrame(frameInfo types.FrameInformation, frame types.Ren
 
 	var runningBuffer []*Line
 
-	scale := types.ScaleTransform(types.NewVector2(GlobalSettings.VideoScaleMultiplier, GlobalSettings.VideoScaleMultiplier).Float64())
+	scale := math.ScaleTransform(math.NewVector2(GlobalSettings.VideoScaleMultiplier, GlobalSettings.VideoScaleMultiplier).Float64())
 
 	animated := 0
 

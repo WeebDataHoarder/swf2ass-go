@@ -1,7 +1,7 @@
 package ass
 
 import (
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
+	math2 "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"math"
 	"strings"
 )
@@ -11,10 +11,10 @@ type MatrixTransformTag struct {
 	Rotation RotationTag
 	Shearing ShearingTag
 
-	Transform types.MatrixTransform
+	Transform math2.MatrixTransform
 }
 
-func NewMatrixTransformTag(transform types.MatrixTransform, scale types.Vector2[float64], rotationX, rotationY, rotationZ float64, shear types.Vector2[float64]) *MatrixTransformTag {
+func NewMatrixTransformTag(transform math2.MatrixTransform, scale math2.Vector2[float64], rotationX, rotationY, rotationZ float64, shear math2.Vector2[float64]) *MatrixTransformTag {
 	return &MatrixTransformTag{
 		Scale: ScaleTag{
 			Scale: scale,
@@ -31,12 +31,12 @@ func NewMatrixTransformTag(transform types.MatrixTransform, scale types.Vector2[
 	}
 }
 
-func (t *MatrixTransformTag) TransitionMatrixTransform(line *Line, transform types.MatrixTransform) PositioningTag {
+func (t *MatrixTransformTag) TransitionMatrixTransform(line *Line, transform math2.MatrixTransform) PositioningTag {
 	t2 := &MatrixTransformTag{}
 	return t2.FromMatrixTransform(transform)
 }
 
-func (t *MatrixTransformTag) FromMatrixTransform(transform types.MatrixTransform) PositioningTag {
+func (t *MatrixTransformTag) FromMatrixTransform(transform math2.MatrixTransform) PositioningTag {
 	*t = *MatrixTransformTagFromTransformStable(transform)
 	return t
 }
@@ -51,12 +51,12 @@ func (t *MatrixTransformTag) Encode(event EventTime) string {
 
 func (t *MatrixTransformTag) Equals(tag Tag) bool {
 	if o, ok := tag.(*MatrixTransformTag); ok {
-		return t.Transform.Equals(o.Transform, types.TransformCompareEpsilon) && t.Scale.Equals(&o.Scale) && t.Rotation.Equals(&o.Rotation) && t.Shearing.Equals(&o.Shearing)
+		return t.Transform.Equals(o.Transform, math2.TransformCompareEpsilon) && t.Scale.Equals(&o.Scale) && t.Rotation.Equals(&o.Rotation) && t.Shearing.Equals(&o.Shearing)
 	}
 	return false
 }
 
-func MatrixTransformTagFromTransformStable(transform types.MatrixTransform) *MatrixTransformTag {
+func MatrixTransformTagFromTransformStable(transform math2.MatrixTransform) *MatrixTransformTag {
 	//Numerically stable implementation by MrSmile
 
 	a := transform.GetA()
@@ -103,5 +103,5 @@ func MatrixTransformTagFromTransformStable(transform types.MatrixTransform) *Mat
 	fscx := math.Abs(scaleX) * 100
 	fscy := math.Abs(scaleY) * 100
 
-	return NewMatrixTransformTag(transform, types.NewVector2(fscx, fscy), frx, fry, frz, types.NewVector2(fax, fay))
+	return NewMatrixTransformTag(transform, math2.NewVector2(fscx, fscy), frx, fry, frz, math2.NewVector2(fax, fay))
 }

@@ -2,14 +2,14 @@ package ass
 
 import (
 	"fmt"
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 )
 
 type ScaleTag struct {
-	Scale types.Vector2[float64]
+	Scale math.Vector2[float64]
 }
 
-func (t *ScaleTag) TransitionMatrixTransform(line *Line, transform types.MatrixTransform) PositioningTag {
+func (t *ScaleTag) TransitionMatrixTransform(line *Line, transform math.MatrixTransform) PositioningTag {
 	panic("not implemented")
 }
 
@@ -25,7 +25,7 @@ func (t *ScaleTag) Equals(tag Tag) bool {
 	return false
 }
 
-func (t *ScaleTag) FromMatrixTransform(transform types.MatrixTransform) PositioningTag {
+func (t *ScaleTag) FromMatrixTransform(transform math.MatrixTransform) PositioningTag {
 	//maybe qr decomposition?
 	panic("not implemented")
 }

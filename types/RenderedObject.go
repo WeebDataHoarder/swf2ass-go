@@ -1,5 +1,7 @@
 package types
 
+import "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
+
 type RenderedObject struct {
 	Depth    Depth
 	ObjectId uint16
@@ -8,8 +10,8 @@ type RenderedObject struct {
 
 	Clip *ClipPath
 
-	ColorTransform  ColorTransform
-	MatrixTransform MatrixTransform
+	ColorTransform  math.ColorTransform
+	MatrixTransform math.MatrixTransform
 }
 
 func (o *RenderedObject) GetDepth() Depth {

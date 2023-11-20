@@ -2,7 +2,6 @@ package subtypes
 
 import (
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
-	"image/color"
 	"slices"
 )
 
@@ -115,7 +114,7 @@ type MORPHLINESTYLE2 struct {
 		EndCapStyle        uint8 `swfBits:",2"`
 	}
 	MitterLimitFactor    uint16         `swfCondition:"HasMitterLimitFactor()"`
-	StartColor, EndColor color.RGBA     `swfCondition:"HasColor()"`
+	StartColor, EndColor types.RGBA     `swfCondition:"HasColor()"`
 	FillType             MORPHFILLSTYLE `swfCondition:"Flag.HasFill"`
 }
 

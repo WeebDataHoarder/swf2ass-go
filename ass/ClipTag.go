@@ -4,6 +4,8 @@ import (
 	"fmt"
 	swftypes "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/records"
 	"strings"
 )
 
@@ -23,11 +25,11 @@ func NewClipTag(clip *types.ClipPath, scale int64) *ClipTag {
 		shape := clip.GetShape()
 		if len(shape.Edges) == 0 { //full clip
 			shape = &types.Shape{
-				Edges: []types.Record{
-					&types.LineRecord{
+				Edges: []records.Record{
+					&records.LineRecord{
 						//TODO: ??? why swftypes.TwipFactor here???
-						To:    types.NewVector2[swftypes.Twip](0, swftypes.TwipFactor),
-						Start: types.NewVector2[swftypes.Twip](0, 0),
+						To:    math.NewVector2[swftypes.Twip](0, swftypes.TwipFactor),
+						Start: math.NewVector2[swftypes.Twip](0, 0),
 					},
 				},
 				IsFlat: true,
@@ -40,9 +42,9 @@ func NewClipTag(clip *types.ClipPath, scale int64) *ClipTag {
 	}
 }
 
-func (t *ClipTag) ApplyMatrixTransform(transform types.MatrixTransform, applyTranslation bool) DrawingTag {
+func (t *ClipTag) ApplyMatrixTransform(transform math.MatrixTransform, applyTranslation bool) DrawingTag {
 	return &ClipTag{
-		BaseDrawingTag: BaseDrawingTag(*transform.ApplyToShape(t.AsShape(), applyTranslation)),
+		BaseDrawingTag: BaseDrawingTag(*t.AsShape().ApplyMatrixTransform(transform, applyTranslation)),
 	}
 }
 
@@ -69,10 +71,10 @@ func (t *ClipTag) Equals(tag Tag) bool {
 }
 
 func (t *ClipTag) Encode(event EventTime) string {
-	scaleMultiplier := 1 << t.Scale
 	if t.IsNull {
 		return ""
 	}
+	scaleMultiplier := int64(1 << t.Scale)
 	precision := DefaultDrawingPrecision
 	if t.Scale >= 5 {
 		precision = 0
