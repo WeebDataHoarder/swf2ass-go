@@ -70,12 +70,13 @@ func ReadSB[T ~int | ~int64 | ~int32 | ~int16 | ~int8](r DataReader, n uint64) (
 	return T(v), nil
 }
 
-func ReadFB(r DataReader, n uint64) (d Fixed, err error) {
-	v, err := r.ReadBits(uint8(n))
+func ReadFB(r DataReader, n uint64) (d int32, err error) {
+	//TODO: check
+	v, err := ReadSB[int32](r, n)
 	if err != nil {
 		return 0, err
 	}
-	return Fixed(v), nil
+	return v, nil
 }
 
 func ReadU64[T ~uint64](r DataReader, d *T) (err error) {
@@ -507,6 +508,13 @@ func ReadTypeInner(r DataReader, ctx ReaderContext, data any) (err error) {
 						return err
 					}
 					fieldValue.SetInt(value)
+				} else if slices.Contains(bitFlags, "fixed") {
+					//TODO: check
+					value, err := ReadFB(r, nbits)
+					if err != nil {
+						return err
+					}
+					fieldValue.SetInt(int64(value))
 				} else {
 					value, err := ReadUB[uint64](r, nbits)
 					if err != nil {

@@ -8,16 +8,16 @@ type ColorTransformWithAlpha struct {
 	}
 	NBits    uint8 `swfBits:",4"`
 	Multiply struct {
-		Red   Fixed8 `swfBits:"NBits"`
-		Green Fixed8 `swfBits:"NBits"`
-		Blue  Fixed8 `swfBits:"NBits"`
-		Alpha Fixed8 `swfBits:"NBits"`
+		Red   Fixed8 `swfBits:"NBits,fixed"`
+		Green Fixed8 `swfBits:"NBits,fixed"`
+		Blue  Fixed8 `swfBits:"NBits,fixed"`
+		Alpha Fixed8 `swfBits:"NBits,fixed"`
 	} `swfCondition:"Flag.HasMultTerms"`
 	Add struct {
-		Red   Fixed8 `swfBits:"NBits"`
-		Green Fixed8 `swfBits:"NBits"`
-		Blue  Fixed8 `swfBits:"NBits"`
-		Alpha Fixed8 `swfBits:"NBits"`
+		Red   int16 `swfBits:"NBits,signed"`
+		Green int16 `swfBits:"NBits,signed"`
+		Blue  int16 `swfBits:"NBits,signed"`
+		Alpha int16 `swfBits:"NBits,signed"`
 	} `swfCondition:"Flag.HasAddTerms"`
 }
 

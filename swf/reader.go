@@ -61,7 +61,7 @@ func NewReader(reader io.Reader) (*Reader, error) {
 		return nil, err
 	}
 
-	err = types.ReadU16(r.r, &r.header.FrameRate)
+	err = types.ReadSI16(r.r, &r.header.FrameRate)
 	if err != nil {
 		return nil, err
 	}

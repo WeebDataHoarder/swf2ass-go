@@ -23,7 +23,7 @@ func (t *DefineBitsJPEG4) SWFRead(r types.DataReader, ctx types.ReaderContext) (
 	if err != nil {
 		return err
 	}
-	err = types.ReadU16(r, &t.DeblockParam)
+	err = types.ReadSI16(r, &t.DeblockParam)
 	if err != nil {
 		return err
 	}

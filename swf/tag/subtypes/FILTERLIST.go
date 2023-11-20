@@ -96,9 +96,9 @@ func (f *FILTER) SWFRead(r types.DataReader, ctx types.ReaderContext) (err error
 
 type DROPSHADOWFILTER struct {
 	DropShadowColor types.RGBA
-	BlurX, BlurY    types.Fixed
-	Angle           types.Fixed
-	Distance        types.Fixed
+	BlurX, BlurY    types.Fixed16
+	Angle           types.Fixed16
+	Distance        types.Fixed16
 	Strength        types.Fixed8
 	InnerShadow     bool
 	Knockout        bool
@@ -107,14 +107,14 @@ type DROPSHADOWFILTER struct {
 }
 
 type BLURFILTER struct {
-	BlurX, BlurY types.Fixed
+	BlurX, BlurY types.Fixed16
 	Passes       uint8 `swfBits:",5"`
 	Reserved     uint8 `swfBits:",3"`
 }
 
 type GLOWFILTER struct {
 	GlowColor       types.RGBA
-	BlurX, BlurY    types.Fixed
+	BlurX, BlurY    types.Fixed16
 	Strength        types.Fixed8
 	InnerGlob       bool
 	Knockout        bool
@@ -125,9 +125,9 @@ type GLOWFILTER struct {
 type BEVELFILTER struct {
 	ShadowColor     types.RGBA
 	HighLightColor  types.RGBA
-	BlurX, BlurY    types.Fixed
-	Angle           types.Fixed
-	Distance        types.Fixed
+	BlurX, BlurY    types.Fixed16
+	Angle           types.Fixed16
+	Distance        types.Fixed16
 	Strength        types.Fixed8
 	InnerShadow     bool
 	Knockout        bool
@@ -141,9 +141,9 @@ type GRADIENTGLOWFILTER struct {
 	NumColors       uint8
 	GradientColors  []types.RGBA `swfCount:"NumColors"`
 	GradientRatio   []uint8      `swfCount:"NumColors"`
-	BlurX, BlurY    types.Fixed
-	Angle           types.Fixed
-	Distance        types.Fixed
+	BlurX, BlurY    types.Fixed16
+	Angle           types.Fixed16
+	Distance        types.Fixed16
 	Strength        types.Fixed8
 	InnerShadow     bool
 	Knockout        bool
@@ -177,9 +177,9 @@ type GRADIENTBEVELFILTER struct {
 	NumColors       uint8
 	GradientColors  []types.RGBA `swfCount:"NumColors"`
 	GradientRatio   []uint8      `swfCount:"NumColors"`
-	BlurX, BlurY    types.Fixed
-	Angle           types.Fixed
-	Distance        types.Fixed
+	BlurX, BlurY    types.Fixed16
+	Angle           types.Fixed16
+	Distance        types.Fixed16
 	Strength        types.Fixed8
 	InnerShadow     bool
 	Knockout        bool

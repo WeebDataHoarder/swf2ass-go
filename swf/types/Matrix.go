@@ -3,13 +3,13 @@ package types
 type Matrix struct {
 	_                        struct{} `swfFlags:"root,alignend"`
 	HasScale                 bool
-	NScaleBits               uint8 `swfCondition:"HasScale" swfBits:",5"`
-	ScaleX, ScaleY           Fixed `swfCondition:"HasScale" swfBits:"NScaleBits"`
+	NScaleBits               uint8   `swfCondition:"HasScale" swfBits:",5"`
+	ScaleX, ScaleY           Fixed16 `swfCondition:"HasScale" swfBits:"NScaleBits,fixed"`
 	HasRotate                bool
-	NRotateBits              uint8 `swfCondition:"HasRotate" swfBits:",5"`
-	RotateSkew0, RotateSkew1 Fixed `swfCondition:"HasRotate" swfBits:"NRotateBits"`
-	NTranslateBits           uint8 `swfBits:",5"`
-	TranslateX, TranslateY   Twip  `swfBits:"NTranslateBits,signed"`
+	NRotateBits              uint8   `swfCondition:"HasRotate" swfBits:",5"`
+	RotateSkew0, RotateSkew1 Fixed16 `swfCondition:"HasRotate" swfBits:"NRotateBits,fixed"`
+	NTranslateBits           uint8   `swfBits:",5"`
+	TranslateX, TranslateY   Twip    `swfBits:"NTranslateBits,signed"`
 }
 
 func (matrix *Matrix) SWFDefault(ctx ReaderContext) {
