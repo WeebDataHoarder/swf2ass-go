@@ -29,11 +29,11 @@ type MORPHFILLSTYLE struct {
 
 	StartColor, EndColor types.RGBA `swfCondition:"HasRGB()"`
 
-	StartGradientMatrix, EndGradientMatrix types.Matrix  `swfCondition:"HasGradientMatrix()"`
+	StartGradientMatrix, EndGradientMatrix types.MATRIX  `swfCondition:"HasGradientMatrix()"`
 	Gradient                               MORPHGRADIENT `swfCondition:"HasGradient()"`
 
 	BitmapId                           uint16       `swfCondition:"HasBitmap()"`
-	StartBitmapMatrix, EndBitmapMatrix types.Matrix `swfCondition:"HasBitmap()"`
+	StartBitmapMatrix, EndBitmapMatrix types.MATRIX `swfCondition:"HasBitmap()"`
 }
 
 func (s *MORPHFILLSTYLE) HasRGB(ctx types.ReaderContext) bool {
@@ -102,7 +102,7 @@ type MORPHLINESTYLE struct {
 
 type MORPHLINESTYLE2 struct {
 	_                    struct{} `swfFlags:"root"`
-	StartWidth, EdnWidth uint16
+	StartWidth, EndWidth uint16
 	Flag                 struct {
 		StartCapStyle      uint8 `swfBits:",2"`
 		JoinStyle          uint8 `swfBits:",2"`

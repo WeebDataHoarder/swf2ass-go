@@ -97,10 +97,12 @@ func (r *Reader) Tag() (readTag tag.Tag, err error) {
 
 	readTag, err = record.Decode()
 
-	if readTag == nil {
-		fmt.Printf("%d: len %d UNKNOWN\n", record.Code(), len(record.Data))
-	} else {
-		fmt.Printf("%d: len %d KNOWN %s\n", record.Code(), len(record.Data), reflect.ValueOf(readTag).Elem().Type().Name())
+	if types.DoParserDebug {
+		if readTag == nil {
+			fmt.Printf("%d: len %d UNKNOWN\n", record.Code(), len(record.Data))
+		} else {
+			fmt.Printf("%d: len %d KNOWN %s\n", record.Code(), len(record.Data), reflect.ValueOf(readTag).Elem().Type().Name())
+		}
 	}
 
 	return readTag, nil

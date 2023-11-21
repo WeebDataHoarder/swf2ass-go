@@ -1,6 +1,6 @@
 package types
 
-type ColorTransform struct {
+type CXFORM struct {
 	_    struct{} `swfFlags:"root,alignend"`
 	Flag struct {
 		HasAddTerms  bool
@@ -19,8 +19,8 @@ type ColorTransform struct {
 	} `swfCondition:"Flag.HasAddTerms"`
 }
 
-func (cf *ColorTransform) SWFDefault(ctx ReaderContext) {
-	*cf = ColorTransform{}
+func (cf *CXFORM) SWFDefault(ctx ReaderContext) {
+	*cf = CXFORM{}
 	cf.Multiply.Red = 256
 	cf.Multiply.Green = 256
 	cf.Multiply.Blue = 256

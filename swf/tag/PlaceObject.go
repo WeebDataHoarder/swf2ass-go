@@ -13,8 +13,8 @@ type PlaceObject struct {
 	}
 	CharacterId    uint16
 	Depth          uint16
-	Matrix         types.Matrix
-	ColorTransform *types.ColorTransform
+	Matrix         types.MATRIX
+	ColorTransform *types.CXFORM
 }
 
 func (t *PlaceObject) SWFRead(r types.DataReader, ctx types.ReaderContext) (err error) {
@@ -36,7 +36,7 @@ func (t *PlaceObject) SWFRead(r types.DataReader, ctx types.ReaderContext) (err 
 		return err
 	}
 	if len(data) > 0 {
-		ct := &types.ColorTransform{}
+		ct := &types.CXFORM{}
 		err = types.ReadType(bitio.NewReader(bytes.NewReader(data)), ctx, ct)
 		if err != nil {
 			return err

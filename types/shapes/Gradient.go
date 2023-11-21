@@ -1,4 +1,4 @@
-package types
+package shapes
 
 import (
 	swfsubtypes "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/tag/subtypes"

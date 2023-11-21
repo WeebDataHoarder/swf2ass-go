@@ -1,4 +1,4 @@
-package types
+package shapes
 
 type DrawPath struct {
 	Style    StyleRecord

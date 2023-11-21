@@ -1,12 +1,15 @@
 package types
 
-import "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
+import (
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
+)
 
 type RenderedObject struct {
 	Depth    Depth
 	ObjectId uint16
 
-	DrawPathList DrawPathList
+	DrawPathList shapes.DrawPathList
 
 	Clip *ClipPath
 

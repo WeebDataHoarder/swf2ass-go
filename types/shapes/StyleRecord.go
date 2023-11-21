@@ -1,4 +1,4 @@
-package types
+package shapes
 
 import (
 	swfsubtypes "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/tag/subtypes"
@@ -23,7 +23,7 @@ func (r *LineStyleRecord) ApplyColorTransform(transform math.ColorTransform) Sty
 }
 
 type FillStyleRecord struct {
-	// Fill can be a Color or Gradient
+	// Fill can be a math.Color or Gradient
 	Fill   any
 	Border *LineStyleRecord
 }
@@ -50,6 +50,54 @@ func FillStyleRecordFromSWFFILLSTYLE(fillStyle swfsubtypes.FILLSTYLE) (r *FillSt
 				G:     fillStyle.Color.G(),
 				B:     fillStyle.Color.B(),
 				Alpha: fillStyle.Color.A(),
+			},
+		}
+		//TODO other styles
+	}
+
+	return &FillStyleRecord{
+		Fill: math.Color{
+			R:     0,
+			G:     0,
+			B:     0,
+			Alpha: 0,
+		},
+	}
+}
+
+func FillStyleRecordFromSWFMORPHFILLSTYLEStart(fillStyle swfsubtypes.MORPHFILLSTYLE) (r *FillStyleRecord) {
+	switch fillStyle.FillStyleType {
+	case swfsubtypes.FillStyleSolid:
+		return &FillStyleRecord{
+			Fill: math.Color{
+				R:     fillStyle.StartColor.R(),
+				G:     fillStyle.StartColor.G(),
+				B:     fillStyle.StartColor.B(),
+				Alpha: fillStyle.StartColor.A(),
+			},
+		}
+		//TODO other styles
+	}
+
+	return &FillStyleRecord{
+		Fill: math.Color{
+			R:     0,
+			G:     0,
+			B:     0,
+			Alpha: 0,
+		},
+	}
+}
+
+func FillStyleRecordFromSWFMORPHFILLSTYLEEnd(fillStyle swfsubtypes.MORPHFILLSTYLE) (r *FillStyleRecord) {
+	switch fillStyle.FillStyleType {
+	case swfsubtypes.FillStyleSolid:
+		return &FillStyleRecord{
+			Fill: math.Color{
+				R:     fillStyle.EndColor.R(),
+				G:     fillStyle.EndColor.G(),
+				B:     fillStyle.EndColor.B(),
+				Alpha: fillStyle.EndColor.A(),
 			},
 		}
 		//TODO other styles

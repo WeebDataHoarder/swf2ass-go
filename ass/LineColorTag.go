@@ -2,8 +2,8 @@ package ass
 
 import (
 	"fmt"
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
 )
 
 type LineColorTag struct {
@@ -11,11 +11,11 @@ type LineColorTag struct {
 	OriginalColor *math.Color
 }
 
-func (t *LineColorTag) FromStyleRecord(record types.StyleRecord) StyleTag {
-	if lineStyleRecord, ok := record.(*types.LineStyleRecord); ok {
+func (t *LineColorTag) FromStyleRecord(record shapes.StyleRecord) StyleTag {
+	if lineStyleRecord, ok := record.(*shapes.LineStyleRecord); ok {
 		t.Color = &lineStyleRecord.Color
 		t.OriginalColor = &lineStyleRecord.Color
-	} else if fillStyleRecord, ok := record.(*types.FillStyleRecord); ok && fillStyleRecord.Border != nil {
+	} else if fillStyleRecord, ok := record.(*shapes.FillStyleRecord); ok && fillStyleRecord.Border != nil {
 		t.Color = &fillStyleRecord.Border.Color
 		t.OriginalColor = &fillStyleRecord.Border.Color
 	} else {
@@ -25,7 +25,7 @@ func (t *LineColorTag) FromStyleRecord(record types.StyleRecord) StyleTag {
 	return t
 }
 
-func (t *LineColorTag) TransitionStyleRecord(line *Line, record types.StyleRecord) StyleTag {
+func (t *LineColorTag) TransitionStyleRecord(line *Line, record shapes.StyleRecord) StyleTag {
 	t2 := &LineColorTag{}
 	t2.FromStyleRecord(record)
 	return t2

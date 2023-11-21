@@ -58,7 +58,7 @@ func (records *SHAPERECORDS) SWFRead(r types.DataReader, ctx types.ReaderContext
 			fillBits = rec.FillBits
 			lineBits = rec.LineBits
 
-			*records = append(*records, rec)
+			*records = append(*records, &rec)
 		} else {
 			isStraight, err := types.ReadBool(r)
 			if err != nil {
@@ -74,7 +74,7 @@ func (records *SHAPERECORDS) SWFRead(r types.DataReader, ctx types.ReaderContext
 				if err != nil {
 					return err
 				}
-				*records = append(*records, rec)
+				*records = append(*records, &rec)
 			} else {
 				rec := CurvedEdgeRecord{}
 				err = rec.SWFRead(r, types.ReaderContext{
@@ -85,7 +85,7 @@ func (records *SHAPERECORDS) SWFRead(r types.DataReader, ctx types.ReaderContext
 				if err != nil {
 					return err
 				}
-				*records = append(*records, rec)
+				*records = append(*records, &rec)
 			}
 		}
 	}
@@ -96,6 +96,10 @@ func (records *SHAPERECORDS) SWFRead(r types.DataReader, ctx types.ReaderContext
 }
 
 type EndShapeRecord struct {
+}
+
+func (s *EndShapeRecord) RecordType() RecordType {
+	return RecordTypeEndShape
 }
 
 type StyleChangeRecord struct {
@@ -216,6 +220,10 @@ func (rec *StyleChangeRecord) SWFRead(r types.DataReader, ctx types.ReaderContex
 	return nil
 }
 
+func (rec *StyleChangeRecord) RecordType() RecordType {
+	return RecordTypeStyleChange
+}
+
 type StraightEdgeRecord struct {
 	_ struct{} `swfFlags:"root"`
 
@@ -271,6 +279,10 @@ func (s *StraightEdgeRecord) HasDeltaY(ctx types.ReaderContext) bool {
 	return s.GeneralLine || s.VertLine
 }
 
+func (s *StraightEdgeRecord) RecordType() RecordType {
+	return RecordTypeStraightEdge
+}
+
 type CurvedEdgeRecord struct {
 	_ struct{} `swfFlags:"root"`
 
@@ -305,5 +317,19 @@ func (s *CurvedEdgeRecord) SWFRead(r types.DataReader, ctx types.ReaderContext) 
 	return nil
 }
 
+func (s *CurvedEdgeRecord) RecordType() RecordType {
+	return RecordTypeCurvedEdge
+}
+
+type RecordType uint8
+
+const (
+	RecordTypeEndShape = RecordType(iota)
+	RecordTypeStyleChange
+	RecordTypeStraightEdge
+	RecordTypeCurvedEdge
+)
+
 type SHAPERECORD interface {
+	RecordType() RecordType
 }

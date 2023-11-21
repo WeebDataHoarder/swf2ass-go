@@ -24,6 +24,19 @@ type ViewLayout struct {
 	ClipDepth  uint16
 }
 
+func NewClippingViewLayout(objectId, clipDepth uint16, object ObjectDefinition, parent *ViewLayout) *ViewLayout {
+	if object != nil && object.GetObjectId() != objectId {
+		panic("logic error")
+	}
+	return &ViewLayout{
+		Parent:     parent,
+		ClipDepth:  clipDepth,
+		Object:     object,
+		DepthMap:   make(map[uint16]*ViewLayout),
+		IsClipping: true,
+	}
+}
+
 func NewViewLayout(objectId uint16, object ObjectDefinition, parent *ViewLayout) *ViewLayout {
 	if object != nil && object.GetObjectId() != objectId {
 		panic("logic error")
@@ -46,6 +59,20 @@ func (v *ViewLayout) Get(depth uint16) *ViewLayout {
 	return v.DepthMap[depth]
 }
 
+func (v *ViewLayout) Replace(depth uint16, ob *ViewLayout) {
+	if v.Object != nil {
+		panic("Cannot have ObjectDefinition and children at the same time")
+	} else if oldObject, ok := v.DepthMap[depth]; ok && oldObject != nil {
+		if ob.MatrixTransform == nil {
+			ob.MatrixTransform = oldObject.MatrixTransform
+		}
+		if ob.ColorTransform == nil {
+			ob.ColorTransform = oldObject.ColorTransform
+		}
+	}
+	v.DepthMap[depth] = ob
+}
+
 func (v *ViewLayout) Place(depth uint16, ob *ViewLayout) {
 	if v.Object != nil {
 		panic("Cannot have ObjectDefinition and children at the same time")
@@ -59,16 +86,6 @@ func (v *ViewLayout) Remove(depth uint16) {
 	delete(v.DepthMap, depth)
 }
 
-func (v *ViewLayout) HasFrame() bool {
-	for _, child := range v.DepthMap {
-		if child.HasFrame() {
-			return true
-		}
-	}
-
-	//TODO
-	return false
-}
 func (v *ViewLayout) NextFrame(actions ActionList) (frame *ViewFrame) {
 	frame = v.nextFrame(actions)
 	if v.IsClipping {

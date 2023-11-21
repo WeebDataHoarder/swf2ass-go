@@ -1,6 +1,6 @@
 package types
 
-type ColorTransformWithAlpha struct {
+type CXFORMWITHALPHA struct {
 	_    struct{} `swfFlags:"root,alignend"`
 	Flag struct {
 		HasAddTerms  bool
@@ -21,8 +21,8 @@ type ColorTransformWithAlpha struct {
 	} `swfCondition:"Flag.HasAddTerms"`
 }
 
-func (cf *ColorTransformWithAlpha) SWFDefault(ctx ReaderContext) {
-	*cf = ColorTransformWithAlpha{}
+func (cf *CXFORMWITHALPHA) SWFDefault(ctx ReaderContext) {
+	*cf = CXFORMWITHALPHA{}
 	cf.Multiply.Red = 256
 	cf.Multiply.Green = 256
 	cf.Multiply.Blue = 256

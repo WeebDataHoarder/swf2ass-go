@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
 	"golang.org/x/exp/maps"
 	"slices"
 	"strings"
@@ -66,7 +67,7 @@ func (t *ContainerTag) TransitionMatrixTransform(line *Line, transform math.Matr
 	return container
 }
 
-func (t *ContainerTag) TransitionStyleRecord(line *Line, record types.StyleRecord) StyleTag {
+func (t *ContainerTag) TransitionStyleRecord(line *Line, record shapes.StyleRecord) StyleTag {
 	container := t.Clone()
 
 	index := line.End - line.Start
@@ -85,7 +86,7 @@ func (t *ContainerTag) TransitionStyleRecord(line *Line, record types.StyleRecor
 	return container
 }
 
-func (t *ContainerTag) TransitionShape(line *Line, shape *types.Shape) PathTag {
+func (t *ContainerTag) TransitionShape(line *Line, shape *shapes.Shape) PathTag {
 	container := t.Clone()
 
 	index := line.End - line.Start
@@ -131,7 +132,7 @@ func (t *ContainerTag) FromMatrixTransform(transform math.MatrixTransform) Posit
 	panic("not supported")
 }
 
-func (t *ContainerTag) FromStyleRecord(record types.StyleRecord) StyleTag {
+func (t *ContainerTag) FromStyleRecord(record shapes.StyleRecord) StyleTag {
 	panic("not supported")
 }
 
@@ -225,13 +226,14 @@ func (t *ContainerTag) Encode(event EventTime) string {
 func (t *ContainerTag) TryAppend(tag Tag) {
 	if tag != nil {
 		t.Tags = append(t.Tags, tag)
+		return
 	}
 	panic("tag is nil")
 }
 
 var identityMatrixTransform = math.IdentityTransform()
 
-func ContainerTagFromPathEntry(path types.DrawPath, clip *types.ClipPath, colorTransform math.ColorTransform, matrixTransform math.MatrixTransform, bakeTransforms bool) *ContainerTag {
+func ContainerTagFromPathEntry(path shapes.DrawPath, clip *types.ClipPath, colorTransform math.ColorTransform, matrixTransform math.MatrixTransform, bakeTransforms bool) *ContainerTag {
 	container := &ContainerTag{
 		Transitions: make(map[int64][]Tag),
 	}

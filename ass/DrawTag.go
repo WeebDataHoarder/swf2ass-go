@@ -2,8 +2,8 @@ package ass
 
 import (
 	"fmt"
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
 	"strings"
 )
 
@@ -12,7 +12,7 @@ type DrawTag struct {
 	Scale int64
 }
 
-func NewDrawTag(shape *types.Shape, scale int64) *DrawTag {
+func NewDrawTag(shape *shapes.Shape, scale int64) *DrawTag {
 	return &DrawTag{
 		Scale:          scale,
 		BaseDrawingTag: BaseDrawingTag(*shape),
@@ -25,7 +25,7 @@ func (t *DrawTag) ApplyMatrixTransform(transform math.MatrixTransform, applyTran
 	}
 }
 
-func (t *DrawTag) TransitionShape(line *Line, shape *types.Shape) PathTag {
+func (t *DrawTag) TransitionShape(line *Line, shape *shapes.Shape) PathTag {
 	if t.AsShape().Equals(shape) {
 		return t
 	}
@@ -40,7 +40,7 @@ func (t *DrawTag) Equals(tag Tag) bool {
 }
 
 func (t *DrawTag) Encode(event EventTime) string {
-	scaleMultiplier := int64(1 << t.Scale)
+	scaleMultiplier := int64(1 << (t.Scale - 1))
 	precision := DefaultDrawingPrecision
 	if t.Scale >= 5 {
 		precision = 0

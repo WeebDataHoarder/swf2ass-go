@@ -1,0 +1,35 @@
+{
+  "52e75b7d6831293ebf4e5b28574a60f5bce10b1eae8afa4e69ab213a98b0b008": {
+    "name": "IJSW.swf",
+    "description": "removes playback menus",
+    "remove": [
+      {"objectId": null, "_objectId": 2, "depth": [0, 31]},
+      {"objectId": null, "_objectId": 3, "depth": [0, 145]},
+      {"objectId": null, "_objectId": 69, "depth": [0, 146]}
+    ]
+  },
+  "229d7569ebf3b3b04fb03aa86162ab646d96be0353e8f4be32b1f6bf4e96af4e": {
+    "name": "cirno's_arithmetic_school.swf",
+    "description": "remove lyrics button/mask",
+    "remove": [
+      {"objectId": null, "_objectId": 30, "depth": [0, 256]},
+      {"objectId": null, "_objectId": 31, "depth": [0, 264]}
+    ]
+  },
+  "1203faf6504edf4845e72b957ce6b5c5d92597ecc0328aa36eacaef32eb7125a": {
+    "name": "cirno's_arithmetic_school_2011.swf",
+    "description": "remove lyrics button/mask",
+    "remove": [
+      {"objectId": null, "_objectId": 30, "depth": [0, 229]},
+      {"objectId": null, "_objectId": 31, "depth": [0, 234]}
+    ]
+  },
+  "3bdc7f8bbfb648e825f79dbe6095288871b1780b1d37f8cd2ad4c50cae40b5ca": {
+    "name": "IOSYS_CirnoENG.swf",
+    "description": "remove lyrics button/mask",
+    "remove": [
+      {"objectId": null, "_objectId": 33, "depth": [0, 1721]},
+      {"objectId": null, "_objectId": 34, "depth": [0, 1752]}
+    ]
+  }
+}

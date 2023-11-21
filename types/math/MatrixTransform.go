@@ -28,12 +28,12 @@ var DefaultTranslation = Vector2[types.Twip]{
 func NewMatrixTransform(scale, rotateSkew Vector2[float64], translation Vector2[types.Twip]) MatrixTransform {
 	return MatrixTransform{
 		//TODO: check order
-		matrix: mat.NewDense(2, 3, []float64{
+		matrix: mat.NewDense(3, 3, []float64{
 			/* a */ /* c */
-			scale.X, rotateSkew.Y,
+			scale.X, rotateSkew.Y, 0,
 			/* b */ /* d */
-			rotateSkew.X, scale.Y,
-			translation.X.Float64(), translation.Y.Float64(),
+			rotateSkew.X, scale.Y, 0,
+			translation.X.Float64(), translation.Y.Float64(), 1,
 		}),
 	}
 }
@@ -111,15 +111,15 @@ func (m MatrixTransform) GetTranslation() Vector2[float64] {
 }
 
 func (m MatrixTransform) ApplyToVector(v Vector2[float64], applyTranslation bool) Vector2[float64] {
-	var r mat.Dense
+	var r mat.VecDense
 	if applyTranslation {
 		//TODO: check order
-		r.Mul(mat.NewVecDense(3, []float64{v.X, v.Y, 1}), m.matrix)
+		r.MulVec(m.matrix, mat.NewVecDense(3, []float64{v.X, v.Y, 1}))
 	} else {
 		//TODO: check order
-		r.Mul(mat.NewVecDense(2, []float64{v.X, v.Y}), m.matrix.Slice(0, 0, 1, 1))
+		r.MulVec(m.matrix.Slice(0, 0, 1, 1), mat.NewVecDense(2, []float64{v.X, v.Y}))
 	}
-	return NewVector2[float64](r.At(0, 0), r.At(0, 1))
+	return NewVector2[float64](r.At(0, 0), r.At(1, 0))
 }
 
 func (m MatrixTransform) EqualsExact(o MatrixTransform) bool {
@@ -133,4 +133,12 @@ func (m MatrixTransform) Equals(o MatrixTransform, epsilon float64) bool {
 }
 func (m MatrixTransform) EqualsWithoutTranslation(o MatrixTransform, epsilon float64) bool {
 	return mat.EqualApprox(m.matrix.Slice(0, 0, 1, 1), o.matrix.Slice(0, 0, 1, 1), epsilon)
+}
+
+func MatrixTransformFromSWF(m types.MATRIX) MatrixTransform {
+	return NewMatrixTransform(
+		NewVector2[float64](m.ScaleX.Float64(), m.ScaleY.Float64()),
+		NewVector2[float64](m.RotateSkew0.Float64(), m.RotateSkew1.Float64()),
+		NewVector2[types.Twip](m.TranslateX, m.TranslateY),
+	)
 }

@@ -6,6 +6,7 @@ import (
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/records"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
 	"strings"
 )
 
@@ -24,7 +25,7 @@ func NewClipTag(clip *types.ClipPath, scale int64) *ClipTag {
 	} else {
 		shape := clip.GetShape()
 		if len(shape.Edges) == 0 { //full clip
-			shape = &types.Shape{
+			shape = &shapes.Shape{
 				Edges: []records.Record{
 					&records.LineRecord{
 						//TODO: ??? why swftypes.TwipFactor here???
@@ -74,7 +75,7 @@ func (t *ClipTag) Encode(event EventTime) string {
 	if t.IsNull {
 		return ""
 	}
-	scaleMultiplier := int64(1 << t.Scale)
+	scaleMultiplier := int64(1 << (t.Scale - 1))
 	precision := DefaultDrawingPrecision
 	if t.Scale >= 5 {
 		precision = 0

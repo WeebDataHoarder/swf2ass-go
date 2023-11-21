@@ -65,7 +65,7 @@ func ReadSB[T ~int | ~int64 | ~int32 | ~int16 | ~int8](r DataReader, n uint64) (
 	//TODO: check
 	//sign bit is set
 	if v&(1<<(n-1)) > 0 {
-		v |= (math.MaxUint64 >> (64 - (n - 1))) << (64 - (n - 1))
+		v |= math.MaxUint64 << (n - 1)
 	}
 	return T(v), nil
 }

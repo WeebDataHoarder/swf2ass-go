@@ -1,16 +1,53 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"flag"
+	"fmt"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf"
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/tag"
+	swftag "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/tag"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
 	"io"
+	math2 "math"
 	"os"
 )
 
+type KnownSignatures map[string]KnownSignature
+
+type KnownSignature struct {
+	Name        string         `json:"name"`
+	Description string         `json:"description"`
+	Remove      []RemovalEntry `json:"remove"`
+}
+
+func (s KnownSignature) Filter(object *types.RenderedObject) bool {
+	for i := range s.Remove {
+		if s.Remove[i].Equals(object) {
+			return true
+		}
+	}
+	return false
+}
+
+type RemovalEntry struct {
+	ObjectId        *uint16     `json:"objectId"`
+	ObjectIdComment *uint16     `json:"_objectId"`
+	Depth           types.Depth `json:"depth"`
+}
+
+func (e RemovalEntry) Equals(object *types.RenderedObject) bool {
+	return (e.ObjectId == nil || *e.ObjectId == object.ObjectId) && (len(e.Depth) == 0 || (len(object.Depth) >= len(e.Depth)) && object.Depth[:len(e.Depth)].Equals(e.Depth))
+}
+
 func main() {
 	inputFile := flag.String("input", "", "Input SWF")
+	outputFile := flag.String("output", "", "Output ASS")
+	removalSignatures := flag.String("signatures", "signatures.json", "JSON file containing parameters for signature removal")
+	fromFrame := flag.Int64("from", 0, "Frame to start at")
+	toFrame := flag.Int64("to", math2.MaxInt64, "Frame to end at")
 	flag.Parse()
 
 	file, err := os.Open(*inputFile)
@@ -23,6 +60,14 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	var knownSignatures KnownSignatures
+	removalSignaturesData, err := os.ReadFile(*removalSignatures)
+	if err == nil {
+		_ = json.Unmarshal(removalSignaturesData, &knownSignatures)
+	}
+
+	var tags []swftag.Tag
 
 	for {
 		readTag, err := swfReader.Tag()
@@ -38,7 +83,9 @@ func main() {
 			continue
 		}
 
-		if readTag.Code() == tag.RecordEnd {
+		tags = append(tags, readTag)
+
+		if readTag.Code() == swftag.RecordEnd {
 			break
 		}
 
@@ -48,4 +95,141 @@ func main() {
 			_ = t
 		}
 	}
+
+	var frameOffset int64
+	frameSize := swfReader.Header().FrameSize
+
+	processor := types.NewSWFProcessor(tags, shapes.RectangleFromSWF(frameSize), swfReader.Header().FrameRate.Float64(), int64(swfReader.Header().FrameCount))
+
+	assRenderer := ass.NewRenderer(swfReader.Header().FrameRate.Float64(), processor.ViewPort)
+
+	const KeyFrameEveryNSeconds = 10
+
+	keyframeInterval := int64(KeyFrameEveryNSeconds * swfReader.Header().FrameRate.Float64())
+
+	var ks KnownSignature
+
+	output, err := os.Create(*outputFile)
+	if err != nil {
+		panic(err)
+	}
+	defer output.Close()
+
+	outputLines := func(lines ...string) {
+		for _, line := range lines {
+			_, err = output.Write([]byte(line))
+			if err != nil {
+				panic(err)
+			}
+			_, err = output.Write([]byte("\n"))
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
+
+	var lastFrame *types.FrameInformation
+	for {
+		frame := processor.NextFrameOutput()
+		if frame == nil {
+			break
+		}
+		lastFrame = frame
+		if !processor.Playing || processor.Loops > 0 {
+			break
+		}
+		/*
+		   $audio = $processor->getAudio();
+		   if($audio !== null and $frameOffset === 0){
+		       if($audio->getStartFrame() === null){
+		           continue;
+		       }
+		       $frameOffset = $audio->getStartFrame();
+		   }
+
+		*/
+		frame.FrameOffset = frameOffset
+
+		rendered := frame.Frame.Render(0, nil, nil, nil)
+
+		if frame.GetFrameNumber() == 0 {
+			for _, object := range rendered {
+				fmt.Printf("frame 0: object %d depth: %s\n", object.ObjectId, object.Depth.String())
+			}
+		}
+
+		filteredRendered := make(types.RenderedFrame, 0, len(rendered))
+
+		var drawCalls, drawItems, filteredObjects, clipCalls, clipItems int
+
+		for _, object := range rendered {
+			if ks.Filter(object) {
+				filteredObjects++
+				continue
+			}
+			if object.Clip != nil {
+				clipCalls++
+				clipItems += len(object.Clip.GetShape().Edges)
+			}
+			for _, path := range object.DrawPathList {
+				drawCalls++
+				drawItems += len(path.Commands.Edges)
+			}
+			filteredRendered = append(filteredRendered, object)
+		}
+
+		fmt.Printf("=== frame %d/%d ~ %d : Depth count: %d :: Object count: %d :: Paths: %d draw calls, %d items :: Filtered: %d :: Clips %d draw calls, %d items\n",
+			frame.GetFrameNumber(),
+			processor.ExpectedFrameCount,
+			frameOffset,
+			len(frame.Frame.DepthMap),
+			len(filteredRendered),
+			drawCalls,
+			drawItems,
+			filteredObjects,
+			clipCalls,
+			clipItems,
+		)
+
+		if *fromFrame > 0 {
+			if frame.GetFrameNumber() < *fromFrame {
+				continue
+			} /*else {
+				for _, object := range rendered {
+					var count int
+
+					for i, command := range object.DrawPathList {
+						for j, record := range command.Commands.Edges {
+
+						}
+					}
+				}
+			}*/
+		}
+
+		outputLines(assRenderer.RenderFrame(*frame, filteredRendered)...)
+
+		//TODO: do this per object transition? GlobalSettings?
+		if frame.GetFrameNumber() > 0 && frame.GetFrameNumber()%keyframeInterval == 0 {
+			outputLines(assRenderer.Flush(*frame)...)
+		}
+
+		if *toFrame != math2.MaxInt64 && frame.GetFrameNumber() >= *toFrame {
+			break
+		}
+	}
+
+	if lastFrame == nil {
+		panic("no frames generated")
+	}
+
+	outputLines(assRenderer.Flush(*lastFrame)...)
+	/*
+	   if($processor->getAudio() !== null and $processor->getAudio()->getFormat() === \swf2ass\AudioStream::FORMAT_MP3){
+	       $audioFp = fopen($argv[2] . ".mp3", "w+");
+	       fwrite($audioFp, $processor->getAudio()->getAudioData());
+	       fclose($audioFp);
+	   }
+	*/
+
 }

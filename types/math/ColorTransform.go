@@ -101,3 +101,27 @@ func (t ColorTransform) Combine(o ColorTransform) ColorTransform {
 		},
 	}
 }
+
+func ColorTransformFromSWFAlpha(cx types.CXFORMWITHALPHA) (t ColorTransform) {
+	t.Multiply.Red = cx.Multiply.Red
+	t.Multiply.Green = cx.Multiply.Red
+	t.Multiply.Blue = cx.Multiply.Blue
+	t.Multiply.Alpha = cx.Multiply.Alpha
+	t.Add.Red = cx.Add.Red
+	t.Add.Green = cx.Add.Red
+	t.Add.Blue = cx.Add.Blue
+	t.Add.Alpha = cx.Add.Alpha
+	return t
+}
+
+func ColorTransformFromSWF(cx types.CXFORM) (t ColorTransform) {
+	t.Multiply.Red = cx.Multiply.Red
+	t.Multiply.Green = cx.Multiply.Red
+	t.Multiply.Blue = cx.Multiply.Blue
+	t.Multiply.Alpha = 256
+	t.Add.Red = cx.Add.Red
+	t.Add.Green = cx.Add.Red
+	t.Add.Blue = cx.Add.Blue
+	t.Add.Alpha = 0
+	return t
+}

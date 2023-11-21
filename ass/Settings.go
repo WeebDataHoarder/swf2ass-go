@@ -1,6 +1,8 @@
 package ass
 
-import "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
+import (
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
+)
 
 type Settings struct {
 	SmoothTransitions    bool
@@ -17,5 +19,5 @@ var GlobalSettings = Settings{
 	VideoScaleMultiplier: 1,
 	VideoRateMultiplier:  1,
 	BakeTransforms:       false,
-	GradientSlices:       types.GradientAutoSlices,
+	GradientSlices:       shapes.GradientAutoSlices,
 }

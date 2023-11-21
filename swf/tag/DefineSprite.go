@@ -39,10 +39,12 @@ func (t *DefineSprite) SWFRead(r types.DataReader, ctx types.ReaderContext) (err
 			continue
 		}
 
-		if readTag == nil {
-			fmt.Printf("SPRITE %d: len %d UNKNOWN\n", record.Code(), len(record.Data))
-		} else {
-			fmt.Printf("SPRITE %d: len %d KNOWN %s\n", record.Code(), len(record.Data), reflect.ValueOf(readTag).Elem().Type().Name())
+		if types.DoParserDebug {
+			if readTag == nil {
+				fmt.Printf("SPRITE %d: len %d UNKNOWN\n", record.Code(), len(record.Data))
+			} else {
+				fmt.Printf("SPRITE %d: len %d KNOWN %s\n", record.Code(), len(record.Data), reflect.ValueOf(readTag).Elem().Type().Name())
+			}
 		}
 
 		t.ControlTags = append(t.ControlTags, readTag)

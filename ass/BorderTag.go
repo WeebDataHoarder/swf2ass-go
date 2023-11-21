@@ -3,18 +3,18 @@ package ass
 import (
 	"fmt"
 	swftypes "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
 )
 
 type BorderTag struct {
 	Size math.Vector2[swftypes.Twip]
 }
 
-func (t *BorderTag) FromStyleRecord(record types.StyleRecord) StyleTag {
-	if lineStyleRecord, ok := record.(*types.LineStyleRecord); ok {
+func (t *BorderTag) FromStyleRecord(record shapes.StyleRecord) StyleTag {
+	if lineStyleRecord, ok := record.(*shapes.LineStyleRecord); ok {
 		t.Size = math.NewVector2[swftypes.Twip](lineStyleRecord.Width, lineStyleRecord.Width)
-	} else if fillStyleRecord, ok := record.(*types.FillStyleRecord); ok && fillStyleRecord.Border != nil {
+	} else if fillStyleRecord, ok := record.(*shapes.FillStyleRecord); ok && fillStyleRecord.Border != nil {
 		t.Size = math.NewVector2[swftypes.Twip](fillStyleRecord.Border.Width, fillStyleRecord.Border.Width)
 	} else {
 		t.Size = math.NewVector2[swftypes.Twip](0, 0)
@@ -22,7 +22,7 @@ func (t *BorderTag) FromStyleRecord(record types.StyleRecord) StyleTag {
 	return t
 }
 
-func (t *BorderTag) TransitionStyleRecord(line *Line, record types.StyleRecord) StyleTag {
+func (t *BorderTag) TransitionStyleRecord(line *Line, record shapes.StyleRecord) StyleTag {
 	t2 := &BorderTag{}
 	t2.FromStyleRecord(record)
 	return t2

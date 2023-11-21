@@ -1,6 +1,6 @@
 package types
 
-type Matrix struct {
+type MATRIX struct {
 	_                        struct{} `swfFlags:"root,alignend"`
 	HasScale                 bool
 	NScaleBits               uint8   `swfCondition:"HasScale" swfBits:",5"`
@@ -12,8 +12,8 @@ type Matrix struct {
 	TranslateX, TranslateY   Twip    `swfBits:"NTranslateBits,signed"`
 }
 
-func (matrix *Matrix) SWFDefault(ctx ReaderContext) {
-	*matrix = Matrix{}
+func (matrix *MATRIX) SWFDefault(ctx ReaderContext) {
+	*matrix = MATRIX{}
 	matrix.ScaleX = 1 << 16
 	matrix.ScaleY = 1 << 16
 }

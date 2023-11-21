@@ -80,3 +80,10 @@ func (r Rectangle[T]) Draw() []records.Record {
 func (r Rectangle[T]) DrawOpen() []records.Record {
 	return r.Draw()[:3]
 }
+
+func RectangleFromSWF(rect types.Rectangle) Rectangle[types.Twip] {
+	return Rectangle[types.Twip]{
+		TopLeft:     math.NewVector2(rect.Xmin, rect.Ymin),
+		BottomRight: math.NewVector2(rect.Xmax, rect.Ymax),
+	}
+}

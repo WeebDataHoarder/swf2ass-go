@@ -2,6 +2,7 @@ package types
 
 import (
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
 	"golang.org/x/exp/maps"
 	"slices"
 )
@@ -11,7 +12,7 @@ type ViewFrame struct {
 
 	DepthMap map[uint16]*ViewFrame
 
-	DrawPathList *DrawPathList
+	DrawPathList *shapes.DrawPathList
 
 	ColorTransform  *math.ColorTransform
 	MatrixTransform *math.MatrixTransform
@@ -20,16 +21,17 @@ type ViewFrame struct {
 	ClipDepth  uint16
 }
 
-func NewClippingFrame(objectId, clipDepth uint16, list *DrawPathList) *ViewFrame {
+func NewClippingFrame(objectId, clipDepth uint16, list *shapes.DrawPathList) *ViewFrame {
 	return &ViewFrame{
 		ObjectId:     objectId,
 		ClipDepth:    clipDepth,
 		DrawPathList: list,
 		DepthMap:     make(map[uint16]*ViewFrame),
+		IsClipping:   true,
 	}
 }
 
-func NewViewFrame(objectId uint16, list *DrawPathList) *ViewFrame {
+func NewViewFrame(objectId uint16, list *shapes.DrawPathList) *ViewFrame {
 	return &ViewFrame{
 		ObjectId:     objectId,
 		DrawPathList: list,
@@ -104,7 +106,7 @@ func (f *ViewFrame) Render(baseDepth uint16, depthChain Depth, parentColor *math
 				for _, clipObject := range frame.Render(depth, depthChain, colorTransform, matrixTransform) {
 					clipShape := NewClipPath(nil)
 					for _, p := range clipObject.DrawPathList {
-						if _, ok := p.Style.(*FillStyleRecord); ok { //Only clip with fills TODO: is this correct?
+						if _, ok := p.Style.(*shapes.FillStyleRecord); ok { //Only clip with fills TODO: is this correct?
 							clipShape.AddShape(p.Commands)
 						}
 					}

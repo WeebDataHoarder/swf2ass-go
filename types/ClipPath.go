@@ -1,20 +1,23 @@
 package types
 
-import "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
+import (
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
+)
 
 type ClipPath struct {
 }
 
-func NewClipPath(shape *Shape) *ClipPath {
+func NewClipPath(shape *shapes.Shape) *ClipPath {
 	return &ClipPath{}
 }
 
-func (c *ClipPath) AddShape(shape *Shape) {
+func (c *ClipPath) AddShape(shape *shapes.Shape) {
 
 }
 
-func (c *ClipPath) GetShape() *Shape {
-	return &Shape{}
+func (c *ClipPath) GetShape() *shapes.Shape {
+	return &shapes.Shape{}
 }
 
 func (c *ClipPath) ApplyMatrixTransform(transform math.MatrixTransform, applyTranslation bool) *ClipPath {

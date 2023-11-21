@@ -80,7 +80,7 @@ func (l *Line) Encode(frameDuration time.Duration) string {
 		return *l.cachedEncode
 	}
 
-	eventTime := NewEventTime(uint64(l.Start), uint64(l.End-l.Start+1), frameDuration)
+	eventTime := NewEventTime(l.Start, l.End-l.Start+1, frameDuration)
 
 	line := make([]string, 0, 10)
 	if l.IsComment {
@@ -113,7 +113,7 @@ func (l *Line) Encode(frameDuration time.Duration) string {
 		text = append(text, "{"+t.Encode(eventTime)+"}")
 	}
 
-	line = append(line, strings.Join(line, ""))
+	line = append(line, strings.Join(text, ""))
 
 	event := strings.Join(line, ",")
 

@@ -8,17 +8,17 @@ import (
 const DecimalPrecision = 2
 
 type Time struct {
-	Total         uint64
-	TotalAdjusted uint64
+	Total         int64
+	TotalAdjusted int64
 
-	Hours, Minutes, Seconds, Milliseconds uint64
+	Hours, Minutes, Seconds, Milliseconds int64
 
-	AdjustedMilliseconds         uint64
-	AdjustedMillisecondPrecision uint64
-	AdjustedMillisecondError     uint64
+	AdjustedMilliseconds         int64
+	AdjustedMillisecondPrecision int64
+	AdjustedMillisecondError     int64
 }
 
-func NewTime(ms uint64, roundDown bool) (t Time) {
+func NewTime(ms int64, roundDown bool) (t Time) {
 	t.Total = ms
 	t.AdjustedMillisecondPrecision = DecimalPrecision
 
@@ -55,18 +55,18 @@ type EventTime struct {
 	FrameDuration time.Duration
 
 	Start, End           Time
-	StartFrame, EndFrame uint64
+	StartFrame, EndFrame int64
 
-	Duration uint64
+	Duration int64
 }
 
-func NewEventTime(startFrame, duration uint64, frameDuration time.Duration) (t EventTime) {
+func NewEventTime(startFrame, duration int64, frameDuration time.Duration) (t EventTime) {
 	t.FrameDuration = frameDuration
 	t.StartFrame = startFrame
 	t.Duration = duration
-	t.Start = NewTime(uint64((time.Duration(t.StartFrame) * t.FrameDuration).Milliseconds()), true)
+	t.Start = NewTime((time.Duration(t.StartFrame) * t.FrameDuration).Milliseconds(), true)
 	t.EndFrame = t.StartFrame + t.Duration
-	t.End = NewTime(uint64((time.Duration(t.EndFrame) * t.FrameDuration).Milliseconds()), false)
+	t.End = NewTime((time.Duration(t.EndFrame) * t.FrameDuration).Milliseconds(), false)
 
 	return t
 }
@@ -79,7 +79,7 @@ func (t EventTime) GetDurationFromStartOffset(frameOffset int64) time.Duration {
 }
 
 func (t EventTime) GetDurationFromEndOffset(frameOffset int64) time.Duration {
-	if frameOffset > int64(t.Duration) {
+	if frameOffset > t.Duration {
 		panic("out of bounds")
 	}
 	return t.GetDurationFromStartOffset(int64(t.Duration) - frameOffset)

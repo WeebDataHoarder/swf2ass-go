@@ -144,17 +144,17 @@ func (r *Renderer) Flush(frameInfo types.FrameInformation) (result []string) {
 func BakeRenderedObjectGradients(o *types.RenderedObject) *types.RenderedObject {
 	var baked bool
 
-	drawPathList := make(types.DrawPathList, 0, len(o.DrawPathList))
+	drawPathList := make(shapes.DrawPathList, 0, len(o.DrawPathList))
 
 	for _, command := range o.DrawPathList {
-		if fillStyleRecord, ok := command.Style.(*types.FillStyleRecord); ok {
-			if gradient, ok := fillStyleRecord.Fill.(types.Gradient); ok {
+		if fillStyleRecord, ok := command.Style.(*shapes.FillStyleRecord); ok {
+			if gradient, ok := fillStyleRecord.Fill.(shapes.Gradient); ok {
 				baked = true
 
 				gradientClip := types.NewClipPath(command.Commands)
 				//Convert gradients to many tags
 				for _, gradientPath := range gradient.GetInterpolatedDrawPaths(0, GlobalSettings.GradientSlices) {
-					newPath := types.DrawPath{
+					newPath := shapes.DrawPath{
 						Style:    gradientPath.Style,
 						Commands: gradientClip.Intersect(types.NewClipPath(gradientPath.Commands)).GetShape(),
 					}

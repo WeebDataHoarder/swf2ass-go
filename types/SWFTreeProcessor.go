@@ -1,8 +1,13 @@
 package types
 
 import (
+	"fmt"
 	swftag "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/tag"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/tag/subtypes"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
+	math2 "math"
+	"runtime"
 )
 
 type SWFTreeProcessor struct {
@@ -19,6 +24,8 @@ type SWFTreeProcessor struct {
 	LastFrame *ViewFrame
 	Playing   bool
 	Loops     int
+
+	processFunc func(actions ActionList) (tag swftag.Tag, newActions ActionList)
 }
 
 func NewSWFTreeProcessor(objectId uint16, tags []swftag.Tag, objects ObjectCollection) *SWFTreeProcessor {
@@ -27,6 +34,7 @@ func NewSWFTreeProcessor(objectId uint16, tags []swftag.Tag, objects ObjectColle
 		Frame:   0,
 		Tags:    tags,
 		Layout:  NewViewLayout(objectId, nil, nil),
+		Playing: true,
 	}
 }
 
@@ -42,6 +50,52 @@ func (p *SWFTreeProcessor) Current() swftag.Tag {
 }
 
 func (p *SWFTreeProcessor) Process(actions ActionList) (tag swftag.Tag, newActions ActionList) {
+	if p.processFunc != nil {
+		return p.processFunc(actions)
+	}
+	return p.process(actions)
+}
+
+func (p *SWFTreeProcessor) placeObject(object ObjectDefinition, depth, clipDepth uint16, isMove, hasRatio, hasClipDepth bool, ratio float64, transform *math.MatrixTransform, colorTransform *math.ColorTransform) {
+	if object == nil {
+		//TODO: place bogus element
+		fmt.Printf("Object at depth:%d not found\n", depth)
+		p.Layout.Remove(depth)
+		return
+	}
+
+	currentLayout := p.Layout.Get(depth)
+
+	if isMove && currentLayout != nil && currentLayout.GetObjectId() == object.GetObjectId() {
+		if transform != nil {
+			currentLayout.MatrixTransform = transform
+		}
+		if colorTransform != nil {
+			currentLayout.ColorTransform = colorTransform
+		}
+		if hasRatio {
+			currentLayout.Ratio = ratio
+		}
+		return
+	}
+
+	var view *ViewLayout
+	if hasClipDepth {
+		view = NewClippingViewLayout(object.GetObjectId(), clipDepth, object.GetSafeObject(), p.Layout)
+	} else {
+		view = NewViewLayout(object.GetObjectId(), object.GetSafeObject(), p.Layout)
+	}
+	view.MatrixTransform = transform
+	view.ColorTransform = colorTransform
+	view.Ratio = ratio
+	if isMove {
+		p.Layout.Replace(depth, view)
+	} else {
+		p.Layout.Place(depth, view)
+	}
+}
+
+func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActions ActionList) {
 	tag = p.Current()
 	if tag == nil {
 		return nil, nil
@@ -52,9 +106,84 @@ func (p *SWFTreeProcessor) Process(actions ActionList) (tag swftag.Tag, newActio
 		if p.Loops > 0 {
 			break
 		}
-		//TODO: morphs
+		p.Objects.Add(MorphShapeDefinitionFromSWF(node.CharacterId, shapes.RectangleFromSWF(node.StartBounds), shapes.RectangleFromSWF(node.EndBounds), node.StartEdges.Records, node.EndEdges.Records, node.MorphFillStyles, node.MorphLineStyles))
 	case *swftag.DefineMorphShape2:
-	//TODO
+		if p.Loops > 0 {
+			break
+		}
+		p.Objects.Add(MorphShapeDefinitionFromSWF(node.CharacterId, shapes.RectangleFromSWF(node.StartBounds), shapes.RectangleFromSWF(node.EndBounds), node.StartEdges.Records, node.EndEdges.Records, node.MorphFillStyles, node.MorphLineStyles))
+	case *swftag.DefineShape:
+		p.Objects.Add(ShapeDefinitionFromSWF(node.ShapeId, shapes.RectangleFromSWF(node.ShapeBounds), node.Shapes.Records, node.Shapes.FillStyles, node.Shapes.LineStyles))
+	case *swftag.DefineShape2:
+		p.Objects.Add(ShapeDefinitionFromSWF(node.ShapeId, shapes.RectangleFromSWF(node.ShapeBounds), node.Shapes.Records, node.Shapes.FillStyles, node.Shapes.LineStyles))
+	case *swftag.DefineShape3:
+		p.Objects.Add(ShapeDefinitionFromSWF(node.ShapeId, shapes.RectangleFromSWF(node.ShapeBounds), node.Shapes.Records, node.Shapes.FillStyles, node.Shapes.LineStyles))
+	case *swftag.DefineShape4:
+		p.Objects.Add(ShapeDefinitionFromSWF(node.ShapeId, shapes.RectangleFromSWF(node.ShapeBounds), node.Shapes.Records, node.Shapes.FillStyles, node.Shapes.LineStyles))
+	//TODO: case *swftag.DefineShape5:
+	case *swftag.DefineSprite:
+		if p.Loops > 0 {
+			break
+		}
+		p.Objects.Add(&SpriteDefinition{
+			ObjectId:  node.SpriteId,
+			Processor: NewSWFTreeProcessor(node.SpriteId, node.ControlTags, p.Objects),
+		})
+
+	case *swftag.RemoveObject:
+		//TODO: maybe replicate swftag.RemoveObject2 behavior?
+		if o := p.Layout.Get(node.Depth); o != nil && o.GetObjectId() == node.CharacterId {
+			p.Layout.Remove(node.Depth)
+		} else {
+			runtime.KeepAlive(o)
+		}
+	case *swftag.RemoveObject2:
+		p.Layout.Remove(node.Depth)
+
+	case *swftag.PlaceObject2:
+		var object ObjectDefinition
+		if node.Flag.HasCharacter {
+			object = p.Objects[node.CharacterId]
+		} else if vl := p.Layout.Get(node.Depth); vl != nil {
+			object = vl.Object
+		}
+
+		var transform *math.MatrixTransform
+		if node.Flag.HasMatrix {
+			t := math.MatrixTransformFromSWF(node.Matrix)
+			transform = &t
+		}
+
+		var colorTransform *math.ColorTransform
+		if node.Flag.HasColorTransform {
+			t := math.ColorTransformFromSWFAlpha(node.ColorTransform)
+			colorTransform = &t
+		}
+
+		p.placeObject(object, node.Depth, node.ClipDepth, node.Flag.Move, node.Flag.HasClipDepth, node.Flag.HasRatio, float64(node.Ratio)/math2.MaxUint16, transform, colorTransform)
+	case *swftag.PlaceObject3:
+		//TODO: handle extra properties
+		var object ObjectDefinition
+		if node.Flag.HasCharacter {
+			object = p.Objects[node.CharacterId]
+		} else {
+			object = p.Layout.Get(node.Depth).Object
+		}
+
+		var transform *math.MatrixTransform
+		if node.Flag.HasMatrix {
+			t := math.MatrixTransformFromSWF(node.Matrix)
+			transform = &t
+		}
+
+		var colorTransform *math.ColorTransform
+		if node.Flag.HasColorTransform {
+			t := math.ColorTransformFromSWFAlpha(node.ColorTransform)
+			colorTransform = &t
+		}
+
+		p.placeObject(object, node.Depth, node.ClipDepth, node.Flag.Move, node.Flag.HasClipDepth, node.Flag.HasRatio, float64(node.Ratio)/math2.MaxUint16, transform, colorTransform)
+
 	case *swftag.ShowFrame:
 	case *swftag.End:
 	case *swftag.DoAction:

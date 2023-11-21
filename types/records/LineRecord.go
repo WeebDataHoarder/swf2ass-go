@@ -25,6 +25,14 @@ func (r *LineRecord) Reverse() Record {
 	}
 }
 
+func (r *LineRecord) Delta() math.Vector2[types.Twip] {
+	return r.To.SubVector(r.Start)
+}
+
+func fake2DCross(a, b math.Vector2[types.Twip]) types.Twip {
+	return a.X*b.Y - a.Y + b.X
+}
+
 func (r *LineRecord) ApplyMatrixTransform(transform math.MatrixTransform, applyTranslation bool) Record {
 	//TODO: see how accurate this is
 	return &LineRecord{

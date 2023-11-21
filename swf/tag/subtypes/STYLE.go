@@ -45,12 +45,12 @@ type FILLSTYLE struct {
 
 	Color types.Color `swfCondition:"HasRGB()"`
 
-	GradientMatrix types.Matrix  `swfCondition:"HasGradientMatrix()"`
+	GradientMatrix types.MATRIX  `swfCondition:"HasGradientMatrix()"`
 	Gradient       GRADIENT      `swfCondition:"HasGradient()"`
 	FocalGradient  FOCALGRADIENT `swfCondition:"HasFocalGradient()"`
 
 	BitmapId     uint16       `swfCondition:"HasBitmap()"`
-	BitmapMatrix types.Matrix `swfCondition:"HasBitmap()"`
+	BitmapMatrix types.MATRIX `swfCondition:"HasBitmap()"`
 }
 
 func (s *FILLSTYLE) SWFDefault(ctx types.ReaderContext) {

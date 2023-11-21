@@ -3,6 +3,7 @@ package ass
 import (
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
 )
 
 type Tag interface {
@@ -12,8 +13,8 @@ type Tag interface {
 
 type StyleTag interface {
 	Tag
-	TransitionStyleRecord(line *Line, record types.StyleRecord) StyleTag
-	FromStyleRecord(record types.StyleRecord) StyleTag
+	TransitionStyleRecord(line *Line, record shapes.StyleRecord) StyleTag
+	FromStyleRecord(record shapes.StyleRecord) StyleTag
 }
 
 type PositioningTag interface {
@@ -24,7 +25,7 @@ type PositioningTag interface {
 
 type PathTag interface {
 	Tag
-	TransitionShape(line *Line, shape *types.Shape) PathTag
+	TransitionShape(line *Line, shape *shapes.Shape) PathTag
 }
 
 type ClipPathTag interface {
