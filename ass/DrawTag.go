@@ -22,6 +22,7 @@ func NewDrawTag(shape *shapes.Shape, scale int64) *DrawTag {
 func (t *DrawTag) ApplyMatrixTransform(transform math.MatrixTransform, applyTranslation bool) DrawingTag {
 	return &DrawTag{
 		BaseDrawingTag: BaseDrawingTag(*t.AsShape().ApplyMatrixTransform(transform, applyTranslation)),
+		Scale:          t.Scale,
 	}
 }
 

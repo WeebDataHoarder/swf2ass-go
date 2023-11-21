@@ -164,10 +164,12 @@ func BakeRenderedObjectGradients(o *types.RenderedObject) *types.RenderedObject 
 
 					drawPathList = append(drawPathList, newPath)
 				}
-				continue
+			} else {
+				drawPathList = append(drawPathList, command)
 			}
+		} else {
+			drawPathList = append(drawPathList, command)
 		}
-		drawPathList = append(drawPathList, command)
 	}
 
 	if baked {

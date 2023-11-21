@@ -44,6 +44,11 @@ func (r *QuadraticCurveRecord) Equals(other Record) bool {
 	return false
 }
 
+func (r *QuadraticCurveRecord) SameType(other Record) bool {
+	_, ok := other.(*QuadraticCurveRecord)
+	return ok
+}
+
 func (r *QuadraticCurveRecord) IsFlat() bool {
 	return false
 }

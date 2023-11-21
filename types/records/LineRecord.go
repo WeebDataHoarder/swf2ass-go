@@ -48,6 +48,11 @@ func (r *LineRecord) Equals(other Record) bool {
 	return false
 }
 
+func (r *LineRecord) SameType(other Record) bool {
+	_, ok := other.(*LineRecord)
+	return ok
+}
+
 func (r *LineRecord) IsFlat() bool {
 	return true
 }

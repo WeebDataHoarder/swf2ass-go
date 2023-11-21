@@ -145,6 +145,7 @@ func (f *ViewFrame) Render(baseDepth uint16, depthChain Depth, parentColor *math
 					if clipPath == nil {
 						clipPath = clipPaths[clipDepth]
 					} else {
+						//TODO: maybe this should merge
 						clipPath = clipPaths[clipDepth].Intersect(clipPath)
 					}
 				}

@@ -54,6 +54,7 @@ func (c *ShapeConverter) Convert(flipElements bool) {
 
 	firstElement := c.FirstElement
 	secondElement := c.SecondElement
+
 	for {
 		var a, b subtypes.SHAPERECORD
 		if len(secondElement) > 0 {
@@ -81,8 +82,6 @@ func (c *ShapeConverter) Convert(flipElements bool) {
 		if c.Finished {
 			panic("more paths after end")
 		}
-
-		//TODO: check!
 
 		if a.RecordType() == b.RecordType() {
 			switch a := a.(type) {
@@ -129,8 +128,8 @@ func (c *ShapeConverter) Convert(flipElements bool) {
 
 			firstElement = firstElement[1:]
 			secondElement = secondElement[1:]
-		} else if a2, ok := a.(*subtypes.StyleChangeRecord); ok {
-			bCopy := *a2
+		} else if aStyleChange, ok := a.(*subtypes.StyleChangeRecord); ok {
+			bCopy := *aStyleChange
 
 			if bCopy.Flag.MoveTo {
 				bCopy.MoveDeltaX = c.Position.X
@@ -140,11 +139,12 @@ func (c *ShapeConverter) Convert(flipElements bool) {
 			if flipElements {
 				c.HandleNode(&bCopy)
 			} else {
-				c.HandleNode(a2)
+				c.HandleNode(aStyleChange)
 			}
+
 			firstElement = firstElement[1:]
-		} else if b2, ok := b.(*subtypes.StyleChangeRecord); ok {
-			aCopy := *b2
+		} else if bStyleChange, ok := b.(*subtypes.StyleChangeRecord); ok {
+			aCopy := *bStyleChange
 
 			if aCopy.Flag.MoveTo {
 				aCopy.MoveDeltaX = c.Position.X
@@ -152,10 +152,11 @@ func (c *ShapeConverter) Convert(flipElements bool) {
 			}
 
 			if flipElements {
-				c.HandleNode(b2)
+				c.HandleNode(bStyleChange)
 			} else {
 				c.HandleNode(&aCopy)
 			}
+
 			secondElement = secondElement[1:]
 		} else {
 			//Curve/line records can differ
@@ -332,8 +333,9 @@ func (c *ShapeConverter) FlushLayer() {
 			//TODO: using custom line borders later using fills this can be removed
 			fixedStyle := *style
 			fixedStyle.Width /= 2
-			c.Commands = append(c.Commands, DrawPathStroke(&fixedStyle, path.GetShape()))
+			c.Commands = append(c.Commands, DrawPathStroke(&fixedStyle, newSegments.GetShape()))
 		}
+		//TODO: leave this as-is and create a fill in renderer
 	}
 	clear(c.Strokes)
 }

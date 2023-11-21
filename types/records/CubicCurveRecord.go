@@ -46,6 +46,11 @@ func (r *CubicCurveRecord) Equals(other Record) bool {
 	return false
 }
 
+func (r *CubicCurveRecord) SameType(other Record) bool {
+	_, ok := other.(*CubicCurveRecord)
+	return ok
+}
+
 func (r *CubicCurveRecord) IsFlat() bool {
 	return false
 }

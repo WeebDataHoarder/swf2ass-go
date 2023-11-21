@@ -13,6 +13,8 @@ type Record interface {
 
 	Equals(other Record) bool
 
+	SameType(other Record) bool
+
 	ApplyMatrixTransform(transform math.MatrixTransform, applyTranslation bool) Record
 
 	IsFlat() bool

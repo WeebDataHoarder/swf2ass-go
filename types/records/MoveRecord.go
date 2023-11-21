@@ -39,6 +39,11 @@ func (r *MoveRecord) Equals(other Record) bool {
 	return false
 }
 
+func (r *MoveRecord) SameType(other Record) bool {
+	_, ok := other.(*MoveRecord)
+	return ok
+}
+
 func (r *MoveRecord) IsFlat() bool {
 	return true
 }

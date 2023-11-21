@@ -18,6 +18,11 @@ func NewPathSegment(start math.Vector2[types.Twip]) PathSegment {
 	}
 }
 
+// Flip
+// Flips the direction of the path segment.
+// Flash fill paths are dual-sided, with fill style 1 indicating the positive side
+// and fill style 0 indicating the negative. We have to flip fill style 0 paths
+// in order to link them to fill style 1 paths.
 func (s *PathSegment) Flip() {
 	slices.Reverse(*s)
 }
@@ -78,34 +83,41 @@ func (s *PathSegment) GetShape() *Shape {
 	}
 
 	shape := &Shape{
-		Edges: make([]records.Record, 0, len(*s)),
+		Edges: make([]records.Record, 0, len(*s)-1),
 	}
 
-	pos := s.Start()
+	points := (*s)[1:]
 
-	points := *s
-	for len(points) > 0 {
+	next := func() VisitedPoint {
 		point := points[0]
 		points = points[1:]
+		return point
+	}
+
+	//lastPos := next().Pos
+	lastPos := points[0].Pos
+
+	for len(points) > 0 {
+		point := next()
+
 		if !point.IsBezierControl {
 			shape.AddRecord(&records.LineRecord{
 				To:    point.Pos,
-				Start: pos,
+				Start: lastPos,
 			})
-			pos = point.Pos
+			lastPos = point.Pos
 		} else {
 			if len(points) == 0 {
-				panic("bezier without endpoint")
+				panic("Bezier without endpoint")
 			}
-			end := points[0]
-			points = points[1:]
+			end := next()
 
 			shape.AddRecord(&records.QuadraticCurveRecord{
 				Control: point.Pos,
 				Anchor:  end.Pos,
-				Start:   pos,
+				Start:   lastPos,
 			})
-			pos = end.Pos
+			lastPos = end.Pos
 		}
 	}
 

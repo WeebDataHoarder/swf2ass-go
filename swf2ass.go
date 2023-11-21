@@ -13,6 +13,7 @@ import (
 	"io"
 	math2 "math"
 	"os"
+	"path"
 )
 
 type KnownSignatures map[string]KnownSignature
@@ -109,6 +110,13 @@ func main() {
 	keyframeInterval := int64(KeyFrameEveryNSeconds * swfReader.Header().FrameRate.Float64())
 
 	var ks KnownSignature
+
+	for _, s := range knownSignatures {
+		if s.Name == path.Base(*inputFile) {
+			ks = s
+			break
+		}
+	}
 
 	output, err := os.Create(*outputFile)
 	if err != nil {

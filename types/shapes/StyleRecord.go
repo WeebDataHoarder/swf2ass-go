@@ -41,16 +41,20 @@ func (r *FillStyleRecord) ApplyColorTransform(transform math.ColorTransform) Sty
 	}
 }
 
-func FillStyleRecordFromSWFFILLSTYLE(fillStyle swfsubtypes.FILLSTYLE) (r *FillStyleRecord) {
-	switch fillStyle.FillStyleType {
+func FillStyleRecordFromSWF(fillType swfsubtypes.FillStyleType, color swftypes.Color, gradient swfsubtypes.GRADIENT, gradientMatrix swftypes.MATRIX) (r *FillStyleRecord) {
+	switch fillType {
 	case swfsubtypes.FillStyleSolid:
 		return &FillStyleRecord{
 			Fill: math.Color{
-				R:     fillStyle.Color.R(),
-				G:     fillStyle.Color.G(),
-				B:     fillStyle.Color.B(),
-				Alpha: fillStyle.Color.A(),
+				R:     color.R(),
+				G:     color.G(),
+				B:     color.B(),
+				Alpha: color.A(),
 			},
+		}
+	case swfsubtypes.FillStyleLinearGradient:
+		return &FillStyleRecord{
+			Fill: LinearGradientFromSWF(gradient.Records, gradientMatrix, gradient.SpreadMode, gradient.InterpolationMode),
 		}
 		//TODO other styles
 	}
@@ -66,49 +70,9 @@ func FillStyleRecordFromSWFFILLSTYLE(fillStyle swfsubtypes.FILLSTYLE) (r *FillSt
 }
 
 func FillStyleRecordFromSWFMORPHFILLSTYLEStart(fillStyle swfsubtypes.MORPHFILLSTYLE) (r *FillStyleRecord) {
-	switch fillStyle.FillStyleType {
-	case swfsubtypes.FillStyleSolid:
-		return &FillStyleRecord{
-			Fill: math.Color{
-				R:     fillStyle.StartColor.R(),
-				G:     fillStyle.StartColor.G(),
-				B:     fillStyle.StartColor.B(),
-				Alpha: fillStyle.StartColor.A(),
-			},
-		}
-		//TODO other styles
-	}
-
-	return &FillStyleRecord{
-		Fill: math.Color{
-			R:     0,
-			G:     0,
-			B:     0,
-			Alpha: 0,
-		},
-	}
+	return FillStyleRecordFromSWF(fillStyle.FillStyleType, fillStyle.StartColor, fillStyle.Gradient.StartGradient(), fillStyle.StartGradientMatrix)
 }
 
 func FillStyleRecordFromSWFMORPHFILLSTYLEEnd(fillStyle swfsubtypes.MORPHFILLSTYLE) (r *FillStyleRecord) {
-	switch fillStyle.FillStyleType {
-	case swfsubtypes.FillStyleSolid:
-		return &FillStyleRecord{
-			Fill: math.Color{
-				R:     fillStyle.EndColor.R(),
-				G:     fillStyle.EndColor.G(),
-				B:     fillStyle.EndColor.B(),
-				Alpha: fillStyle.EndColor.A(),
-			},
-		}
-		//TODO other styles
-	}
-
-	return &FillStyleRecord{
-		Fill: math.Color{
-			R:     0,
-			G:     0,
-			B:     0,
-			Alpha: 0,
-		},
-	}
+	return FillStyleRecordFromSWF(fillStyle.FillStyleType, fillStyle.EndColor, fillStyle.Gradient.EndGradient(), fillStyle.EndGradientMatrix)
 }

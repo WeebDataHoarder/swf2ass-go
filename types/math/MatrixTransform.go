@@ -1,9 +1,11 @@
 package math
 
 import (
+	"fmt"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	"gonum.org/v1/gonum/mat"
 	"math"
+	"runtime"
 )
 
 type MatrixTransform struct {
@@ -30,10 +32,10 @@ func NewMatrixTransform(scale, rotateSkew Vector2[float64], translation Vector2[
 		//TODO: check order
 		matrix: mat.NewDense(3, 3, []float64{
 			/* a */ /* c */
-			scale.X, rotateSkew.Y, 0,
+			scale.X, rotateSkew.Y, translation.X.Float64(),
 			/* b */ /* d */
-			rotateSkew.X, scale.Y, 0,
-			translation.X.Float64(), translation.Y.Float64(), 1,
+			rotateSkew.X, scale.Y, translation.Y.Float64(),
+			0, 0, 1,
 		}),
 	}
 }
@@ -78,18 +80,22 @@ func (m MatrixTransform) IsIdentity() bool {
 	return m.EqualsExact(identityTransform)
 }
 
+// GetA Gets the ScaleX factor
 func (m MatrixTransform) GetA() float64 {
 	return m.matrix.At(0, 0)
 }
 
+// GetB Gets the RotateSkewX factor
 func (m MatrixTransform) GetB() float64 {
 	return m.matrix.At(1, 0)
 }
 
+// GetC Gets the RotateSkewY factor
 func (m MatrixTransform) GetC() float64 {
 	return m.matrix.At(0, 1)
 }
 
+// GetD Gets the ScaleY factor
 func (m MatrixTransform) GetD() float64 {
 	return m.matrix.At(1, 1)
 }
@@ -117,7 +123,7 @@ func (m MatrixTransform) ApplyToVector(v Vector2[float64], applyTranslation bool
 		r.MulVec(m.matrix, mat.NewVecDense(3, []float64{v.X, v.Y, 1}))
 	} else {
 		//TODO: check order
-		r.MulVec(m.matrix.Slice(0, 0, 1, 1), mat.NewVecDense(2, []float64{v.X, v.Y}))
+		r.MulVec(m.withoutTranslation(), mat.NewVecDense(2, []float64{v.X, v.Y}))
 	}
 	return NewVector2[float64](r.At(0, 0), r.At(1, 0))
 }
@@ -131,14 +137,32 @@ const TransformCompareEpsilon = 1e-12
 func (m MatrixTransform) Equals(o MatrixTransform, epsilon float64) bool {
 	return mat.EqualApprox(m.matrix, o.matrix, epsilon)
 }
+
+func (m MatrixTransform) withoutTranslation() mat.Matrix {
+	return m.matrix.Slice(0, 2, 0, 2)
+}
+
 func (m MatrixTransform) EqualsWithoutTranslation(o MatrixTransform, epsilon float64) bool {
-	return mat.EqualApprox(m.matrix.Slice(0, 0, 1, 1), o.matrix.Slice(0, 0, 1, 1), epsilon)
+	return mat.EqualApprox(m.withoutTranslation(), o.withoutTranslation(), epsilon)
+}
+
+func (m MatrixTransform) String() string {
+	return fmt.Sprintf("%#v", mat.Formatted(m.matrix, mat.FormatPython()))
 }
 
 func MatrixTransformFromSWF(m types.MATRIX) MatrixTransform {
-	return NewMatrixTransform(
+	t := NewMatrixTransform(
 		NewVector2[float64](m.ScaleX.Float64(), m.ScaleY.Float64()),
 		NewVector2[float64](m.RotateSkew0.Float64(), m.RotateSkew1.Float64()),
 		NewVector2[types.Twip](m.TranslateX, m.TranslateY),
 	)
+	if m.HasRotate && m.HasScale && m.TranslateX != 0 {
+		fmt.Printf("\n\nScale: %s vs %f, %f\n", NewVector2[float64](m.ScaleX.Float64(), m.ScaleY.Float64()), t.GetA(), t.GetD())
+		fmt.Printf("Skew: %s vs %f, %f\n", NewVector2[float64](m.RotateSkew0.Float64(), m.RotateSkew1.Float64()), t.GetB(), t.GetC())
+		fmt.Printf("Translation: %s %s vs %f, %f\n", NewVector2[types.Twip](m.TranslateX, m.TranslateY), NewVector2[types.Twip](m.TranslateX, m.TranslateY).Float64().Divide(types.TwipFactor), t.GetTX(), t.GetTY())
+		fmt.Printf("%s\n\n", t.String())
+		fmt.Printf("%#v\n\n", mat.Formatted(t.withoutTranslation(), mat.FormatPython()))
+		runtime.KeepAlive(m)
+	}
+	return t
 }

@@ -263,12 +263,16 @@ func (p *SWFTreeProcessor) NextFrame() *ViewFrame {
 
 	//TODO: this might need to be elsewhere?
 	for _, action := range actions {
-		if _, ok := action.(*StopAction); ok {
+		switch action := action.(type) {
+		case *StopAction:
 			p.Playing = false
-		} else if _, ok = action.(*PlayAction); ok {
+		case *PlayAction:
 			p.Playing = true
-		} else if _, ok = action.(*NextFrameAction); ok {
+		case *NextFrameAction:
 			return p.NextFrame()
+		default:
+			_ = action
+
 		}
 	}
 

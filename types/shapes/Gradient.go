@@ -2,6 +2,7 @@ package shapes
 
 import (
 	swfsubtypes "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/tag/subtypes"
+	swftypes "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	math2 "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"math"
 	"slices"
@@ -13,7 +14,7 @@ type Gradient interface {
 	GetSpreadMode() swfsubtypes.GradientSpreadMode
 	GetInterpolationMode() swfsubtypes.GradientInterpolationMode
 	GetItems() []GradientItem
-	GetInterpolatedDrawPaths(overlap int, slices int) DrawPathList
+	GetInterpolatedDrawPaths(overlap int, gradientSlices int) DrawPathList
 	GetMatrixTransform() math2.MatrixTransform
 	ApplyColorTransform(transform math2.ColorTransform) Gradient
 }
@@ -98,4 +99,16 @@ func LerpGradient(gradient Gradient, gradientSlices int) (result []GradientSlice
 		}
 	}
 	return result
+}
+
+func GradientItemFromSWF(ratio uint8, color swftypes.Color) GradientItem {
+	return GradientItem{
+		Ratio: ratio,
+		Color: math2.Color{
+			R:     color.R(),
+			G:     color.G(),
+			B:     color.B(),
+			Alpha: color.A(),
+		},
+	}
 }

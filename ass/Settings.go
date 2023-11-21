@@ -18,6 +18,7 @@ var GlobalSettings = Settings{
 	DrawingScale:         DefaultDrawingScale,
 	VideoScaleMultiplier: 1,
 	VideoRateMultiplier:  1,
-	BakeTransforms:       false,
-	GradientSlices:       shapes.GradientAutoSlices,
+	//BakeTransforms:       false,
+	BakeTransforms: true,
+	GradientSlices: shapes.GradientAutoSlices,
 }

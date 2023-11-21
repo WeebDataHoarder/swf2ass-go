@@ -46,6 +46,7 @@ func NewClipTag(clip *types.ClipPath, scale int64) *ClipTag {
 func (t *ClipTag) ApplyMatrixTransform(transform math.MatrixTransform, applyTranslation bool) DrawingTag {
 	return &ClipTag{
 		BaseDrawingTag: BaseDrawingTag(*t.AsShape().ApplyMatrixTransform(transform, applyTranslation)),
+		Scale:          t.Scale,
 	}
 }
 

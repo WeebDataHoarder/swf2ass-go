@@ -43,7 +43,7 @@ func (t *FillColorTag) ApplyColorTransform(transform math.ColorTransform) ColorT
 		color2 := transform.ApplyToColor(*t.OriginalColor)
 		color = &color2
 	}
-	return &LineColorTag{
+	return &FillColorTag{
 		Color:         color,
 		OriginalColor: t.OriginalColor,
 	}
