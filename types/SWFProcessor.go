@@ -18,6 +18,8 @@ type SWFProcessor struct {
 	ViewPort           shapes.Rectangle[types.Twip]
 	FrameRate          float64
 	ExpectedFrameCount int64
+
+	Audio *AudioStream
 }
 
 func NewSWFProcessor(tags []swftag.Tag, viewPort shapes.Rectangle[types.Twip], frameRate float64, frameCount int64) *SWFProcessor {
@@ -56,7 +58,27 @@ func (p *SWFProcessor) subProcess(actions ActionList) (tag swftag.Tag, newAction
 			},
 			Border: nil,
 		}
-		//TODO: handle sound
+	case *swftag.SoundStreamHead:
+		if p.Loops > 0 {
+			break
+		}
+		p.Audio = AudioStreamFromSWF(node.StreamSoundRate, node.StreamSoundSize, node.StreamIsStereo, swftag.SoundFormat(node.StreamSoundCompression))
+	case *swftag.SoundStreamHead2:
+		if p.Loops > 0 {
+			break
+		}
+		p.Audio = AudioStreamFromSWF(node.StreamSoundRate, node.StreamSoundSize, node.StreamIsStereo, node.StreamSoundFormat)
+	case *swftag.SoundStreamBlock:
+		if p.Loops > 0 {
+			break
+		}
+		if p.Audio != nil {
+			if p.Audio.Start == nil {
+				f := p.Frame
+				p.Audio.Start = &f
+			}
+			p.Audio.AddStreamBlock(node)
+		}
 	}
 	return p.process(actions)
 }
@@ -66,12 +88,8 @@ func (p *SWFProcessor) NextFrameOutput() *FrameInformation {
 	if frame == nil {
 		return nil
 	}
-	/*
-		if(!$this->isPlaying() and ($this->audio === null or $this->audio->getStartFrame() === null) or $this->getFrame() === 1){ //Force play till finding audio, or first frame is 0
-			$this->playing = true;
-		}
-	*/
-	if !p.Playing && (p.Frame == 1) {
+
+	if !p.Playing && (p.Audio == nil || p.Audio.Start == nil) || p.Frame == 1 { //Force play till finding audio, or first frame is 0
 		p.Playing = true
 	}
 

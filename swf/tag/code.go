@@ -17,12 +17,12 @@ const (
 	_
 	RecordDoAction
 	_
+	RecordDefineSound
+	RecordStartSound
 	_
 	_
-	_
-	_
-	_
-	_
+	RecordSoundStreamHead
+	RecordSoundStreamBlock
 	RecordDefineBitsLossless
 	RecordDefineBitsJPEG2
 	RecordDefineShape2
@@ -48,7 +48,7 @@ const (
 	_
 	RecordFrameLabel
 	_
-	_
+	RecordSoundStreamHead2
 	RecordDefineMorphShape
 	_
 	_
@@ -92,6 +92,6 @@ const (
 	RecordDefineSceneAndFrameLabelData
 	_
 	_
-	_
+	RecordStartSound2
 	RecordDefineBitsJPEG4
 )

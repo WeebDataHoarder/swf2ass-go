@@ -45,6 +45,7 @@ func (e RemovalEntry) Equals(object *types.RenderedObject) bool {
 func main() {
 	inputFile := flag.String("input", "", "Input SWF")
 	outputFile := flag.String("output", "", "Output ASS")
+	outputAudio := flag.String("audio", "", "Output Audio")
 	removalSignatures := flag.String("signatures", "signatures.json", "JSON file containing parameters for signature removal")
 	fromFrame := flag.Int64("from", 0, "Frame to start at")
 	toFrame := flag.Int64("to", math2.MaxInt64, "Frame to end at")
@@ -224,12 +225,9 @@ func main() {
 	}
 
 	outputLines(assRenderer.Flush(*lastFrame)...)
-	/*
-	   if($processor->getAudio() !== null and $processor->getAudio()->getFormat() === \swf2ass\AudioStream::FORMAT_MP3){
-	       $audioFp = fopen($argv[2] . ".mp3", "w+");
-	       fwrite($audioFp, $processor->getAudio()->getAudioData());
-	       fclose($audioFp);
-	   }
-	*/
+
+	if *outputAudio != "" && processor.Audio != nil && processor.Audio.Format == swftag.SoundFormatMP3 {
+		_ = os.WriteFile(*outputAudio, processor.Audio.Data, 0664)
+	}
 
 }

@@ -94,6 +94,25 @@ func (r *Record) Decode() (readTag Tag, err error) {
 		readTag = &DefineBitsJPEG4{}
 	case RecordDefineSprite:
 		readTag = &DefineSprite{}
+	case RecordDefineSound:
+		readTag = &DefineSound{}
+	case RecordSoundStreamHead:
+		readTag = &SoundStreamHead{}
+	case RecordSoundStreamHead2:
+		readTag = &SoundStreamHead2{}
+	case RecordSoundStreamBlock:
+		readTag = &SoundStreamBlock{}
+	case RecordStartSound:
+		readTag = &StartSound{}
+	case RecordStartSound2:
+		readTag = &StartSound2{}
+
+	case RecordDefineBitsLossless:
+	case RecordDefineBitsLossless2:
+	case RecordExportAssets:
+	case RecordImportAssets:
+	case RecordImportAssets2:
+	case RecordSymbolClass:
 
 	}
 

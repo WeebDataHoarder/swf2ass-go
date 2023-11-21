@@ -140,6 +140,24 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 	case *swftag.RemoveObject2:
 		p.Layout.Remove(node.Depth)
 
+	case *swftag.PlaceObject:
+		var object ObjectDefinition
+		if vl := p.Layout.Get(node.Depth); vl != nil {
+			object = vl.Object
+		}
+
+		var transform *math.MatrixTransform
+		if t := math.MatrixTransformFromSWF(node.Matrix); !t.IsIdentity() {
+			transform = &t
+		}
+
+		var colorTransform *math.ColorTransform
+		if node.Flag.HasColorTransform && node.ColorTransform != nil {
+			t := math.ColorTransformFromSWF(*node.ColorTransform)
+			colorTransform = &t
+		}
+
+		p.placeObject(object, node.Depth, 0, false, false, false, 0, transform, colorTransform)
 	case *swftag.PlaceObject2:
 		var object ObjectDefinition
 		if node.Flag.HasCharacter {
