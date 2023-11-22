@@ -1,7 +1,6 @@
 package shapes
 
 import (
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/records"
 )
@@ -40,16 +39,16 @@ func (s *Shape) ApplyMatrixTransform(transform math.MatrixTransform, applyTransl
 	return newShape
 }
 
-func (s *Shape) Start() math.Vector2[types.Twip] {
+func (s *Shape) Start() math.Vector2[float64] {
 	if len(s.Edges) == 0 {
-		return math.NewVector2[types.Twip](0, 0)
+		return math.NewVector2[float64](0, 0)
 	}
 	return s.Edges[0].GetStart()
 }
 
-func (s *Shape) End() math.Vector2[types.Twip] {
+func (s *Shape) End() math.Vector2[float64] {
 	if len(s.Edges) == 0 {
-		return math.NewVector2[types.Twip](0, 0)
+		return math.NewVector2[float64](0, 0)
 	}
 	return s.Edges[len(s.Edges)-1].GetEnd()
 }

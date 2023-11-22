@@ -11,7 +11,7 @@ type StyleRecord interface {
 }
 
 type LineStyleRecord struct {
-	Width swftypes.Twip
+	Width float64
 	Color math.Color
 }
 

@@ -18,7 +18,7 @@ const (
 	Trans
 )
 
-func TestMatrixTransform_Translate(t *testing.T) {
+func TestMatrixTransform(t *testing.T) {
 	testVectors := []testVector{
 		{{0, 0}, {1, 1}, {0, 0}, {1000, -1000}},
 		{{1, 1}, {1, 1}, {0, 0}, {-1000, 1000}},
@@ -75,7 +75,25 @@ func TestMatrixTransform_Translate(t *testing.T) {
 		t.Logf("[#%d] Expected\t%s", i, outputAlt.String())
 		t.Logf("[#%d] Matrix\n%s", i, m.String())
 		if !outputAlt.Equals(output) {
-			t.Errorf("[#%d] Failed!\n\n", i)
+			t.Errorf("[#%d] Failed: output mismatch!\n\n", i)
+		}
+		if m.GetA() != s[Scale][X] {
+			t.Fatal()
+		}
+		if m.GetB() != s[RotSkew][X] {
+			t.Fatal()
+		}
+		if m.GetC() != s[RotSkew][Y] {
+			t.Fatal()
+		}
+		if m.GetD() != s[Scale][Y] {
+			t.Fatal()
+		}
+		if m.GetTX() != s[Trans][X] {
+			t.Fatal()
+		}
+		if m.GetTY() != s[Trans][Y] {
+			t.Fatal()
 		}
 	}
 }

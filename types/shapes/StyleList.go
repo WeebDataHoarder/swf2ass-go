@@ -34,7 +34,7 @@ func StyleListFromSWFItems(fillStyles subtypes.FILLSTYLEARRAY, lineStyles subtyp
 		for _, s := range lineStyles.LineStyles {
 			r.LineStyles = append(r.LineStyles, &LineStyleRecord{
 				//TODO: any reason for  max(types.TwipFactor)?
-				Width: max(types.Twip(s.Width), types.TwipFactor),
+				Width: max(types.Twip(s.Width), types.TwipFactor).Float64(),
 				Color: math.Color{
 					R:     s.Color.R(),
 					G:     s.Color.G(),
@@ -48,7 +48,7 @@ func StyleListFromSWFItems(fillStyles subtypes.FILLSTYLEARRAY, lineStyles subtyp
 			if !s.Flag.HasFill {
 				r.LineStyles = append(r.LineStyles, &LineStyleRecord{
 					//TODO: any reason for  max(types.TwipFactor)?
-					Width: max(types.Twip(s.Width), types.TwipFactor),
+					Width: max(types.Twip(s.Width), types.TwipFactor).Float64(),
 					Color: math.Color{
 						R:     s.Color.R(),
 						G:     s.Color.G(),
@@ -62,7 +62,7 @@ func StyleListFromSWFItems(fillStyles subtypes.FILLSTYLEARRAY, lineStyles subtyp
 				case types.Color:
 					r.LineStyles = append(r.LineStyles, &LineStyleRecord{
 						//TODO: any reason for  max(types.TwipFactor)?
-						Width: max(types.Twip(s.Width), types.TwipFactor),
+						Width: max(types.Twip(s.Width), types.TwipFactor).Float64(),
 						Color: math.Color{
 							R:     fillEntry.R(),
 							G:     fillEntry.G(),
@@ -75,7 +75,7 @@ func StyleListFromSWFItems(fillStyles subtypes.FILLSTYLEARRAY, lineStyles subtyp
 					color := fillEntry.GetItems()[0].Color
 					r.LineStyles = append(r.LineStyles, &LineStyleRecord{
 						//TODO: any reason for  max(types.TwipFactor)?
-						Width: max(types.Twip(s.Width), types.TwipFactor),
+						Width: max(types.Twip(s.Width), types.TwipFactor).Float64(),
 						Color: color,
 					})
 				}
@@ -96,7 +96,7 @@ func StyleListFromSWFMorphItems(fillStyles subtypes.MORPHFILLSTYLEARRAY, lineSty
 		for _, s := range lineStyles.LineStyles {
 			start.LineStyles = append(start.LineStyles, &LineStyleRecord{
 				//TODO: any reason for  max(types.TwipFactor)?
-				Width: max(types.Twip(s.StartWidth), types.TwipFactor),
+				Width: max(types.Twip(s.StartWidth), types.TwipFactor).Float64(),
 				Color: math.Color{
 					R:     s.StartColor.R(),
 					G:     s.StartColor.G(),
@@ -107,7 +107,7 @@ func StyleListFromSWFMorphItems(fillStyles subtypes.MORPHFILLSTYLEARRAY, lineSty
 
 			end.LineStyles = append(end.LineStyles, &LineStyleRecord{
 				//TODO: any reason for  max(types.TwipFactor)?
-				Width: max(types.Twip(s.EndWidth), types.TwipFactor),
+				Width: max(types.Twip(s.EndWidth), types.TwipFactor).Float64(),
 				Color: math.Color{
 					R:     s.EndColor.R(),
 					G:     s.EndColor.G(),
@@ -121,7 +121,7 @@ func StyleListFromSWFMorphItems(fillStyles subtypes.MORPHFILLSTYLEARRAY, lineSty
 			if !s.Flag.HasFill {
 				start.LineStyles = append(start.LineStyles, &LineStyleRecord{
 					//TODO: any reason for  max(types.TwipFactor)?
-					Width: max(types.Twip(s.StartWidth), types.TwipFactor),
+					Width: max(types.Twip(s.StartWidth), types.TwipFactor).Float64(),
 					Color: math.Color{
 						R:     s.StartColor.R(),
 						G:     s.StartColor.G(),
@@ -131,7 +131,7 @@ func StyleListFromSWFMorphItems(fillStyles subtypes.MORPHFILLSTYLEARRAY, lineSty
 				})
 				end.LineStyles = append(end.LineStyles, &LineStyleRecord{
 					//TODO: any reason for  max(types.TwipFactor)?
-					Width: max(types.Twip(s.EndWidth), types.TwipFactor),
+					Width: max(types.Twip(s.EndWidth), types.TwipFactor).Float64(),
 					Color: math.Color{
 						R:     s.EndColor.R(),
 						G:     s.EndColor.G(),
@@ -146,7 +146,7 @@ func StyleListFromSWFMorphItems(fillStyles subtypes.MORPHFILLSTYLEARRAY, lineSty
 				case types.Color:
 					start.LineStyles = append(start.LineStyles, &LineStyleRecord{
 						//TODO: any reason for  max(types.TwipFactor)?
-						Width: max(types.Twip(s.StartWidth), types.TwipFactor),
+						Width: max(types.Twip(s.StartWidth), types.TwipFactor).Float64(),
 						Color: math.Color{
 							R:     fillEntry.R(),
 							G:     fillEntry.G(),
@@ -159,7 +159,7 @@ func StyleListFromSWFMorphItems(fillStyles subtypes.MORPHFILLSTYLEARRAY, lineSty
 					color := fillEntry.GetItems()[0].Color
 					start.LineStyles = append(start.LineStyles, &LineStyleRecord{
 						//TODO: any reason for  max(types.TwipFactor)?
-						Width: max(types.Twip(s.StartWidth), types.TwipFactor),
+						Width: max(types.Twip(s.StartWidth), types.TwipFactor).Float64(),
 						Color: color,
 					})
 				}
@@ -167,7 +167,7 @@ func StyleListFromSWFMorphItems(fillStyles subtypes.MORPHFILLSTYLEARRAY, lineSty
 				case types.Color:
 					end.LineStyles = append(end.LineStyles, &LineStyleRecord{
 						//TODO: any reason for  max(types.TwipFactor)?
-						Width: max(types.Twip(s.EndWidth), types.TwipFactor),
+						Width: max(types.Twip(s.EndWidth), types.TwipFactor).Float64(),
 						Color: math.Color{
 							R:     fillEntry.R(),
 							G:     fillEntry.G(),
@@ -180,7 +180,7 @@ func StyleListFromSWFMorphItems(fillStyles subtypes.MORPHFILLSTYLEARRAY, lineSty
 					color := fillEntry.GetItems()[0].Color
 					end.LineStyles = append(end.LineStyles, &LineStyleRecord{
 						//TODO: any reason for  max(types.TwipFactor)?
-						Width: max(types.Twip(s.EndWidth), types.TwipFactor),
+						Width: max(types.Twip(s.EndWidth), types.TwipFactor).Float64(),
 						Color: color,
 					})
 				}

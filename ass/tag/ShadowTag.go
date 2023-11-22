@@ -3,12 +3,11 @@ package tag
 import (
 	"fmt"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
-	swftypes "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
 )
 
 type ShadowTag struct {
-	Depth swftypes.Twip
+	Depth float64
 }
 
 func (t *ShadowTag) FromStyleRecord(record shapes.StyleRecord) StyleTag {
@@ -31,5 +30,5 @@ func (t *ShadowTag) Equals(tag Tag) bool {
 }
 
 func (t *ShadowTag) Encode(event time.EventTime) string {
-	return fmt.Sprintf("\\shad%.02F", t.Depth.Float64())
+	return fmt.Sprintf("\\shad%.02F", t.Depth)
 }

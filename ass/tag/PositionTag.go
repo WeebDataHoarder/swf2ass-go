@@ -4,18 +4,17 @@ import (
 	"fmt"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/settings"
-	swftypes "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	math2 "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"math"
 )
 
 type PositionTag struct {
-	From, To   math2.Vector2[swftypes.Twip]
+	From, To   math2.Vector2[float64]
 	Start, End int64
 }
 
 func (t *PositionTag) TransitionMatrixTransform(event Event, transform math2.MatrixTransform) PositioningTag {
-	translation := math2.MatrixTransformApplyToVector(transform, math2.NewVector2[swftypes.Twip](0, 0), true)
+	translation := math2.MatrixTransformApplyToVector(transform, math2.NewVector2[float64](0, 0), true)
 
 	frame := event.GetEnd() - event.GetStart()
 
@@ -56,8 +55,8 @@ func (t *PositionTag) TransitionMatrixTransform(event Event, transform math2.Mat
 		direction := t.To.SubVector(t.From).Normalize()
 		//TODO: maybe use larger epsilon?
 		if math.Abs(direction.Dot(translation.Normalize())-1) <= math.SmallestNonzeroFloat64 { //Same direction, extend
-			length := t.To.SubVector(t.From).Divide(swftypes.Twip(duration)).SquaredLength().Float64()
-			length2 := translation.SubVector(t.To).SquaredLength().Float64()
+			length := t.To.SubVector(t.From).Divide(float64(duration)).SquaredLength()
+			length2 := translation.SubVector(t.To).SquaredLength()
 
 			if math.Abs(length-length2) <= math.SmallestNonzeroFloat64 { //same length
 				return &PositionTag{
@@ -91,11 +90,11 @@ func (t *PositionTag) Encode(event time.EventTime) string {
 			end = event.GetDurationFromStartOffset(t.Start).Milliseconds()
 		}
 		//TODO: precision?
-		return fmt.Sprintf("\\move(%f,%f,%f,%f,%d,%d)", t.From.X.Float64(), t.From.Y.Float64(), t.To.X.Float64(), t.To.Y.Float64(), start, end)
+		return fmt.Sprintf("\\move(%f,%f,%f,%f,%d,%d)", t.From.X, t.From.Y, t.To.X, t.To.Y, start, end)
 	}
 
 	//TODO: precision?
-	return fmt.Sprintf("\\pos(%f,%f)", t.From.X.Float64(), t.From.Y.Float64())
+	return fmt.Sprintf("\\pos(%f,%f)", t.From.X, t.From.Y)
 }
 
 func (t *PositionTag) Equals(tag Tag) bool {
@@ -106,7 +105,7 @@ func (t *PositionTag) Equals(tag Tag) bool {
 }
 
 func (t *PositionTag) FromMatrixTransform(transform math2.MatrixTransform) PositioningTag {
-	translation := math2.MatrixTransformApplyToVector(transform, math2.NewVector2[swftypes.Twip](0, 0), true)
+	translation := math2.MatrixTransformApplyToVector(transform, math2.NewVector2[float64](0, 0), true)
 	t.From = translation
 	t.To = translation
 	t.Start = 1

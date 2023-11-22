@@ -1,7 +1,6 @@
 package shapes
 
 import (
-	swftypes "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/records"
 	"github.com/ctessum/geom"
@@ -22,12 +21,12 @@ func (p ComplexPolygon) GetShape() (r *Shape) {
 	for _, pol := range p.Pol.Polygons() {
 		for _, path := range pol {
 			edges = append(edges, &records.LineRecord{
-				To:    math.Vector2ToType[float64, swftypes.Twip](math.NewVector2(path[1].X, path[1].Y)),
-				Start: math.Vector2ToType[float64, swftypes.Twip](math.NewVector2(path[0].X, path[0].Y)),
+				To:    math.NewVector2(path[1].X, path[1].Y),
+				Start: math.NewVector2(path[0].X, path[0].Y),
 			})
 			for _, point := range path[2:] {
 				edges = append(edges, &records.LineRecord{
-					To:    math.Vector2ToType[float64, swftypes.Twip](math.NewVector2(point.X, point.Y)),
+					To:    math.NewVector2(point.X, point.Y),
 					Start: edges[len(edges)-1].GetEnd(),
 				})
 			}
@@ -69,8 +68,8 @@ func NewPolygonFromShape(shape *Shape) (g geom.Polygon) {
 
 func NewPathFromEdges(edges []*records.LineRecord) (p geom.Path) {
 	p = make(geom.Path, 0, len(edges)+1)
-	start := edges[0].Start.Float64()
-	to := edges[0].To.Float64()
+	start := edges[0].Start
+	to := edges[0].To
 	p = append(p, geom.Point{
 		X: start.X,
 		Y: start.Y,
@@ -79,7 +78,7 @@ func NewPathFromEdges(edges []*records.LineRecord) (p geom.Path) {
 		Y: to.Y,
 	})
 	for _, e := range edges[1:] {
-		to = e.To.Float64()
+		to = e.To
 		p = append(p, geom.Point{
 			X: to.X,
 			Y: to.Y,

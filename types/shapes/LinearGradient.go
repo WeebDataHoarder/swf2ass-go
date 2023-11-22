@@ -29,9 +29,7 @@ func (g *LinearGradient) GetItems() []GradientItem {
 
 func (g *LinearGradient) GetInterpolatedDrawPaths(overlap int, gradientSlices int) DrawPathList {
 	//items is max size 8 to 15 depending on SWF version
-	const minPosition = -16384
-	const maxPosition = 16384
-	const diffPosition = maxPosition - minPosition
+	size := GradientBounds.Width()
 
 	//TODO spreadMode
 
@@ -41,9 +39,9 @@ func (g *LinearGradient) GetInterpolatedDrawPaths(overlap int, gradientSlices in
 			&FillStyleRecord{
 				Fill: item.Color,
 			},
-			NewShape(Rectangle[types.Twip]{
-				TopLeft:     math.NewVector2[types.Twip](types.Twip(minPosition+item.Start*diffPosition-float64(overlap)/2), minPosition),
-				BottomRight: math.NewVector2[types.Twip](types.Twip(minPosition+item.End*diffPosition+float64(overlap)/2), maxPosition),
+			NewShape(Rectangle[float64]{
+				TopLeft:     math.NewVector2(GradientBounds.TopLeft.X+item.Start*size-float64(overlap)/2, GradientBounds.TopLeft.Y),
+				BottomRight: math.NewVector2(GradientBounds.BottomRight.X+item.End*size+float64(overlap)/2, GradientBounds.BottomRight.Y),
 			}.Draw()),
 		))
 	}

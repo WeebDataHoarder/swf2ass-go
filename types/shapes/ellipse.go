@@ -1,7 +1,6 @@
 package shapes
 
 import (
-	swftypes "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/records"
 )
@@ -21,10 +20,10 @@ func ellipseDrawQuarter(center, size math.Vector2[float64]) *records.CubicCurveR
 	const c = 0.55228474983 // (4/3) * (sqrt(2) - 1)
 
 	return &records.CubicCurveRecord{
-		Control1: math.Vector2ToType[float64, swftypes.Twip](math.NewVector2(center.X-size.X, center.Y-c*size.Y)),
-		Control2: math.Vector2ToType[float64, swftypes.Twip](math.NewVector2(center.X-c*size.X, center.Y-size.Y)),
-		Anchor:   math.Vector2ToType[float64, swftypes.Twip](math.NewVector2(center.X, center.Y-size.Y)),
-		Start:    math.Vector2ToType[float64, swftypes.Twip](math.NewVector2(center.X-size.X, center.Y)),
+		Control1: math.NewVector2(center.X-size.X, center.Y-c*size.Y),
+		Control2: math.NewVector2(center.X-c*size.X, center.Y-size.Y),
+		Anchor:   math.NewVector2(center.X, center.Y-size.Y),
+		Start:    math.NewVector2(center.X-size.X, center.Y),
 	}
 }
 

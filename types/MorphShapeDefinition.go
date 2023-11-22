@@ -2,7 +2,6 @@ package types
 
 import (
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/tag/subtypes"
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	math2 "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/records"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
@@ -11,7 +10,7 @@ import (
 
 type MorphShapeDefinition struct {
 	ObjectId                     uint16
-	StartBounds, EndBounds       shapes.Rectangle[types.Twip]
+	StartBounds, EndBounds       shapes.Rectangle[float64]
 	StartShapeList, EndShapeList shapes.DrawPathList
 }
 
@@ -106,7 +105,7 @@ func (d *MorphShapeDefinition) GetSafeObject() ObjectDefinition {
 	return d
 }
 
-func MorphShapeDefinitionFromSWF(shapeId uint16, startBounds, endBounds shapes.Rectangle[types.Twip], startRecords, endRecords subtypes.SHAPERECORDS, fillStyles subtypes.MORPHFILLSTYLEARRAY, lineStyles subtypes.MORPHLINESTYLEARRAY) *MorphShapeDefinition {
+func MorphShapeDefinitionFromSWF(shapeId uint16, startBounds, endBounds shapes.Rectangle[float64], startRecords, endRecords subtypes.SHAPERECORDS, fillStyles subtypes.MORPHFILLSTYLEARRAY, lineStyles subtypes.MORPHLINESTYLEARRAY) *MorphShapeDefinition {
 	startStyles, endStyles := shapes.StyleListFromSWFMorphItems(fillStyles, lineStyles)
 
 	start := shapes.DrawPathListFromSWFMorph(startRecords, endRecords, startStyles, false)

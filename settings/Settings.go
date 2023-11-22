@@ -21,6 +21,7 @@ type Settings struct {
 
 	// BakeMatrixTransforms Transforms the shapes directly instead of writing ASS override tags
 	// Reduces compressibility, but not affect positioning. \pos tags will still be emitted
+	// Enabling this is very expensive on players, also increases output size.
 	BakeMatrixTransforms bool
 
 	// SmoothTransitions Attempt to merge multiple fixed transitions into a single long one if they happen at constant rate

@@ -95,17 +95,17 @@ func (s *PathSegment) GetShape() *Shape {
 	}
 
 	//lastPos := next().Pos
-	lastPos := points[0].Pos
+	lastPos := points[0].Pos.Float64()
 
 	for len(points) > 0 {
 		point := next()
 
 		if !point.IsBezierControl {
 			shape.AddRecord(&records.LineRecord{
-				To:    point.Pos,
+				To:    point.Pos.Float64(),
 				Start: lastPos,
 			})
-			lastPos = point.Pos
+			lastPos = point.Pos.Float64()
 		} else {
 			if len(points) == 0 {
 				panic("Bezier without endpoint")
@@ -113,11 +113,11 @@ func (s *PathSegment) GetShape() *Shape {
 			end := next()
 
 			shape.AddRecord(&records.QuadraticCurveRecord{
-				Control: point.Pos,
-				Anchor:  end.Pos,
+				Control: point.Pos.Float64(),
+				Anchor:  end.Pos.Float64(),
 				Start:   lastPos,
 			})
-			lastPos = end.Pos
+			lastPos = end.Pos.Float64()
 		}
 	}
 

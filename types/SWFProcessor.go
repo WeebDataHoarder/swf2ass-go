@@ -2,7 +2,6 @@ package types
 
 import (
 	swftag "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/tag"
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
 )
@@ -15,14 +14,14 @@ type SWFProcessor struct {
 	SWFTreeProcessor
 
 	Background         *shapes.FillStyleRecord
-	ViewPort           shapes.Rectangle[types.Twip]
+	ViewPort           shapes.Rectangle[float64]
 	FrameRate          float64
 	ExpectedFrameCount int64
 
 	Audio *AudioStream
 }
 
-func NewSWFProcessor(tags []swftag.Tag, viewPort shapes.Rectangle[types.Twip], frameRate float64, frameCount int64) *SWFProcessor {
+func NewSWFProcessor(tags []swftag.Tag, viewPort shapes.Rectangle[float64], frameRate float64, frameCount int64) *SWFProcessor {
 	p := &SWFProcessor{
 		SWFTreeProcessor: *NewSWFTreeProcessor(0, tags, make(ObjectCollection)),
 		Background: &shapes.FillStyleRecord{

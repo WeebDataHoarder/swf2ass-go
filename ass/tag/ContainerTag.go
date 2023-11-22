@@ -38,7 +38,7 @@ func (t *ContainerTag) TransitionColor(event Event, transform math.ColorTransfor
 	return container
 }
 
-func (t *ContainerTag) TransitionMatrixTransform(event Event, transform math.MatrixTransform) ColorTag {
+func (t *ContainerTag) TransitionMatrixTransform(event Event, transform math.MatrixTransform) PositioningTag {
 	if t.BakeTransforms != nil {
 		//Do not allow matrix changes, except moves
 		if !transform.EqualsWithoutTranslation(*t.BakeTransforms, math.TransformCompareEpsilon) {

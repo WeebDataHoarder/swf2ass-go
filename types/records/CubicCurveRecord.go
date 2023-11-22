@@ -1,22 +1,21 @@
 package records
 
 import (
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	math2 "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"math"
 )
 
 type CubicCurveRecord struct {
-	Control1, Control2 math2.Vector2[types.Twip]
-	Anchor             math2.Vector2[types.Twip]
-	Start              math2.Vector2[types.Twip]
+	Control1, Control2 math2.Vector2[float64]
+	Anchor             math2.Vector2[float64]
+	Start              math2.Vector2[float64]
 }
 
-func (r *CubicCurveRecord) GetStart() math2.Vector2[types.Twip] {
+func (r *CubicCurveRecord) GetStart() math2.Vector2[float64] {
 	return r.Start
 }
 
-func (r *CubicCurveRecord) GetEnd() math2.Vector2[types.Twip] {
+func (r *CubicCurveRecord) GetEnd() math2.Vector2[float64] {
 	return r.Anchor
 }
 
@@ -80,19 +79,18 @@ func (r *CubicCurveRecord) ToSingleQuadraticRecord() *QuadraticCurveRecord {
 
 func (r *CubicCurveRecord) ToLineRecords(scale int64) []*LineRecord {
 	distanceToleranceSquare := math.Pow(0.5/float64(scale), 2)
-	points := CubicRecursiveBezier(nil, 0.0, 0.0, distanceToleranceSquare, r.Start.Float64(), r.Control1.Float64(), r.Control2.Float64(), r.Anchor.Float64(), 0)
+	points := CubicRecursiveBezier(nil, 0.0, 0.0, distanceToleranceSquare, r.Start, r.Control1, r.Control2, r.Anchor, 0)
 
 	result := make([]*LineRecord, 0, len(points)+1)
 
 	var current = r.Start
 
 	for _, point := range points {
-		tp := math2.Vector2ToType[float64, types.Twip](point)
 		result = append(result, &LineRecord{
-			To:    tp,
+			To:    point,
 			Start: current,
 		})
-		current = tp
+		current = point
 	}
 
 	result = append(result, &LineRecord{

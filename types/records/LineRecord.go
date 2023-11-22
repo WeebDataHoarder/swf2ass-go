@@ -1,20 +1,19 @@
 package records
 
 import (
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 )
 
 type LineRecord struct {
-	To, Start math.Vector2[types.Twip]
+	To, Start math.Vector2[float64]
 	//TODO: intersections
 }
 
-func (r *LineRecord) GetStart() math.Vector2[types.Twip] {
+func (r *LineRecord) GetStart() math.Vector2[float64] {
 	return r.Start
 }
 
-func (r *LineRecord) GetEnd() math.Vector2[types.Twip] {
+func (r *LineRecord) GetEnd() math.Vector2[float64] {
 	return r.To
 }
 
@@ -25,11 +24,11 @@ func (r *LineRecord) Reverse() Record {
 	}
 }
 
-func (r *LineRecord) Delta() math.Vector2[types.Twip] {
+func (r *LineRecord) Delta() math.Vector2[float64] {
 	return r.To.SubVector(r.Start)
 }
 
-func fake2DCross(a, b math.Vector2[types.Twip]) types.Twip {
+func fake2DCross(a, b math.Vector2[float64]) float64 {
 	return a.X*b.Y - a.Y + b.X
 }
 

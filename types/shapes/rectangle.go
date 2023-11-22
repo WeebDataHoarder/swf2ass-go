@@ -48,8 +48,8 @@ func (r Rectangle[T]) Multiply(size T) Rectangle[T] {
 }
 
 func (r Rectangle[T]) Draw() []records.Record {
-	tl := math.Vector2ToType[T, types.Twip](r.TopLeft)
-	br := math.Vector2ToType[T, types.Twip](r.BottomRight)
+	tl := r.TopLeft.Float64()
+	br := r.BottomRight.Float64()
 	return []records.Record{
 		&records.LineRecord{
 			To:    math.NewVector2(tl.X, br.Y),
@@ -81,9 +81,9 @@ func (r Rectangle[T]) DrawOpen() []records.Record {
 	return r.Draw()[:3]
 }
 
-func RectangleFromSWF(rect types.Rectangle) Rectangle[types.Twip] {
-	return Rectangle[types.Twip]{
-		TopLeft:     math.NewVector2(rect.Xmin, rect.Ymin),
-		BottomRight: math.NewVector2(rect.Xmax, rect.Ymax),
+func RectangleFromSWF(rect types.Rectangle) Rectangle[float64] {
+	return Rectangle[float64]{
+		TopLeft:     math.NewVector2(rect.Xmin.Float64(), rect.Ymin.Float64()),
+		BottomRight: math.NewVector2(rect.Xmax.Float64(), rect.Ymax.Float64()),
 	}
 }

@@ -1,19 +1,18 @@
 package records
 
 import (
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 )
 
 type MoveRecord struct {
-	To, Start math.Vector2[types.Twip]
+	To, Start math.Vector2[float64]
 }
 
-func (r *MoveRecord) GetStart() math.Vector2[types.Twip] {
+func (r *MoveRecord) GetStart() math.Vector2[float64] {
 	return r.Start
 }
 
-func (r *MoveRecord) GetEnd() math.Vector2[types.Twip] {
+func (r *MoveRecord) GetEnd() math.Vector2[float64] {
 	return r.To
 }
 

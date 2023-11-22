@@ -1,13 +1,12 @@
 package records
 
 import (
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 )
 
 type Record interface {
-	GetStart() math.Vector2[types.Twip]
-	GetEnd() math.Vector2[types.Twip]
+	GetStart() math.Vector2[float64]
+	GetEnd() math.Vector2[float64]
 
 	Reverse() Record
 

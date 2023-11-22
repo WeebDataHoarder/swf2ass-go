@@ -29,6 +29,16 @@ type GradientSlice struct {
 	Color      math2.Color
 }
 
+const GradientBoundsMin = math.MinInt16 / 2
+const GradientBoundsMax = -GradientBoundsMin
+
+var GradientBounds = Rectangle[float64]{
+	TopLeft:     math2.NewVector2[float64](GradientBoundsMin, GradientBoundsMin),
+	BottomRight: math2.NewVector2[float64](GradientBoundsMax, GradientBoundsMax),
+}
+
+const GradientRatioDivisor = math.MaxUint8
+
 func LerpGradient(gradient Gradient, gradientSlices int) (result []GradientSlice) {
 	items := gradient.GetItems()
 	//TODO: spread modes
@@ -46,9 +56,9 @@ func LerpGradient(gradient Gradient, gradientSlices int) (result []GradientSlice
 		items = slices.Insert(items, 0, first)
 	}
 
-	if last.Ratio != 255 {
+	if last.Ratio != GradientRatioDivisor {
 		last = GradientItem{
-			Ratio: 255,
+			Ratio: GradientRatioDivisor,
 			Color: last.Color,
 		}
 		items = append(items, last)
@@ -56,7 +66,6 @@ func LerpGradient(gradient Gradient, gradientSlices int) (result []GradientSlice
 
 	prevItem := items[0]
 	for _, item := range items[1:] {
-		prevItem = item
 		prevColor := prevItem.Color
 		currentColor := item.Color
 		if interpolationMode == swfsubtypes.GradientInterpolationLinearRGB {
@@ -68,15 +77,15 @@ func LerpGradient(gradient Gradient, gradientSlices int) (result []GradientSlice
 
 		prevPosition := float64(prevItem.Ratio)
 		currentPosition := float64(item.Ratio)
-		distance := math.Abs(prevPosition - currentPosition)
+		distance := math.Abs(currentPosition - prevPosition)
 
 		var partitions int
 		if maxColorDistance < math.SmallestNonzeroFloat64 {
 			partitions = 1
 		} else if gradientSlices == GradientAutoSlices {
-			partitions = max(1, int(math.Ceil(min(255/float64(len(items)+1), max(1, math.Ceil(maxColorDistance))))))
+			partitions = max(1, int(math.Ceil(min(GradientRatioDivisor/float64(len(items)+1), max(1, math.Ceil(maxColorDistance))))))
 		} else {
-			partitions = max(1, int(math.Ceil((distance/255)*float64(gradientSlices))))
+			partitions = max(1, int(math.Ceil((distance/GradientRatioDivisor)*float64(gradientSlices))))
 		}
 
 		fromPos := prevPosition
@@ -91,12 +100,13 @@ func LerpGradient(gradient Gradient, gradientSlices int) (result []GradientSlice
 			toPos := math2.Lerp(prevPosition, currentPosition, ratio)
 
 			result = append(result, GradientSlice{
-				Start: fromPos / 255,
-				End:   toPos / 255,
+				Start: fromPos / GradientRatioDivisor,
+				End:   toPos / GradientRatioDivisor,
 				Color: color,
 			})
 			fromPos = toPos
 		}
+		prevItem = item
 	}
 	return result
 }

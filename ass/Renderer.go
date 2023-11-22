@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/line"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/settings"
-	swftypes "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
 	"slices"
+	"strconv"
 )
 
 type Renderer struct {
@@ -16,9 +16,7 @@ type Renderer struct {
 	RunningBuffer []*line.EventLine
 }
 
-func NewRenderer(frameRate float64, viewPort shapes.Rectangle[swftypes.Twip]) *Renderer {
-	display := shapes.RectangleToType[swftypes.Twip, float64](viewPort)
-
+func NewRenderer(frameRate float64, display shapes.Rectangle[float64]) *Renderer {
 	width := int64(display.Width() * settings.GlobalSettings.VideoScaleMultiplier)
 	height := int64(display.Height() * settings.GlobalSettings.VideoScaleMultiplier)
 
@@ -40,11 +38,12 @@ func NewRenderer(frameRate float64, viewPort shapes.Rectangle[swftypes.Twip]) *R
 			fmt.Sprintf("PlayResX: %d", width),
 			fmt.Sprintf("PlayResY: %d", height),
 			"",
+			"",
 			"[Aegisub Project Garbage]",
 			"Last Style Storage: f",
-			fmt.Sprintf("Video File: ?dummy:%f:10000:%d:%d:160:160:160:c", frameRate, width, height),
-			fmt.Sprintf("Video AR Value: %.4F", ar),
-			"Active EventLine: 0",
+			fmt.Sprintf("Video File: ?dummy:%s:10000:%d:%d:160:160:160:c", strconv.FormatFloat(frameRate, 'f', -1, 64), width, height),
+			fmt.Sprintf("Video AR Value: %.6F", ar),
+			"Active Line: 0",
 			"Video Zoom Percent: 2.000000",
 			"",
 			"[V4+ Styles]",
@@ -63,8 +62,7 @@ func (r *Renderer) RenderFrame(frameInfo types.FrameInformation, frame types.Ren
 		r.Header = nil
 	}
 
-	objects := slices.Clone(frame)
-	slices.SortStableFunc(objects, RenderedObjectDepthSort)
+	slices.SortStableFunc(frame, RenderedObjectDepthSort)
 
 	var runningBuffer []*line.EventLine
 
@@ -72,7 +70,7 @@ func (r *Renderer) RenderFrame(frameInfo types.FrameInformation, frame types.Ren
 
 	animated := 0
 
-	for _, object := range objects {
+	for _, object := range frame {
 		obEntry := *BakeRenderedObjectGradients(object)
 		object = &obEntry
 
@@ -119,7 +117,7 @@ func (r *Renderer) RenderFrame(frameInfo types.FrameInformation, frame types.Ren
 		}
 	}
 
-	fmt.Printf("[ASS] Total %d objects, %d flush, %d buffer, %d animated tags.\n", len(objects), len(r.RunningBuffer), len(runningBuffer), animated)
+	fmt.Printf("[ASS] Total %d objects, %d flush, %d buffer, %d animated tags.\n", len(frame), len(r.RunningBuffer), len(runningBuffer), animated)
 
 	//Flush non dupes
 	for _, l := range r.RunningBuffer {

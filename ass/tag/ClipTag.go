@@ -30,9 +30,9 @@ func NewClipTag(clip *types.ClipPath, scale int64) *ClipTag {
 			shape = &shapes.Shape{
 				Edges: []records.Record{
 					&records.LineRecord{
-						//TODO: ??? why swftypes.TwipFactor here???
-						To:    math.NewVector2[swftypes.Twip](0, swftypes.TwipFactor),
-						Start: math.NewVector2[swftypes.Twip](0, 0),
+						//TODO: ??? why TwipFactor here???
+						To:    math.NewVector2[float64](0, swftypes.Twip(swftypes.TwipFactor).Float64()),
+						Start: math.NewVector2[float64](0, 0),
 					},
 				},
 				IsFlat: true,
