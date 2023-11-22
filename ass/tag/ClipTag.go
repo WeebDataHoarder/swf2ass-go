@@ -1,7 +1,10 @@
-package ass
+package tag
 
 import (
 	"fmt"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/line"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/settings"
 	swftypes "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
@@ -50,7 +53,7 @@ func (t *ClipTag) ApplyMatrixTransform(transform math.MatrixTransform, applyTran
 	}
 }
 
-func (t *ClipTag) TransitionClipPath(line *Line, clip *types.ClipPath) ClipPathTag {
+func (t *ClipTag) TransitionClipPath(line *line.Line, clip *types.ClipPath) ClipPathTag {
 	if clip == nil {
 		if t.IsNull {
 			return t
@@ -72,14 +75,14 @@ func (t *ClipTag) Equals(tag Tag) bool {
 	return false
 }
 
-func (t *ClipTag) Encode(event EventTime) string {
+func (t *ClipTag) Encode(event time.EventTime) string {
 	if t.IsNull {
 		return ""
 	}
 	scaleMultiplier := int64(1 << (t.Scale - 1))
-	precision := DefaultDrawingPrecision
+	precision := settings.GlobalSettings.ASSDrawingPrecision
 	if t.Scale >= 5 {
 		precision = 0
 	}
-	return fmt.Sprintf("\\clip(%d,%s)", t.Scale, strings.Join(t.GetCommands(scaleMultiplier, int64(precision)), " "))
+	return fmt.Sprintf("\\clip(%d,%s)", t.Scale, strings.Join(t.GetCommands(scaleMultiplier, precision), " "))
 }

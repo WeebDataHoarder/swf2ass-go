@@ -1,6 +1,8 @@
-package ass
+package tag
 
 import (
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/line"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
 	math2 "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"math"
 	"strings"
@@ -31,7 +33,7 @@ func NewMatrixTransformTag(transform math2.MatrixTransform, scale math2.Vector2[
 	}
 }
 
-func (t *MatrixTransformTag) TransitionMatrixTransform(line *Line, transform math2.MatrixTransform) PositioningTag {
+func (t *MatrixTransformTag) TransitionMatrixTransform(line *line.Line, transform math2.MatrixTransform) PositioningTag {
 	t2 := &MatrixTransformTag{}
 	return t2.FromMatrixTransform(transform)
 }
@@ -41,7 +43,7 @@ func (t *MatrixTransformTag) FromMatrixTransform(transform math2.MatrixTransform
 	return t
 }
 
-func (t *MatrixTransformTag) Encode(event EventTime) string {
+func (t *MatrixTransformTag) Encode(event time.EventTime) string {
 	return strings.Join([]string{
 		t.Scale.Encode(event),
 		t.Rotation.Encode(event),

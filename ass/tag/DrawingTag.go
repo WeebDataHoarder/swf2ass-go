@@ -1,4 +1,4 @@
-package ass
+package tag
 
 import (
 	"fmt"
@@ -15,9 +15,6 @@ type DrawingTag interface {
 	AsShape() *shapes.Shape
 	GetCommands(scale, precision int64) []string
 }
-
-const DefaultDrawingScale = 6
-const DefaultDrawingPrecision = 2
 
 type BaseDrawingTag shapes.Shape
 

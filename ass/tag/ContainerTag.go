@@ -1,7 +1,10 @@
-package ass
+package tag
 
 import (
 	"fmt"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/line"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/settings"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
@@ -17,7 +20,7 @@ type ContainerTag struct {
 	BakeTransforms *math.MatrixTransform
 }
 
-func (t *ContainerTag) TransitionColor(line *Line, transform math.ColorTransform) ColorTag {
+func (t *ContainerTag) TransitionColor(line *line.Line, transform math.ColorTransform) ColorTag {
 	container := t.Clone()
 
 	index := line.End - line.Start
@@ -36,7 +39,7 @@ func (t *ContainerTag) TransitionColor(line *Line, transform math.ColorTransform
 	return container
 }
 
-func (t *ContainerTag) TransitionMatrixTransform(line *Line, transform math.MatrixTransform) ColorTag {
+func (t *ContainerTag) TransitionMatrixTransform(line *line.Line, transform math.MatrixTransform) ColorTag {
 	if t.BakeTransforms != nil {
 		//Do not allow matrix changes, except moves
 		if !transform.EqualsWithoutTranslation(*t.BakeTransforms, math.TransformCompareEpsilon) {
@@ -67,7 +70,7 @@ func (t *ContainerTag) TransitionMatrixTransform(line *Line, transform math.Matr
 	return container
 }
 
-func (t *ContainerTag) TransitionStyleRecord(line *Line, record shapes.StyleRecord) StyleTag {
+func (t *ContainerTag) TransitionStyleRecord(line *line.Line, record shapes.StyleRecord) StyleTag {
 	container := t.Clone()
 
 	index := line.End - line.Start
@@ -86,7 +89,7 @@ func (t *ContainerTag) TransitionStyleRecord(line *Line, record shapes.StyleReco
 	return container
 }
 
-func (t *ContainerTag) TransitionShape(line *Line, shape *shapes.Shape) PathTag {
+func (t *ContainerTag) TransitionShape(line *line.Line, shape *shapes.Shape) PathTag {
 	container := t.Clone()
 
 	index := line.End - line.Start
@@ -105,7 +108,7 @@ func (t *ContainerTag) TransitionShape(line *Line, shape *shapes.Shape) PathTag 
 	return container
 }
 
-func (t *ContainerTag) TransitionClipPath(line *Line, clip *types.ClipPath) ClipPathTag {
+func (t *ContainerTag) TransitionClipPath(line *line.Line, clip *types.ClipPath) ClipPathTag {
 	container := t.Clone()
 
 	index := line.End - line.Start
@@ -183,7 +186,7 @@ func (t *ContainerTag) Equals(tag Tag) bool {
 	return false
 }
 
-func (t *ContainerTag) Encode(event EventTime) string {
+func (t *ContainerTag) Encode(event time.EventTime) string {
 	text := make([]string, len(t.Tags)*2)
 	for _, tag := range t.Tags {
 		if _, ok := tag.(DrawingTag); !ok {
@@ -201,7 +204,7 @@ func (t *ContainerTag) Encode(event EventTime) string {
 		//TODO: clone line?
 		//TODO: animations with smoothing really don't play well. maybe allow them when only one animation "direction" exists, or smooth them manually?
 		//Or just don't animate MatrixTransform / do it in a single tick
-		if GlobalSettings.SmoothTransitions {
+		if settings.GlobalSettings.SmoothTransitions {
 			startTime = event.GetDurationFromStartOffset(index-1).Milliseconds() + 1
 			endTime = event.GetDurationFromStartOffset(index+1).Milliseconds() - 1
 		} else {
@@ -233,12 +236,12 @@ func (t *ContainerTag) TryAppend(tag Tag) {
 
 var identityMatrixTransform = math.IdentityTransform()
 
-func ContainerTagFromPathEntry(path shapes.DrawPath, clip *types.ClipPath, colorTransform math.ColorTransform, matrixTransform math.MatrixTransform, bakeTransforms bool) *ContainerTag {
+func ContainerTagFromPathEntry(path shapes.DrawPath, clip *types.ClipPath, colorTransform math.ColorTransform, matrixTransform math.MatrixTransform, bakeMatrixTransforms bool) *ContainerTag {
 	container := &ContainerTag{
 		Transitions: make(map[int64][]Tag),
 	}
 
-	container.TryAppend(NewClipTag(clip, GlobalSettings.DrawingScale))
+	container.TryAppend(NewClipTag(clip, settings.GlobalSettings.ASSDrawingScale))
 
 	/*
 		//TODO Convert to fill????
@@ -261,12 +264,12 @@ func ContainerTagFromPathEntry(path shapes.DrawPath, clip *types.ClipPath, color
 		container.TryAppend(fillColorTag.ApplyColorTransform(colorTransform))
 	}
 
-	if bakeTransforms {
+	if bakeMatrixTransforms {
 		container.BakeTransforms = &matrixTransform
 
 		container.TryAppend((&PositionTag{}).FromMatrixTransform(matrixTransform))
 
-		drawTag := DrawingTag(NewDrawTag(path.Commands, GlobalSettings.DrawingScale))
+		drawTag := DrawingTag(NewDrawTag(path.Commands, settings.GlobalSettings.ASSDrawingScale))
 		if !matrixTransform.EqualsExact(identityMatrixTransform) {
 			drawTag = drawTag.ApplyMatrixTransform(matrixTransform, false)
 		}
@@ -276,7 +279,7 @@ func ContainerTagFromPathEntry(path shapes.DrawPath, clip *types.ClipPath, color
 		container.TryAppend((&PositionTag{}).FromMatrixTransform(matrixTransform))
 		container.TryAppend((&MatrixTransformTag{}).FromMatrixTransform(matrixTransform))
 
-		container.TryAppend(NewDrawTag(path.Commands, GlobalSettings.DrawingScale))
+		container.TryAppend(NewDrawTag(path.Commands, settings.GlobalSettings.ASSDrawingScale))
 	}
 
 	return container

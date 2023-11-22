@@ -1,7 +1,9 @@
-package ass
+package tag
 
 import (
 	"fmt"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/line"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
 	math2 "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"math"
 )
@@ -10,11 +12,11 @@ type RotationTag struct {
 	RotationX, RotationY, RotationZ float64
 }
 
-func (t *RotationTag) TransitionMatrixTransform(line *Line, transform math2.MatrixTransform) PositioningTag {
+func (t *RotationTag) TransitionMatrixTransform(line *line.Line, transform math2.MatrixTransform) PositioningTag {
 	panic("not implemented")
 }
 
-func (t *RotationTag) Encode(event EventTime) string {
+func (t *RotationTag) Encode(event time.EventTime) string {
 	//TODO: precision?
 	return fmt.Sprintf("\\frx%.2F\\fry%.2F\\frz%.2F", t.RotationX, t.RotationY, t.RotationZ)
 }

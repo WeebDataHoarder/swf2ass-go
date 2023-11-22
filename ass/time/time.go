@@ -1,4 +1,4 @@
-package ass
+package time
 
 import (
 	"fmt"

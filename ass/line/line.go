@@ -1,7 +1,9 @@
-package ass
+package line
 
 import (
 	"fmt"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/tag"
+	time2 "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
 	"strconv"
 	"strings"
@@ -27,7 +29,7 @@ type Line struct {
 
 	IsComment bool
 
-	Tags []Tag
+	Tags []tag.Tag
 
 	cachedEncode *string
 }
@@ -35,7 +37,7 @@ type Line struct {
 func (l *Line) Transition(frameInfo types.FrameInformation, object *types.RenderedObject) *Line {
 	line := *l
 	line.End = frameInfo.GetFrameNumber()
-	line.Tags = make([]Tag, 0, len(l.Tags))
+	line.Tags = make([]tag.Tag, 0, len(l.Tags))
 	//TODO: clip?
 
 	if object.GetDepth().Equals(l.Layer) && object.ObjectId == l.ObjectId {
@@ -43,32 +45,32 @@ func (l *Line) Transition(frameInfo types.FrameInformation, object *types.Render
 			return nil
 		}
 		command := object.DrawPathList[line.ShapeIndex]
-		for _, tag := range l.Tags {
-			if positioningTag, ok := tag.(PositioningTag); ok {
-				tag = positioningTag.TransitionMatrixTransform(&line, object.MatrixTransform)
-				if tag == nil {
+		for _, t := range l.Tags {
+			if positioningTag, ok := t.(tag.PositioningTag); ok {
+				t = positioningTag.TransitionMatrixTransform(&line, object.MatrixTransform)
+				if t == nil {
 					return nil
 				}
 			}
-			if colorTag, ok := tag.(ColorTag); ok {
-				tag = colorTag.TransitionColor(&line, object.ColorTransform)
-				if tag == nil {
+			if colorTag, ok := t.(tag.ColorTag); ok {
+				t = colorTag.TransitionColor(&line, object.ColorTransform)
+				if t == nil {
 					return nil
 				}
 			}
-			if colorTag, ok := tag.(PathTag); ok {
-				tag = colorTag.TransitionShape(&line, command.Commands)
-				if tag == nil {
+			if colorTag, ok := t.(tag.PathTag); ok {
+				t = colorTag.TransitionShape(&line, command.Commands)
+				if t == nil {
 					return nil
 				}
 			}
-			if colorTag, ok := tag.(ClipPathTag); ok {
-				tag = colorTag.TransitionClipPath(&line, object.Clip)
-				if tag == nil {
+			if colorTag, ok := t.(tag.ClipPathTag); ok {
+				t = colorTag.TransitionClipPath(&line, object.Clip)
+				if t == nil {
 					return nil
 				}
 			}
-			line.Tags = append(line.Tags, tag)
+			line.Tags = append(line.Tags, t)
 		}
 	}
 	line.DropCache()
@@ -80,7 +82,7 @@ func (l *Line) Encode(frameDuration time.Duration) string {
 		return *l.cachedEncode
 	}
 
-	eventTime := NewEventTime(l.Start, l.End-l.Start+1, frameDuration)
+	eventTime := time2.NewEventTime(l.Start, l.End-l.Start+1, frameDuration)
 
 	line := make([]string, 0, 10)
 	if l.IsComment {
@@ -135,7 +137,7 @@ func (l *Line) Equalish(o *Line) bool {
 		l.Encode(1000*time.Millisecond) == o.Encode(1000*time.Millisecond)
 }
 
-func LinesFromRenderObject(frameInfo types.FrameInformation, object *types.RenderedObject, bakeTransforms bool) (out []*Line) {
+func LinesFromRenderObject(frameInfo types.FrameInformation, object *types.RenderedObject, bakeMatrixTransforms bool) (out []*Line) {
 	out = make([]*Line, 0, len(object.DrawPathList))
 	for i := range object.DrawPathList {
 		out = append(out, &Line{
@@ -144,7 +146,7 @@ func LinesFromRenderObject(frameInfo types.FrameInformation, object *types.Rende
 			ObjectId:   object.ObjectId,
 			Start:      frameInfo.GetFrameNumber(),
 			End:        frameInfo.GetFrameNumber(),
-			Tags:       []Tag{ContainerTagFromPathEntry(object.DrawPathList[i], object.Clip, object.ColorTransform, object.MatrixTransform, bakeTransforms)},
+			Tags:       []tag.Tag{tag.ContainerTagFromPathEntry(object.DrawPathList[i], object.Clip, object.ColorTransform, object.MatrixTransform, bakeMatrixTransforms)},
 			Name:       fmt.Sprintf("o:%d d:%s", object.ObjectId, object.GetDepth().String()),
 		})
 	}

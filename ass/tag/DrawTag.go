@@ -1,7 +1,10 @@
-package ass
+package tag
 
 import (
 	"fmt"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/line"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/settings"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
 	"strings"
@@ -26,7 +29,7 @@ func (t *DrawTag) ApplyMatrixTransform(transform math.MatrixTransform, applyTran
 	}
 }
 
-func (t *DrawTag) TransitionShape(line *Line, shape *shapes.Shape) PathTag {
+func (t *DrawTag) TransitionShape(line *line.Line, shape *shapes.Shape) PathTag {
 	if t.AsShape().Equals(shape) {
 		return t
 	}
@@ -40,11 +43,11 @@ func (t *DrawTag) Equals(tag Tag) bool {
 	return false
 }
 
-func (t *DrawTag) Encode(event EventTime) string {
+func (t *DrawTag) Encode(event time.EventTime) string {
 	scaleMultiplier := int64(1 << (t.Scale - 1))
-	precision := DefaultDrawingPrecision
+	precision := settings.GlobalSettings.ASSDrawingPrecision
 	if t.Scale >= 5 {
 		precision = 0
 	}
-	return fmt.Sprintf("\\p%d}%s{\\p0", t.Scale, strings.Join(t.GetCommands(scaleMultiplier, int64(precision)), " "))
+	return fmt.Sprintf("\\p%d}%s{\\p0", t.Scale, strings.Join(t.GetCommands(scaleMultiplier, precision), " "))
 }

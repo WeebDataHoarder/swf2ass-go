@@ -2,6 +2,8 @@ package ass
 
 import (
 	"fmt"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/line"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/settings"
 	swftypes "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
@@ -11,18 +13,18 @@ import (
 
 type Renderer struct {
 	Header        []string
-	RunningBuffer []*Line
+	RunningBuffer []*line.Line
 }
 
 func NewRenderer(frameRate float64, viewPort shapes.Rectangle[swftypes.Twip]) *Renderer {
 	display := viewPort.Divide(swftypes.TwipFactor)
 
-	width := int64(display.Width()) * GlobalSettings.VideoScaleMultiplier
-	height := int64(display.Height()) * GlobalSettings.VideoScaleMultiplier
+	width := int64(display.Width()) * settings.GlobalSettings.VideoScaleMultiplier
+	height := int64(display.Height()) * settings.GlobalSettings.VideoScaleMultiplier
 
 	ar := float64(width) / float64(height)
 
-	frameRate *= GlobalSettings.VideoRateMultiplier
+	frameRate *= settings.GlobalSettings.VideoRateMultiplier
 
 	return &Renderer{
 		Header: []string{
@@ -64,9 +66,9 @@ func (r *Renderer) RenderFrame(frameInfo types.FrameInformation, frame types.Ren
 	objects := slices.Clone(frame)
 	slices.SortStableFunc(objects, RenderedObjectDepthSort)
 
-	var runningBuffer []*Line
+	var runningBuffer []*line.Line
 
-	scale := math.ScaleTransform(math.NewVector2(GlobalSettings.VideoScaleMultiplier, GlobalSettings.VideoScaleMultiplier).Float64())
+	scale := math.ScaleTransform(math.NewVector2(settings.GlobalSettings.VideoScaleMultiplier, settings.GlobalSettings.VideoScaleMultiplier).Float64())
 
 	animated := 0
 
@@ -78,7 +80,7 @@ func (r *Renderer) RenderFrame(frameInfo types.FrameInformation, frame types.Ren
 
 		depth := object.GetDepth()
 
-		var tagsToTransition []*Line
+		var tagsToTransition []*line.Line
 
 		for i := len(r.RunningBuffer) - 1; i >= 0; i-- {
 			tag := r.RunningBuffer[i]
@@ -90,7 +92,7 @@ func (r *Renderer) RenderFrame(frameInfo types.FrameInformation, frame types.Ren
 		slices.Reverse(tagsToTransition)
 
 		canTransition := true
-		var transitionedTags []*Line
+		var transitionedTags []*line.Line
 
 		for _, tag := range tagsToTransition {
 			tag = tag.Transition(frameInfo, object)
@@ -109,10 +111,10 @@ func (r *Renderer) RenderFrame(frameInfo types.FrameInformation, frame types.Ren
 		} else {
 			r.RunningBuffer = append(r.RunningBuffer, tagsToTransition...)
 
-			for _, line := range LinesFromRenderObject(frameInfo, object, GlobalSettings.BakeTransforms) {
-				line.Style = "f"
-				line.DropCache()
-				runningBuffer = append(runningBuffer, line)
+			for _, l := range line.LinesFromRenderObject(frameInfo, object, settings.GlobalSettings.BakeMatrixTransforms) {
+				l.Style = "f"
+				l.DropCache()
+				runningBuffer = append(runningBuffer, l)
 			}
 		}
 	}
@@ -120,10 +122,10 @@ func (r *Renderer) RenderFrame(frameInfo types.FrameInformation, frame types.Ren
 	fmt.Printf("[ASS] Total %d objects, %d flush, %d buffer, %d animated tags.\n", len(objects), len(r.RunningBuffer), len(runningBuffer), animated)
 
 	//Flush non dupes
-	for _, line := range r.RunningBuffer {
-		line.Name += fmt.Sprintf(" f:%d>%d~%d", line.Start, line.End, line.End-line.Start+1)
-		line.DropCache()
-		result = append(result, line.Encode(frameInfo.GetFrameDuration()))
+	for _, l := range r.RunningBuffer {
+		l.Name += fmt.Sprintf(" f:%d>%d~%d", l.Start, l.End, l.End-l.Start+1)
+		l.DropCache()
+		result = append(result, l.Encode(frameInfo.GetFrameDuration()))
 	}
 	r.RunningBuffer = runningBuffer
 
@@ -132,10 +134,10 @@ func (r *Renderer) RenderFrame(frameInfo types.FrameInformation, frame types.Ren
 
 func (r *Renderer) Flush(frameInfo types.FrameInformation) (result []string) {
 	result = make([]string, 0, len(r.RunningBuffer))
-	for _, line := range r.RunningBuffer {
-		line.Name += fmt.Sprintf(" f:%d>%d~%d", line.Start, line.End, line.End-line.Start+1)
-		line.DropCache()
-		result = append(result, line.Encode(frameInfo.GetFrameDuration()))
+	for _, l := range r.RunningBuffer {
+		l.Name += fmt.Sprintf(" f:%d>%d~%d", l.Start, l.End, l.End-l.Start+1)
+		l.DropCache()
+		result = append(result, l.Encode(frameInfo.GetFrameDuration()))
 	}
 	r.RunningBuffer = r.RunningBuffer[:0]
 	return result
@@ -153,7 +155,7 @@ func BakeRenderedObjectGradients(o *types.RenderedObject) *types.RenderedObject 
 
 				gradientClip := types.NewClipPath(command.Commands)
 				//Convert gradients to many tags
-				for _, gradientPath := range gradient.GetInterpolatedDrawPaths(0, GlobalSettings.GradientSlices) {
+				for _, gradientPath := range gradient.GetInterpolatedDrawPaths(0, settings.GlobalSettings.GradientSlices) {
 					newPath := shapes.DrawPath{
 						Style:    gradientPath.Style,
 						Commands: gradientClip.Intersect(types.NewClipPath(gradientPath.Commands)).GetShape(),

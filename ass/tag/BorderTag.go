@@ -1,7 +1,9 @@
-package ass
+package tag
 
 import (
 	"fmt"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/line"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
 	swftypes "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
@@ -22,7 +24,7 @@ func (t *BorderTag) FromStyleRecord(record shapes.StyleRecord) StyleTag {
 	return t
 }
 
-func (t *BorderTag) TransitionStyleRecord(line *Line, record shapes.StyleRecord) StyleTag {
+func (t *BorderTag) TransitionStyleRecord(line *line.Line, record shapes.StyleRecord) StyleTag {
 	t2 := &BorderTag{}
 	t2.FromStyleRecord(record)
 	return t2
@@ -35,7 +37,7 @@ func (t *BorderTag) Equals(tag Tag) bool {
 	return false
 }
 
-func (t *BorderTag) Encode(event EventTime) string {
+func (t *BorderTag) Encode(event time.EventTime) string {
 	if t.Size.X == t.Size.Y {
 		return fmt.Sprintf("\\bord%.02F", t.Size.X.Float64())
 	} else {

@@ -1,7 +1,10 @@
-package ass
+package tag
 
 import (
 	"fmt"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/line"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/settings"
 	swftypes "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	math2 "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"math"
@@ -12,7 +15,7 @@ type PositionTag struct {
 	Start, End int64
 }
 
-func (t *PositionTag) TransitionMatrixTransform(line *Line, transform math2.MatrixTransform) PositioningTag {
+func (t *PositionTag) TransitionMatrixTransform(line *line.Line, transform math2.MatrixTransform) PositioningTag {
 	translation := math2.Vector2ToType[float64, swftypes.Twip](transform.ApplyToVector(math2.NewVector2[float64](0, 0), true).Multiply(swftypes.TwipFactor))
 
 	frame := line.End - line.Start
@@ -74,14 +77,14 @@ func (t *PositionTag) TransitionMatrixTransform(line *Line, transform math2.Matr
 	}
 }
 
-func (t *PositionTag) Encode(event EventTime) string {
+func (t *PositionTag) Encode(event time.EventTime) string {
 	hasMoved := t.Start != t.End
 
 	shift := t.End - t.Start
 
 	if hasMoved {
 		var start, end int64
-		if shift > 1 || GlobalSettings.SmoothTransitions {
+		if shift > 1 || settings.GlobalSettings.SmoothTransitions {
 			start = event.GetDurationFromStartOffset(t.Start - 1).Milliseconds()
 			end = event.GetDurationFromStartOffset(t.End).Milliseconds()
 		} else {

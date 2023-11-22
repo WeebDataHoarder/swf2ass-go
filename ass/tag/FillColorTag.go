@@ -1,7 +1,9 @@
-package ass
+package tag
 
 import (
 	"fmt"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/line"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
 )
@@ -31,7 +33,7 @@ func (t *FillColorTag) FromStyleRecord(record shapes.StyleRecord) StyleTag {
 	return t
 }
 
-func (t *FillColorTag) TransitionStyleRecord(line *Line, record shapes.StyleRecord) StyleTag {
+func (t *FillColorTag) TransitionStyleRecord(line *line.Line, record shapes.StyleRecord) StyleTag {
 	t2 := &LineColorTag{}
 	t2.FromStyleRecord(record)
 	return t2
@@ -49,7 +51,7 @@ func (t *FillColorTag) ApplyColorTransform(transform math.ColorTransform) ColorT
 	}
 }
 
-func (t *FillColorTag) TransitionColor(line *Line, transform math.ColorTransform) ColorTag {
+func (t *FillColorTag) TransitionColor(line *line.Line, transform math.ColorTransform) ColorTag {
 	return t.ApplyColorTransform(transform)
 }
 
@@ -60,7 +62,7 @@ func (t *FillColorTag) Equals(tag Tag) bool {
 	return false
 }
 
-func (t *FillColorTag) Encode(event EventTime) string {
+func (t *FillColorTag) Encode(event time.EventTime) string {
 	if t.Color == nil {
 		return "\\1a&HFF&"
 	} else {

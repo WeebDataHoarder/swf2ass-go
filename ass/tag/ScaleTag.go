@@ -1,7 +1,9 @@
-package ass
+package tag
 
 import (
 	"fmt"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/line"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 )
 
@@ -9,11 +11,11 @@ type ScaleTag struct {
 	Scale math.Vector2[float64]
 }
 
-func (t *ScaleTag) TransitionMatrixTransform(line *Line, transform math.MatrixTransform) PositioningTag {
+func (t *ScaleTag) TransitionMatrixTransform(line *line.Line, transform math.MatrixTransform) PositioningTag {
 	panic("not implemented")
 }
 
-func (t *ScaleTag) Encode(event EventTime) string {
+func (t *ScaleTag) Encode(event time.EventTime) string {
 	//TODO: precision?
 	return fmt.Sprintf("\\fscx%.5F\\fscy%.5F", t.Scale.X, t.Scale.Y)
 }

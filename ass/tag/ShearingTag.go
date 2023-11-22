@@ -1,7 +1,9 @@
-package ass
+package tag
 
 import (
 	"fmt"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/line"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 )
 
@@ -9,11 +11,11 @@ type ShearingTag struct {
 	Shear math.Vector2[float64]
 }
 
-func (t *ShearingTag) TransitionMatrixTransform(line *Line, transform math.MatrixTransform) PositioningTag {
+func (t *ShearingTag) TransitionMatrixTransform(line *line.Line, transform math.MatrixTransform) PositioningTag {
 	panic("not implemented")
 }
 
-func (t *ShearingTag) Encode(event EventTime) string {
+func (t *ShearingTag) Encode(event time.EventTime) string {
 	//TODO: precision?
 	return fmt.Sprintf("\\fax%.5F\\fay%.5F", t.Shear.X, t.Shear.Y)
 }
