@@ -31,9 +31,9 @@ func (r *QuadraticCurveRecord) Reverse() Record {
 func (r *QuadraticCurveRecord) ApplyMatrixTransform(transform math2.MatrixTransform, applyTranslation bool) Record {
 	//TODO: see how accurate this is
 	return &QuadraticCurveRecord{
-		Control: math2.Vector2ToType[float64, types.Twip](transform.ApplyToVector(r.Control.Float64().Divide(types.TwipFactor), applyTranslation).Multiply(types.TwipFactor)),
-		Anchor:  math2.Vector2ToType[float64, types.Twip](transform.ApplyToVector(r.Anchor.Float64().Divide(types.TwipFactor), applyTranslation).Multiply(types.TwipFactor)),
-		Start:   math2.Vector2ToType[float64, types.Twip](transform.ApplyToVector(r.Start.Float64().Divide(types.TwipFactor), applyTranslation).Multiply(types.TwipFactor)),
+		Control: math2.MatrixTransformApplyToVector(transform, r.Control, applyTranslation),
+		Anchor:  math2.MatrixTransformApplyToVector(transform, r.Anchor, applyTranslation),
+		Start:   math2.MatrixTransformApplyToVector(transform, r.Start, applyTranslation),
 	}
 }
 
@@ -64,14 +64,14 @@ func QuadraticCurveFromLineRecord(l *LineRecord) *QuadraticCurveRecord {
 
 func (r *QuadraticCurveRecord) ToLineRecords(scale int64) []*LineRecord {
 	distanceToleranceSquare := math.Pow(0.5/float64(scale), 2)
-	points := QuadraticRecursiveBezier(nil, 0.0, distanceToleranceSquare, r.Start.Float64().Divide(types.TwipFactor), r.Control.Float64().Divide(types.TwipFactor), r.Anchor.Float64().Divide(types.TwipFactor), 0)
+	points := QuadraticRecursiveBezier(nil, 0.0, distanceToleranceSquare, r.Start.Float64(), r.Control.Float64(), r.Anchor.Float64(), 0)
 
 	result := make([]*LineRecord, 0, len(points)+1)
 
 	var current = r.Start
 
 	for _, point := range points {
-		tp := math2.Vector2ToType[float64, types.Twip](point.Multiply(types.TwipFactor))
+		tp := math2.Vector2ToType[float64, types.Twip](point)
 		result = append(result, &LineRecord{
 			To:    tp,
 			Start: current,

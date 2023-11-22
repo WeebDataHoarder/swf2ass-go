@@ -2,7 +2,6 @@ package tag
 
 import (
 	"fmt"
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/line"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 )
@@ -11,7 +10,7 @@ type ShearingTag struct {
 	Shear math.Vector2[float64]
 }
 
-func (t *ShearingTag) TransitionMatrixTransform(line *line.Line, transform math.MatrixTransform) PositioningTag {
+func (t *ShearingTag) TransitionMatrixTransform(event Event, transform math.MatrixTransform) PositioningTag {
 	panic("not implemented")
 }
 

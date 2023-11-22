@@ -2,7 +2,6 @@ package tag
 
 import (
 	"fmt"
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/line"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/settings"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
@@ -20,14 +19,14 @@ type ContainerTag struct {
 	BakeTransforms *math.MatrixTransform
 }
 
-func (t *ContainerTag) TransitionColor(line *line.Line, transform math.ColorTransform) ColorTag {
+func (t *ContainerTag) TransitionColor(event Event, transform math.ColorTransform) ColorTag {
 	container := t.Clone()
 
-	index := line.End - line.Start
+	index := event.GetEnd() - event.GetStart()
 
 	for _, tag := range container.Tags {
 		if colorTag, ok := tag.(ColorTag); ok {
-			newTag := colorTag.TransitionColor(line, transform)
+			newTag := colorTag.TransitionColor(event, transform)
 			if newTag == nil {
 				return nil
 			}
@@ -39,7 +38,7 @@ func (t *ContainerTag) TransitionColor(line *line.Line, transform math.ColorTran
 	return container
 }
 
-func (t *ContainerTag) TransitionMatrixTransform(line *line.Line, transform math.MatrixTransform) ColorTag {
+func (t *ContainerTag) TransitionMatrixTransform(event Event, transform math.MatrixTransform) ColorTag {
 	if t.BakeTransforms != nil {
 		//Do not allow matrix changes, except moves
 		if !transform.EqualsWithoutTranslation(*t.BakeTransforms, math.TransformCompareEpsilon) {
@@ -49,11 +48,11 @@ func (t *ContainerTag) TransitionMatrixTransform(line *line.Line, transform math
 
 	container := t.Clone()
 
-	index := line.End - line.Start
+	index := event.GetEnd() - event.GetStart()
 
 	for _, tag := range container.Tags {
 		if colorTag, ok := tag.(PositioningTag); ok {
-			newTag := colorTag.TransitionMatrixTransform(line, transform)
+			newTag := colorTag.TransitionMatrixTransform(event, transform)
 			if newTag == nil {
 				return nil
 			}
@@ -70,14 +69,14 @@ func (t *ContainerTag) TransitionMatrixTransform(line *line.Line, transform math
 	return container
 }
 
-func (t *ContainerTag) TransitionStyleRecord(line *line.Line, record shapes.StyleRecord) StyleTag {
+func (t *ContainerTag) TransitionStyleRecord(event Event, record shapes.StyleRecord) StyleTag {
 	container := t.Clone()
 
-	index := line.End - line.Start
+	index := event.GetEnd() - event.GetStart()
 
 	for _, tag := range container.Tags {
 		if colorTag, ok := tag.(StyleTag); ok {
-			newTag := colorTag.TransitionStyleRecord(line, record)
+			newTag := colorTag.TransitionStyleRecord(event, record)
 			if newTag == nil {
 				return nil
 			}
@@ -89,14 +88,14 @@ func (t *ContainerTag) TransitionStyleRecord(line *line.Line, record shapes.Styl
 	return container
 }
 
-func (t *ContainerTag) TransitionShape(line *line.Line, shape *shapes.Shape) PathTag {
+func (t *ContainerTag) TransitionShape(event Event, shape *shapes.Shape) PathTag {
 	container := t.Clone()
 
-	index := line.End - line.Start
+	index := event.GetEnd() - event.GetStart()
 
 	for _, tag := range container.Tags {
 		if colorTag, ok := tag.(PathTag); ok {
-			newTag := colorTag.TransitionShape(line, shape)
+			newTag := colorTag.TransitionShape(event, shape)
 			if newTag == nil {
 				return nil
 			}
@@ -108,14 +107,14 @@ func (t *ContainerTag) TransitionShape(line *line.Line, shape *shapes.Shape) Pat
 	return container
 }
 
-func (t *ContainerTag) TransitionClipPath(line *line.Line, clip *types.ClipPath) ClipPathTag {
+func (t *ContainerTag) TransitionClipPath(event Event, clip *types.ClipPath) ClipPathTag {
 	container := t.Clone()
 
-	index := line.End - line.Start
+	index := event.GetEnd() - event.GetStart()
 
 	for _, tag := range container.Tags {
 		if colorTag, ok := tag.(ClipPathTag); ok {
-			newTag := colorTag.TransitionClipPath(line, clip)
+			newTag := colorTag.TransitionClipPath(event, clip)
 			if newTag == nil {
 				return nil
 			}

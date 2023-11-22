@@ -35,12 +35,12 @@ func (r *CubicSplineCurveRecord) ApplyMatrixTransform(transform math.MatrixTrans
 	//TODO: see how accurate this is
 	controls := make([]math.Vector2[types.Twip], 0, len(r.Control))
 	for _, c := range r.Control {
-		controls = append(controls, math.Vector2ToType[float64, types.Twip](transform.ApplyToVector(c.Float64().Divide(types.TwipFactor), applyTranslation).Multiply(types.TwipFactor)))
+		controls = append(controls, math.MatrixTransformApplyToVector(transform, c, applyTranslation))
 	}
 	return &CubicSplineCurveRecord{
 		Control: controls,
-		Anchor:  math.Vector2ToType[float64, types.Twip](transform.ApplyToVector(r.Anchor.Float64().Divide(types.TwipFactor), applyTranslation).Multiply(types.TwipFactor)),
-		Start:   math.Vector2ToType[float64, types.Twip](transform.ApplyToVector(r.Start.Float64().Divide(types.TwipFactor), applyTranslation).Multiply(types.TwipFactor)),
+		Anchor:  math.MatrixTransformApplyToVector(transform, r.Anchor, applyTranslation),
+		Start:   math.MatrixTransformApplyToVector(transform, r.Start, applyTranslation),
 	}
 }
 

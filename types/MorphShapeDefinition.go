@@ -35,17 +35,17 @@ func (d *MorphShapeDefinition) GetShapeList(ratio float64) (list shapes.DrawPath
 
 		var shape shapes.Shape
 
-		for _, recordPair := range shapes.IterateShape(c1.Commands, c2.Commands) {
-			a := recordPair[0]
-			b := recordPair[1]
+		for _, recordPair := range shapes.IterateMorphShape(c1.Commands, c2.Commands) {
+			startEdge := recordPair[0]
+			endEdge := recordPair[1]
 
 			//No need to convert types!
-			aLineRecord, aIsLineRecord := a.(*records.LineRecord)
-			aMoveRecord, aIsMoveRecord := a.(*records.MoveRecord)
-			aQuadraticCurveRecord, aIsQuadraticCurveRecord := a.(*records.QuadraticCurveRecord)
-			bLineRecord, bIsLineRecord := b.(*records.LineRecord)
-			bMoveRecord, bIsMoveRecord := b.(*records.MoveRecord)
-			bQuadraticCurveRecord, bIsQuadraticCurveRecord := b.(*records.QuadraticCurveRecord)
+			aLineRecord, aIsLineRecord := startEdge.(*records.LineRecord)
+			aMoveRecord, aIsMoveRecord := startEdge.(*records.MoveRecord)
+			aQuadraticCurveRecord, aIsQuadraticCurveRecord := startEdge.(*records.QuadraticCurveRecord)
+			bLineRecord, bIsLineRecord := endEdge.(*records.LineRecord)
+			bMoveRecord, bIsMoveRecord := endEdge.(*records.MoveRecord)
+			bQuadraticCurveRecord, bIsQuadraticCurveRecord := endEdge.(*records.QuadraticCurveRecord)
 
 			if aIsLineRecord && bIsLineRecord {
 				shape.AddRecord(&records.LineRecord{

@@ -36,8 +36,8 @@ func fake2DCross(a, b math.Vector2[types.Twip]) types.Twip {
 func (r *LineRecord) ApplyMatrixTransform(transform math.MatrixTransform, applyTranslation bool) Record {
 	//TODO: see how accurate this is
 	return &LineRecord{
-		To:    math.Vector2ToType[float64, types.Twip](transform.ApplyToVector(r.To.Float64().Divide(types.TwipFactor), applyTranslation).Multiply(types.TwipFactor)),
-		Start: math.Vector2ToType[float64, types.Twip](transform.ApplyToVector(r.Start.Float64().Divide(types.TwipFactor), applyTranslation).Multiply(types.TwipFactor)),
+		To:    math.MatrixTransformApplyToVector(transform, r.To, applyTranslation),
+		Start: math.MatrixTransformApplyToVector(transform, r.Start, applyTranslation),
 	}
 }
 

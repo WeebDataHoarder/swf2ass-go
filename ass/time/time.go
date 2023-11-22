@@ -1,7 +1,10 @@
 package time
 
 import (
+	"errors"
 	"fmt"
+	"regexp"
+	"strconv"
 	"time"
 )
 
@@ -47,8 +50,35 @@ func NewTime(ms int64, roundDown bool) (t Time) {
 	return t
 }
 
+func (t Time) Duration() time.Duration {
+	//TODO
+	return 0
+}
+
 func (t Time) String() string {
 	return fmt.Sprintf("%01d:%02d:%02d.%0*d", t.Hours, t.Minutes, t.Seconds, t.AdjustedMillisecondPrecision, t.AdjustedMilliseconds)
+}
+
+func FromString(p string) (t Time, err error) {
+	t.AdjustedMillisecondPrecision = DecimalPrecision
+
+	res, _ := fmt.Sscanf(p, "%d:%d:%d.%d", &t.Hours, &t.Minutes, &t.Seconds, &t.Milliseconds)
+	if res < 4 {
+		return t, errors.New("not parsed properly")
+	}
+
+	//TODO
+	return t, nil
+}
+
+func (t Time) AdjustWithError(ms, adjMsErr int64) Time {
+	t.AdjustedMillisecondPrecision = DecimalPrecision
+	t.AdjustedMillisecondError = adjMsErr
+	if t.AdjustedMillisecondError != 0 {
+		t.Milliseconds = ms
+	}
+	//TODO
+	return t
 }
 
 type EventTime struct {
@@ -72,7 +102,7 @@ func NewEventTime(startFrame, duration int64, frameDuration time.Duration) (t Ev
 }
 
 func (t EventTime) GetDurationFromStartOffset(frameOffset int64) time.Duration {
-	if (int64(t.StartFrame) + frameOffset) > int64(t.EndFrame) {
+	if (t.StartFrame + frameOffset) > t.EndFrame {
 		panic("out of bounds")
 	}
 	return t.FrameDuration*time.Duration(frameOffset) + time.Duration(t.Start.AdjustedMillisecondError)*time.Millisecond
@@ -85,23 +115,72 @@ func (t EventTime) GetDurationFromEndOffset(frameOffset int64) time.Duration {
 	return t.GetDurationFromStartOffset(int64(t.Duration) - frameOffset)
 }
 
-/*
-func (t EventTime) Slice(frameOffset uint64, frameDuration uint64) EventTime {
-	if (t.StartFrame + frameOffset + frameDuration) > t.EndFrame {
-		panic("out of bounds")
+func (t EventTime) Encode() string {
+	if t.Start.AdjustedMillisecondError != 0 || t.End.AdjustedMillisecondError != 0 {
+		//Adjust frame precision exactly to frame boundaries. This is necessary due to low ASS timing precision
+		//TODO: Maybe use fade?
+		frameStartTime := t.GetDurationFromStartOffset(0).Milliseconds()
+		frameEndTime := t.GetDurationFromEndOffset(0).Milliseconds()
+		//TODO: maybe needs to be -1?
+		return fmt.Sprintf(
+			"{\\fade(255,0,255,%d,%d,%d,%d)\\err(%d~%d,%d~%d)}", frameStartTime, frameStartTime, frameEndTime, frameEndTime, t.Start.Milliseconds, t.Start.AdjustedMillisecondError, t.End.Milliseconds, t.End.AdjustedMillisecondError)
 	}
-	return NewEventTime(t.StartFrame+frameOffset, t.FrameDuration)
+	return ""
 }
-*/
 
-// StringToTimecode Emulates libass parsing
-func StringToTimecode(p string) int64 {
-	var h, m, s, ms int
-	var tm int64
-	res, _ := fmt.Sscanf(p, "%d:%d:%d.%d", &h, &m, &s, &ms)
-	if res < 4 {
-		return 0
+var eventTimeRegexp = regexp.MustCompile(`^\{\\fade\(255,0,255,(?P<FrameStartTimeMs>\d+),(?P<FrameStartTimeMs2>\d+),(?P<FrameEndTimeMs>\d+),(?P<FrameEndTimeMs2>\d+)\)\\err\((?P<StartMs>\d+)~(?P<StartAdjustedErrMs>\d+),(?P<EndMs>\d+)~(?P<EndAdjustedErrMs>\d+)\)}`)
+
+func EventLineFromText(start, end Time, text string) (t EventTime) {
+	var frameStartTimeMs, frameStartTimeMs2, frameEndTimeMs, frameEndTimeMs2 int64
+	var startMs, startAdjustedErrMs, endMs, endAdjustedMs int64
+
+	matches := eventTimeRegexp.FindStringSubmatch(text)
+	if matches != nil {
+		//not exact
+
+		for i, name := range eventTimeRegexp.SubexpNames() {
+			if name == "" {
+				continue
+			}
+			val, err := strconv.ParseInt(matches[i], 10, 0)
+			if err != nil {
+				panic(err)
+			}
+			switch name {
+			case "FrameStartTimeMs":
+				frameStartTimeMs = val
+			case "FrameStartTimeMs2":
+				frameStartTimeMs2 = val
+			case "FrameEndTimeMs":
+				frameEndTimeMs = val
+			case "FrameEndTimeMs2":
+				frameEndTimeMs2 = val
+			case "StartMs":
+				startMs = val
+			case "StartAdjustedErrMs":
+				startAdjustedErrMs = val
+			case "EndMs":
+				endMs = val
+			case "EndAdjustedErrMs":
+				endAdjustedMs = val
+
+			default:
+				panic("not implemented")
+
+			}
+		}
 	}
-	tm = ((int64(h)*60+int64(m))*60+int64(s))*1000 + int64(ms)*10
-	return tm
+
+	if frameStartTimeMs != frameStartTimeMs2 {
+		panic("frame start match")
+	}
+
+	if frameEndTimeMs != frameEndTimeMs2 {
+		panic("frame start match")
+	}
+
+	t.Start = start.AdjustWithError(startMs, startAdjustedErrMs)
+	t.End = end.AdjustWithError(endMs, endAdjustedMs)
+	//TODO
+	return t
 }

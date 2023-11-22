@@ -21,23 +21,16 @@ func ellipseDrawQuarter(center, size math.Vector2[float64]) *records.CubicCurveR
 	const c = 0.55228474983 // (4/3) * (sqrt(2) - 1)
 
 	return &records.CubicCurveRecord{
-		Control1: math.Vector2ToType[float64, swftypes.Twip](math.NewVector2(center.X-size.X, center.Y-c*size.Y).Multiply(swftypes.TwipFactor)),
-		Control2: math.Vector2ToType[float64, swftypes.Twip](math.NewVector2(center.X-c*size.X, center.Y-size.Y).Multiply(swftypes.TwipFactor)),
-		Anchor:   math.Vector2ToType[float64, swftypes.Twip](math.NewVector2(center.X, center.Y-size.Y).Multiply(swftypes.TwipFactor)),
-		Start:    math.Vector2ToType[float64, swftypes.Twip](math.NewVector2(center.X-size.X, center.Y).Multiply(swftypes.TwipFactor)),
+		Control1: math.Vector2ToType[float64, swftypes.Twip](math.NewVector2(center.X-size.X, center.Y-c*size.Y)),
+		Control2: math.Vector2ToType[float64, swftypes.Twip](math.NewVector2(center.X-c*size.X, center.Y-size.Y)),
+		Anchor:   math.Vector2ToType[float64, swftypes.Twip](math.NewVector2(center.X, center.Y-size.Y)),
+		Start:    math.Vector2ToType[float64, swftypes.Twip](math.NewVector2(center.X-size.X, center.Y)),
 	}
 }
 
 func (r Ellipse[T]) Draw() []records.Record {
-	var center, radius math.Vector2[float64]
-	switch any(r.Center.X).(type) {
-	case swftypes.Twip:
-		center = math.Vector2ToType[T, float64](r.Center).Multiply(swftypes.TwipFactor)
-		radius = math.Vector2ToType[T, float64](r.Radius).Multiply(swftypes.TwipFactor)
-	case int64, float64:
-		center = math.Vector2ToType[T, float64](r.Center)
-		radius = math.Vector2ToType[T, float64](r.Radius)
-	}
+	center := r.Center.Float64()
+	radius := r.Radius.Float64()
 	return []records.Record{
 		ellipseDrawQuarter(center, math.NewVector2(-radius.X, radius.Y)),
 		ellipseDrawQuarter(center, radius).Reverse(), //Reverse so paths connect

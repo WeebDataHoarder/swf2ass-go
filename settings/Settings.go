@@ -5,7 +5,7 @@ import (
 )
 
 type Settings struct {
-	// ASSDrawingScale Scale that ASS drawing override tags will use. Coordinates will be multiplied by this value
+	// ASSDrawingScale Scale that ASS drawing override tags will use. Coordinates will be multiplied by 2^(ASSDrawingScale-1) to enhance precision
 	ASSDrawingScale int64
 
 	// ASSDrawingPrecision Number of decimals that ASS drawing override tags will produce
@@ -14,7 +14,7 @@ type Settings struct {
 
 	// VideoRateMultiplier Adjusts the viewport scale. All operations and transforms will be adjusted accordingly
 	// For example, VideoScaleMultiplier = 2 will make a 640x480 viewport become 1280x960
-	VideoScaleMultiplier int64
+	VideoScaleMultiplier float64
 
 	// VideoRateMultiplier Adjusts framerate multiplier. Leave at 1 unless you know what you are doing.
 	VideoRateMultiplier float64

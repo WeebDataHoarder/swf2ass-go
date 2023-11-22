@@ -2,7 +2,6 @@ package tag
 
 import (
 	"fmt"
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/line"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
 	math2 "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"math"
@@ -12,7 +11,7 @@ type RotationTag struct {
 	RotationX, RotationY, RotationZ float64
 }
 
-func (t *RotationTag) TransitionMatrixTransform(line *line.Line, transform math2.MatrixTransform) PositioningTag {
+func (t *RotationTag) TransitionMatrixTransform(event Event, transform math2.MatrixTransform) PositioningTag {
 	panic("not implemented")
 }
 

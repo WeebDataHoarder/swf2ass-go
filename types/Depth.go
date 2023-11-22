@@ -21,11 +21,22 @@ func (d Depth) GetPackedLayer() (layer int32) {
 	layer = int32(d[0]) << 16
 	if len(d) > 2 {
 		layer |= int32(d[1]&0xFF) << 8
-		layer |= int32(d[2] & 0xFF)
+		layer |= (int32(d[2]&0x7F) << 1) | 0
 	} else if len(d) > 1 {
-		layer |= int32(d[1])
+		layer |= (int32(d[1]&0x7FFF) << 1) | 1
 	}
 	return layer
+}
+
+func DepthFromPackedLayer(layer int32) (d Depth) {
+	d = append(d, uint16(layer>>16))
+	if layer&1 == 1 {
+		d = append(d, uint16((layer>>1)&0x7FFF))
+	} else {
+		d = append(d, uint16((layer>>8)&0xFF))
+		d = append(d, uint16((layer>>1)&0x7F))
+	}
+	return d
 }
 
 func (d Depth) Equals(o Depth) bool {

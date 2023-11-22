@@ -3,14 +3,15 @@ package line
 import (
 	"fmt"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/tag"
-	time2 "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
+	asstime "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 )
 
-type Line struct {
+type EventLine struct {
 	Layer      types.Depth
 	ShapeIndex int
 	ObjectId   uint16
@@ -34,7 +35,15 @@ type Line struct {
 	cachedEncode *string
 }
 
-func (l *Line) Transition(frameInfo types.FrameInformation, object *types.RenderedObject) *Line {
+func (l *EventLine) GetStart() int64 {
+	return l.Start
+}
+
+func (l *EventLine) GetEnd() int64 {
+	return l.End
+}
+
+func (l *EventLine) Transition(frameInfo types.FrameInformation, object *types.RenderedObject) *EventLine {
 	line := *l
 	line.End = frameInfo.GetFrameNumber()
 	line.Tags = make([]tag.Tag, 0, len(l.Tags))
@@ -77,12 +86,12 @@ func (l *Line) Transition(frameInfo types.FrameInformation, object *types.Render
 	return &line
 }
 
-func (l *Line) Encode(frameDuration time.Duration) string {
+func (l *EventLine) Encode(frameDuration time.Duration) string {
 	if frameDuration == 1000*time.Millisecond && l.cachedEncode != nil {
 		return *l.cachedEncode
 	}
 
-	eventTime := time2.NewEventTime(l.Start, l.End-l.Start+1, frameDuration)
+	eventTime := asstime.NewEventTime(l.Start, l.End-l.Start+1, frameDuration)
 
 	line := make([]string, 0, 10)
 	if l.IsComment {
@@ -102,13 +111,10 @@ func (l *Line) Encode(frameDuration time.Duration) string {
 
 	text := make([]string, 0, 1+len(l.Tags))
 
-	if eventTime.Start.AdjustedMillisecondError != 0 || eventTime.End.AdjustedMillisecondError != 0 {
-		//Adjust frame precision exactly to frame boundaries. This is necessary due to low ASS timing precision
-		//TODO: Maybe use fade?
-		frameStartTime := eventTime.GetDurationFromStartOffset(0).Milliseconds()
-		frameEndTime := eventTime.GetDurationFromEndOffset(0).Milliseconds()
-		//TODO: maybe needs to be -1?
-		text = append(text, fmt.Sprintf("{\\fade(255,0,255,%d,%d,%d,%d)\\err(%d~%d,%d~%d)}", frameStartTime, frameStartTime, frameEndTime, frameEndTime, eventTime.Start.Milliseconds, eventTime.Start.AdjustedMillisecondError, eventTime.End.Milliseconds, eventTime.End.AdjustedMillisecondError))
+	eventTimeTags := eventTime.Encode()
+
+	if len(eventTimeTags) > 0 {
+		text = append(text, eventTimeTags)
 	}
 
 	for _, t := range l.Tags {
@@ -126,21 +132,99 @@ func (l *Line) Encode(frameDuration time.Duration) string {
 	return event
 }
 
-func (l *Line) DropCache() {
+func (l *EventLine) DropCache() {
 	l.cachedEncode = nil
 }
 
-func (l *Line) Equalish(o *Line) bool {
+func (l *EventLine) Equalish(o *EventLine) bool {
 	return l.ObjectId == o.ObjectId &&
 		len(l.Tags) == len(o.Tags) &&
 		l.Layer.Equals(o.Layer) &&
 		l.Encode(1000*time.Millisecond) == o.Encode(1000*time.Millisecond)
 }
 
-func LinesFromRenderObject(frameInfo types.FrameInformation, object *types.RenderedObject, bakeMatrixTransforms bool) (out []*Line) {
-	out = make([]*Line, 0, len(object.DrawPathList))
+var eventLineRegexp = regexp.MustCompile(`^(?P<Kind>[^:]+): (?P<Layer>\d+),(?P<StartTimecode>[\d:.]+),(?P<EndTimecode>[\d:.]+),(?P<Style>[^,]*),(?P<Name>[^,]*),(?P<MarginL>\d+),(?P<MarginR>\d+),(?P<MarginV>\d+),(?P<Effect>[^,]*),(?P<Text>.*)$`)
+
+func EventLineFromString(line string) (out *EventLine) {
+	var l EventLine
+
+	matches := eventLineRegexp.FindStringSubmatch(strings.TrimSpace(line))
+	if matches == nil {
+		return nil
+	}
+
+	var start, end asstime.Time
+	var text string
+	var err error
+	for i, name := range eventLineRegexp.SubexpNames() {
+		val := matches[i]
+		switch name {
+		case "Kind":
+			if val == "Dialogue" {
+				l.IsComment = false
+			} else if val == "Comment" {
+				l.IsComment = true
+			} else {
+				return nil
+			}
+		case "Layer":
+			layer, err := strconv.ParseInt(val, 10, 32)
+			if err != nil {
+				return nil
+			}
+			l.Layer = types.DepthFromPackedLayer(int32(layer))
+		case "StartTimecode":
+			start, err = asstime.FromString(val)
+			if err != nil {
+				return nil
+			}
+		case "EndTimecode":
+			end, err = asstime.FromString(val)
+			if err != nil {
+				return nil
+			}
+		case "Style":
+			l.Style = val
+		case "Name":
+			l.Style = val
+		case "MarginL":
+			l.Margin.Left, err = strconv.ParseInt(val, 10, 0)
+			if err != nil {
+				return nil
+			}
+		case "MarginR":
+			l.Margin.Right, err = strconv.ParseInt(val, 10, 0)
+			if err != nil {
+				return nil
+			}
+		case "MarginV":
+			l.Margin.Vertical, err = strconv.ParseInt(val, 10, 0)
+			if err != nil {
+				return nil
+			}
+		case "Effect":
+			l.Effect = val
+		case "Text":
+			text = val
+		case "":
+			continue
+		default:
+			panic("not implemented")
+
+		}
+	}
+
+	eventTime := asstime.EventLineFromText(start, end, text)
+
+	_ = eventTime
+
+	return out
+}
+
+func EventLinesFromRenderObject(frameInfo types.FrameInformation, object *types.RenderedObject, bakeMatrixTransforms bool) (out []*EventLine) {
+	out = make([]*EventLine, 0, len(object.DrawPathList))
 	for i := range object.DrawPathList {
-		out = append(out, &Line{
+		out = append(out, &EventLine{
 			Layer:      object.GetDepth(),
 			ShapeIndex: i,
 			ObjectId:   object.ObjectId,

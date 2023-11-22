@@ -2,7 +2,6 @@ package tag
 
 import (
 	"fmt"
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/line"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
@@ -27,7 +26,7 @@ func (t *LineColorTag) FromStyleRecord(record shapes.StyleRecord) StyleTag {
 	return t
 }
 
-func (t *LineColorTag) TransitionStyleRecord(line *line.Line, record shapes.StyleRecord) StyleTag {
+func (t *LineColorTag) TransitionStyleRecord(event Event, record shapes.StyleRecord) StyleTag {
 	t2 := &LineColorTag{}
 	t2.FromStyleRecord(record)
 	return t2
@@ -45,7 +44,7 @@ func (t *LineColorTag) ApplyColorTransform(transform math.ColorTransform) ColorT
 	}
 }
 
-func (t *LineColorTag) TransitionColor(line *line.Line, transform math.ColorTransform) ColorTag {
+func (t *LineColorTag) TransitionColor(event Event, transform math.ColorTransform) ColorTag {
 	return t.ApplyColorTransform(transform)
 }
 

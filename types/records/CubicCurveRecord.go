@@ -32,10 +32,10 @@ func (r *CubicCurveRecord) Reverse() Record {
 func (r *CubicCurveRecord) ApplyMatrixTransform(transform math2.MatrixTransform, applyTranslation bool) Record {
 	//TODO: see how accurate this is
 	return &CubicCurveRecord{
-		Control1: math2.Vector2ToType[float64, types.Twip](transform.ApplyToVector(r.Control1.Float64().Divide(types.TwipFactor), applyTranslation).Multiply(types.TwipFactor)),
-		Control2: math2.Vector2ToType[float64, types.Twip](transform.ApplyToVector(r.Control2.Float64().Divide(types.TwipFactor), applyTranslation).Multiply(types.TwipFactor)),
-		Anchor:   math2.Vector2ToType[float64, types.Twip](transform.ApplyToVector(r.Anchor.Float64().Divide(types.TwipFactor), applyTranslation).Multiply(types.TwipFactor)),
-		Start:    math2.Vector2ToType[float64, types.Twip](transform.ApplyToVector(r.Start.Float64().Divide(types.TwipFactor), applyTranslation).Multiply(types.TwipFactor)),
+		Control1: math2.MatrixTransformApplyToVector(transform, r.Control1, applyTranslation),
+		Control2: math2.MatrixTransformApplyToVector(transform, r.Control2, applyTranslation),
+		Anchor:   math2.MatrixTransformApplyToVector(transform, r.Anchor, applyTranslation),
+		Start:    math2.MatrixTransformApplyToVector(transform, r.Start, applyTranslation),
 	}
 }
 
@@ -80,14 +80,14 @@ func (r *CubicCurveRecord) ToSingleQuadraticRecord() *QuadraticCurveRecord {
 
 func (r *CubicCurveRecord) ToLineRecords(scale int64) []*LineRecord {
 	distanceToleranceSquare := math.Pow(0.5/float64(scale), 2)
-	points := CubicRecursiveBezier(nil, 0.0, 0.0, distanceToleranceSquare, r.Start.Float64().Divide(types.TwipFactor), r.Control1.Float64().Divide(types.TwipFactor), r.Control2.Float64().Divide(types.TwipFactor), r.Anchor.Float64().Divide(types.TwipFactor), 0)
+	points := CubicRecursiveBezier(nil, 0.0, 0.0, distanceToleranceSquare, r.Start.Float64(), r.Control1.Float64(), r.Control2.Float64(), r.Anchor.Float64(), 0)
 
 	result := make([]*LineRecord, 0, len(points)+1)
 
 	var current = r.Start
 
 	for _, point := range points {
-		tp := math2.Vector2ToType[float64, types.Twip](point.Multiply(types.TwipFactor))
+		tp := math2.Vector2ToType[float64, types.Twip](point)
 		result = append(result, &LineRecord{
 			To:    tp,
 			Start: current,

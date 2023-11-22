@@ -141,6 +141,12 @@ func (v Vector2[T]) Normalize() Vector2[float64] {
 }
 
 func (v Vector2[T]) Float64() Vector2[float64] {
+	if fX, ok := any(v.X).(float64er); ok {
+		return Vector2[float64]{
+			X: fX.Float64(),
+			Y: any(v.Y).(float64er).Float64(),
+		}
+	}
 	return Vector2ToType[T, float64](v)
 }
 
@@ -149,14 +155,54 @@ func (v Vector2[T]) Int64() Vector2[int64] {
 }
 
 func Vector2ToType[T ~int64 | ~float64, T2 ~int64 | ~float64](v Vector2[T]) Vector2[T2] {
-	return Vector2[T2]{
-		X: T2(v.X),
-		Y: T2(v.Y),
+	var t T2
+	switch any(t).(type) {
+	case T: //same type
+		return Vector2[T2]{
+			X: T2(v.X),
+			Y: T2(v.Y),
+		}
+	case fromFloat64er[T2]:
+		return Vector2[T2]{
+			//TODO: use unsafe?
+			X: any(t).(fromFloat64er[T2]).FromFloat64(float64(v.X)),
+			Y: any(t).(fromFloat64er[T2]).FromFloat64(float64(v.Y)),
+		}
+	case float64:
+		if fX, ok := any(v.X).(float64er); ok {
+			return Vector2[T2]{
+				//TODO: use unsafe?
+				X: T2(fX.Float64()),
+				Y: T2(any(v.Y).(float64er).Float64()),
+			}
+		}
+		return Vector2[T2]{
+			X: T2(v.X),
+			Y: T2(v.Y),
+		}
+	default:
+		return Vector2[T2]{
+			X: T2(v.X),
+			Y: T2(v.Y),
+		}
 	}
 }
 
+type fromFloat64er[T ~int64 | ~float64] interface {
+	FromFloat64(v float64) T
+}
+
+type float64er interface {
+	Float64() float64
+}
+
+var stringerI = reflect.TypeOf((*fmt.Stringer)(nil)).Elem()
+
 func (v Vector2[T]) String() string {
 	typ := reflect.TypeOf(v.X)
+	if typ.Implements(stringerI) {
+		return fmt.Sprintf("Vector2[%s](%s, %s)", typ.Name(), v.X, v.Y)
+	}
 	switch typ.Kind() {
 	case reflect.Int64:
 		return fmt.Sprintf("Vector2[%s](%d, %d)", typ.Name(), v.X, v.Y)

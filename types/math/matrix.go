@@ -8,6 +8,16 @@ import (
 	"runtime"
 )
 
+// MatrixTransform The transformation matrix used by Flash display objects.
+// The matrix is a 2x3 affine transformation matrix. A Vector2(x, y) is transformed by the matrix in the following way:
+//
+//	[a c tx] * [x] = [a*x + c*y + tx]
+//	[b d ty]   [y]   [b*x + d*y + ty]
+//	[0 0 1 ]   [1]   [1             ]
+//
+// Objects in Flash can only move in units of types.Twip, or 1/20 pixels.
+//
+// [SWF19 pp.22-24](https://web.archive.org/web/20220205011833if_/https://www.adobe.com/content/dam/acom/en/devnet/pdf/swf-file-format-spec.pdf#page=22)
 type MatrixTransform struct {
 	matrix *mat.Dense
 }
@@ -22,19 +32,18 @@ var DefaultRotateSkew = Vector2[float64]{
 	Y: 0,
 }
 
-var DefaultTranslation = Vector2[types.Twip]{
+var DefaultTranslation = Vector2[float64]{
 	X: 0,
 	Y: 0,
 }
 
-func NewMatrixTransform(scale, rotateSkew Vector2[float64], translation Vector2[types.Twip]) MatrixTransform {
+func NewMatrixTransform(scale, rotateSkew, translation Vector2[float64]) MatrixTransform {
 	return MatrixTransform{
-		//TODO: check order
 		matrix: mat.NewDense(3, 3, []float64{
-			/* a */ /* c */
-			scale.X, rotateSkew.Y, translation.X.Float64(),
-			/* b */ /* d */
-			rotateSkew.X, scale.Y, translation.Y.Float64(),
+			/* a */ /* c */ /* tx */
+			scale.X, rotateSkew.Y, translation.X,
+			/* b */ /* d */ /* ty */
+			rotateSkew.X, scale.Y, translation.Y,
 			0, 0, 1,
 		}),
 	}
@@ -50,8 +59,8 @@ func RotateTransform(angle float64) MatrixTransform {
 	return NewMatrixTransform(NewVector2(cos, cos), NewVector2(-sin, sin), DefaultTranslation)
 }
 
-func TranslateTransform(translate Vector2[types.Twip]) MatrixTransform {
-	return NewMatrixTransform(DefaultScale, DefaultRotateSkew, translate)
+func TranslateTransform[T ~int64 | ~float64](translate Vector2[T]) MatrixTransform {
+	return NewMatrixTransform(DefaultScale, DefaultRotateSkew, translate.Float64())
 }
 
 func IdentityTransform() MatrixTransform {
@@ -112,20 +121,35 @@ func (m MatrixTransform) GetMatrix() mat.Matrix {
 	return m.matrix
 }
 
+func (m MatrixTransform) GetMatrixWithoutTranslation() mat.Matrix {
+	return m.matrix.Slice(0, 2, 0, 2)
+}
+
 func (m MatrixTransform) GetTranslation() Vector2[float64] {
 	return m.ApplyToVector(NewVector2[float64](0, 0), true)
+}
+
+func MatrixTransformApplyToVector[T ~int64 | ~float64](m MatrixTransform, v Vector2[T], applyTranslation bool) Vector2[T] {
+	return Vector2ToType[float64, T](m.ApplyToVector(v.Float64(), applyTranslation))
 }
 
 func (m MatrixTransform) ApplyToVector(v Vector2[float64], applyTranslation bool) Vector2[float64] {
 	var r mat.VecDense
 	if applyTranslation {
-		//TODO: check order
+		/*
+			[a c tx] * [x] = [a*x + c*y + tx]
+			[b d ty]   [y]   [b*x + d*y + ty]
+			[0 0 1 ]   [1]   [1             ]
+		*/
 		r.MulVec(m.matrix, mat.NewVecDense(3, []float64{v.X, v.Y, 1}))
 	} else {
-		//TODO: check order
-		r.MulVec(m.withoutTranslation(), mat.NewVecDense(2, []float64{v.X, v.Y}))
+		/*
+			[a c] * [x] = [a*x + c*y]
+			[b d]   [y]   [b*x + d*y]
+		*/
+		r.MulVec(m.GetMatrixWithoutTranslation(), mat.NewVecDense(2, []float64{v.X, v.Y}))
 	}
-	return NewVector2[float64](r.At(0, 0), r.At(1, 0))
+	return NewVector2[float64](r.AtVec(0), r.AtVec(1))
 }
 
 func (m MatrixTransform) EqualsExact(o MatrixTransform) bool {
@@ -138,12 +162,8 @@ func (m MatrixTransform) Equals(o MatrixTransform, epsilon float64) bool {
 	return mat.EqualApprox(m.matrix, o.matrix, epsilon)
 }
 
-func (m MatrixTransform) withoutTranslation() mat.Matrix {
-	return m.matrix.Slice(0, 2, 0, 2)
-}
-
 func (m MatrixTransform) EqualsWithoutTranslation(o MatrixTransform, epsilon float64) bool {
-	return mat.EqualApprox(m.withoutTranslation(), o.withoutTranslation(), epsilon)
+	return mat.EqualApprox(m.GetMatrixWithoutTranslation(), o.GetMatrixWithoutTranslation(), epsilon)
 }
 
 func (m MatrixTransform) String() string {
@@ -152,16 +172,16 @@ func (m MatrixTransform) String() string {
 
 func MatrixTransformFromSWF(m types.MATRIX) MatrixTransform {
 	t := NewMatrixTransform(
-		NewVector2[float64](m.ScaleX.Float64(), m.ScaleY.Float64()),
-		NewVector2[float64](m.RotateSkew0.Float64(), m.RotateSkew1.Float64()),
-		NewVector2[types.Twip](m.TranslateX, m.TranslateY),
+		NewVector2(m.ScaleX.Float64(), m.ScaleY.Float64()),
+		NewVector2(m.RotateSkew0.Float64(), m.RotateSkew1.Float64()),
+		NewVector2(m.TranslateX.Float64(), m.TranslateY.Float64()),
 	)
 	if m.HasRotate && m.HasScale && m.TranslateX != 0 {
-		fmt.Printf("\n\nScale: %s vs %f, %f\n", NewVector2[float64](m.ScaleX.Float64(), m.ScaleY.Float64()), t.GetA(), t.GetD())
-		fmt.Printf("Skew: %s vs %f, %f\n", NewVector2[float64](m.RotateSkew0.Float64(), m.RotateSkew1.Float64()), t.GetB(), t.GetC())
-		fmt.Printf("Translation: %s %s vs %f, %f\n", NewVector2[types.Twip](m.TranslateX, m.TranslateY), NewVector2[types.Twip](m.TranslateX, m.TranslateY).Float64().Divide(types.TwipFactor), t.GetTX(), t.GetTY())
+		fmt.Printf("\n\nScale: %s vs %f, %f\n", NewVector2(m.ScaleX.Float64(), m.ScaleY.Float64()), t.GetA(), t.GetD())
+		fmt.Printf("Skew: %s vs %f, %f\n", NewVector2(m.RotateSkew0.Float64(), m.RotateSkew1.Float64()), t.GetB(), t.GetC())
+		fmt.Printf("Translation: %s vs %f, %f\n", NewVector2(m.TranslateX, m.TranslateY), t.GetTX(), t.GetTY())
 		fmt.Printf("%s\n\n", t.String())
-		fmt.Printf("%#v\n\n", mat.Formatted(t.withoutTranslation(), mat.FormatPython()))
+		fmt.Printf("%#v\n\n", mat.Formatted(t.GetMatrixWithoutTranslation(), mat.FormatPython()))
 		runtime.KeepAlive(m)
 	}
 	return t

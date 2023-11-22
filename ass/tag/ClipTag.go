@@ -2,7 +2,6 @@ package tag
 
 import (
 	"fmt"
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/line"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/settings"
 	swftypes "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
@@ -53,7 +52,7 @@ func (t *ClipTag) ApplyMatrixTransform(transform math.MatrixTransform, applyTran
 	}
 }
 
-func (t *ClipTag) TransitionClipPath(line *line.Line, clip *types.ClipPath) ClipPathTag {
+func (t *ClipTag) TransitionClipPath(event Event, clip *types.ClipPath) ClipPathTag {
 	if clip == nil {
 		if t.IsNull {
 			return t

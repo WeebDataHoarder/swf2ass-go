@@ -70,6 +70,7 @@ func (s *Shape) Merge(o *Shape) *Shape {
 	return r
 }
 
+// Flatten Converts all non-linear records into line segments and returns a new Shape
 func (s *Shape) Flatten() *Shape {
 	if s.IsFlat {
 		return s
@@ -116,84 +117,84 @@ func (s *Shape) Equals(o *Shape) bool {
 	return true
 }
 
-func IterateShape(shapeA, shapeB *Shape) (r []records.RecordPair) {
+func IterateMorphShape(start, end *Shape) (r []records.RecordPair) {
 
-	recordsA := shapeA.Edges
-	recordsB := shapeB.Edges
+	startEdges := start.Edges
+	endEdges := end.Edges
 
-	var prevA, prevB records.Record
+	var prevStart, prevEnd records.Record
 
-	for len(recordsA) > 0 && len(recordsB) > 0 {
-		a := recordsA[0]
-		b := recordsB[0]
+	for len(startEdges) > 0 && len(endEdges) > 0 {
+		startEdge := startEdges[0]
+		endEdge := endEdges[0]
 
-		advanceA := true
-		advanceB := true
+		advanceStart := true
+		advanceEnd := true
 
-		if prevA != nil && !prevA.GetEnd().Equals(a.GetStart()) {
-			advanceA = false
-			a = &records.MoveRecord{
-				To:    a.GetStart(),
-				Start: prevA.GetEnd(),
+		if prevStart != nil && !prevStart.GetEnd().Equals(startEdge.GetStart()) {
+			advanceStart = false
+			startEdge = &records.MoveRecord{
+				To:    startEdge.GetStart(),
+				Start: prevStart.GetEnd(),
 			}
 		}
 
-		if prevB != nil && !prevB.GetEnd().Equals(b.GetStart()) {
-			advanceB = false
-			b = &records.MoveRecord{
-				To:    b.GetStart(),
-				Start: prevB.GetEnd(),
+		if prevEnd != nil && !prevEnd.GetEnd().Equals(endEdge.GetStart()) {
+			advanceEnd = false
+			endEdge = &records.MoveRecord{
+				To:    endEdge.GetStart(),
+				Start: prevEnd.GetEnd(),
 			}
 		}
 
-		if a.SameType(b) {
-			r = append(r, records.RecordPair{a, b})
+		if startEdge.SameType(endEdge) {
+			r = append(r, records.RecordPair{startEdge, endEdge})
 		} else {
-			aLineRecord, aIsLineRecord := a.(*records.LineRecord)
-			aMoveRecord, aIsMoveRecord := a.(*records.MoveRecord)
-			aQuadraticCurveRecord, aIsQuadraticCurveRecord := a.(*records.QuadraticCurveRecord)
-			bLineRecord, bIsLineRecord := b.(*records.LineRecord)
-			bMoveRecord, bIsMoveRecord := b.(*records.MoveRecord)
-			bQuadraticCurveRecord, bIsQuadraticCurveRecord := b.(*records.QuadraticCurveRecord)
+			aLineRecord, aIsLineRecord := startEdge.(*records.LineRecord)
+			aMoveRecord, aIsMoveRecord := startEdge.(*records.MoveRecord)
+			aQuadraticCurveRecord, aIsQuadraticCurveRecord := startEdge.(*records.QuadraticCurveRecord)
+			bLineRecord, bIsLineRecord := endEdge.(*records.LineRecord)
+			bMoveRecord, bIsMoveRecord := endEdge.(*records.MoveRecord)
+			bQuadraticCurveRecord, bIsQuadraticCurveRecord := endEdge.(*records.QuadraticCurveRecord)
 
 			if aIsLineRecord && bIsQuadraticCurveRecord {
-				a = records.QuadraticCurveFromLineRecord(aLineRecord)
-				r = append(r, records.RecordPair{a, bQuadraticCurveRecord})
+				startEdge = records.QuadraticCurveFromLineRecord(aLineRecord)
+				r = append(r, records.RecordPair{startEdge, bQuadraticCurveRecord})
 			} else if aIsQuadraticCurveRecord && bIsLineRecord {
-				b = records.QuadraticCurveFromLineRecord(bLineRecord)
-				r = append(r, records.RecordPair{aQuadraticCurveRecord, b})
+				endEdge = records.QuadraticCurveFromLineRecord(bLineRecord)
+				r = append(r, records.RecordPair{aQuadraticCurveRecord, endEdge})
 			} else if aIsMoveRecord && !bIsMoveRecord {
-				b = &records.MoveRecord{
-					To:    b.GetStart(),
-					Start: b.GetStart(),
+				endEdge = &records.MoveRecord{
+					To:    endEdge.GetStart(),
+					Start: endEdge.GetStart(),
 				}
-				r = append(r, records.RecordPair{aMoveRecord, b})
-				advanceB = false
+				r = append(r, records.RecordPair{aMoveRecord, endEdge})
+				advanceEnd = false
 			} else if !aIsMoveRecord && bIsMoveRecord {
-				a = &records.MoveRecord{
-					To:    a.GetStart(),
-					Start: a.GetStart(),
+				startEdge = &records.MoveRecord{
+					To:    startEdge.GetStart(),
+					Start: startEdge.GetStart(),
 				}
-				r = append(r, records.RecordPair{a, bMoveRecord})
-				advanceA = false
+				r = append(r, records.RecordPair{startEdge, bMoveRecord})
+				advanceStart = false
 			} else {
 				panic("incompatible")
 			}
 		}
 
-		if advanceA {
-			recordsA = recordsA[1:]
+		if advanceStart {
+			startEdges = startEdges[1:]
 		}
 
-		if advanceB {
-			recordsB = recordsB[1:]
+		if advanceEnd {
+			endEdges = endEdges[1:]
 		}
 
-		prevA = a
-		prevB = b
+		prevStart = startEdge
+		prevEnd = endEdge
 	}
 
-	if len(recordsA) != 0 || len(recordsB) != 0 {
+	if len(startEdges) != 0 || len(endEdges) != 0 {
 		panic("incompatible result")
 	}
 

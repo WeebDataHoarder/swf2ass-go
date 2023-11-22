@@ -13,14 +13,14 @@ import (
 
 type Renderer struct {
 	Header        []string
-	RunningBuffer []*line.Line
+	RunningBuffer []*line.EventLine
 }
 
 func NewRenderer(frameRate float64, viewPort shapes.Rectangle[swftypes.Twip]) *Renderer {
-	display := viewPort.Divide(swftypes.TwipFactor)
+	display := shapes.RectangleToType[swftypes.Twip, float64](viewPort)
 
-	width := int64(display.Width()) * settings.GlobalSettings.VideoScaleMultiplier
-	height := int64(display.Height()) * settings.GlobalSettings.VideoScaleMultiplier
+	width := int64(display.Width() * settings.GlobalSettings.VideoScaleMultiplier)
+	height := int64(display.Height() * settings.GlobalSettings.VideoScaleMultiplier)
 
 	ar := float64(width) / float64(height)
 
@@ -44,7 +44,7 @@ func NewRenderer(frameRate float64, viewPort shapes.Rectangle[swftypes.Twip]) *R
 			"Last Style Storage: f",
 			fmt.Sprintf("Video File: ?dummy:%f:10000:%d:%d:160:160:160:c", frameRate, width, height),
 			fmt.Sprintf("Video AR Value: %.4F", ar),
-			"Active Line: 0",
+			"Active EventLine: 0",
 			"Video Zoom Percent: 2.000000",
 			"",
 			"[V4+ Styles]",
@@ -66,9 +66,9 @@ func (r *Renderer) RenderFrame(frameInfo types.FrameInformation, frame types.Ren
 	objects := slices.Clone(frame)
 	slices.SortStableFunc(objects, RenderedObjectDepthSort)
 
-	var runningBuffer []*line.Line
+	var runningBuffer []*line.EventLine
 
-	scale := math.ScaleTransform(math.NewVector2(settings.GlobalSettings.VideoScaleMultiplier, settings.GlobalSettings.VideoScaleMultiplier).Float64())
+	scale := math.ScaleTransform(math.NewVector2(settings.GlobalSettings.VideoScaleMultiplier, settings.GlobalSettings.VideoScaleMultiplier))
 
 	animated := 0
 
@@ -80,7 +80,7 @@ func (r *Renderer) RenderFrame(frameInfo types.FrameInformation, frame types.Ren
 
 		depth := object.GetDepth()
 
-		var tagsToTransition []*line.Line
+		var tagsToTransition []*line.EventLine
 
 		for i := len(r.RunningBuffer) - 1; i >= 0; i-- {
 			tag := r.RunningBuffer[i]
@@ -92,7 +92,7 @@ func (r *Renderer) RenderFrame(frameInfo types.FrameInformation, frame types.Ren
 		slices.Reverse(tagsToTransition)
 
 		canTransition := true
-		var transitionedTags []*line.Line
+		var transitionedTags []*line.EventLine
 
 		for _, tag := range tagsToTransition {
 			tag = tag.Transition(frameInfo, object)
@@ -111,7 +111,7 @@ func (r *Renderer) RenderFrame(frameInfo types.FrameInformation, frame types.Ren
 		} else {
 			r.RunningBuffer = append(r.RunningBuffer, tagsToTransition...)
 
-			for _, l := range line.LinesFromRenderObject(frameInfo, object, settings.GlobalSettings.BakeMatrixTransforms) {
+			for _, l := range line.EventLinesFromRenderObject(frameInfo, object, settings.GlobalSettings.BakeMatrixTransforms) {
 				l.Style = "f"
 				l.DropCache()
 				runningBuffer = append(runningBuffer, l)

@@ -2,7 +2,6 @@ package tag
 
 import (
 	"fmt"
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/line"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/settings"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
@@ -29,7 +28,7 @@ func (t *DrawTag) ApplyMatrixTransform(transform math.MatrixTransform, applyTran
 	}
 }
 
-func (t *DrawTag) TransitionShape(line *line.Line, shape *shapes.Shape) PathTag {
+func (t *DrawTag) TransitionShape(event Event, shape *shapes.Shape) PathTag {
 	if t.AsShape().Equals(shape) {
 		return t
 	}

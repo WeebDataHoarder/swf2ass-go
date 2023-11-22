@@ -2,7 +2,6 @@ package tag
 
 import (
 	"fmt"
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/line"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
 	swftypes "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
@@ -24,7 +23,7 @@ func (t *BorderTag) FromStyleRecord(record shapes.StyleRecord) StyleTag {
 	return t
 }
 
-func (t *BorderTag) TransitionStyleRecord(line *line.Line, record shapes.StyleRecord) StyleTag {
+func (t *BorderTag) TransitionStyleRecord(event Event, record shapes.StyleRecord) StyleTag {
 	t2 := &BorderTag{}
 	t2.FromStyleRecord(record)
 	return t2

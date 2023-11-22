@@ -27,8 +27,8 @@ func (r *MoveRecord) Reverse() Record {
 func (r *MoveRecord) ApplyMatrixTransform(transform math.MatrixTransform, applyTranslation bool) Record {
 	//TODO: see how accurate this is
 	return &MoveRecord{
-		To:    math.Vector2ToType[float64, types.Twip](transform.ApplyToVector(r.To.Float64().Divide(types.TwipFactor), applyTranslation).Multiply(types.TwipFactor)),
-		Start: math.Vector2ToType[float64, types.Twip](transform.ApplyToVector(r.Start.Float64().Divide(types.TwipFactor), applyTranslation).Multiply(types.TwipFactor)),
+		To:    math.MatrixTransformApplyToVector(transform, r.To, applyTranslation),
+		Start: math.MatrixTransformApplyToVector(transform, r.Start, applyTranslation),
 	}
 }
 

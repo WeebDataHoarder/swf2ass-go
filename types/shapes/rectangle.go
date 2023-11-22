@@ -48,15 +48,8 @@ func (r Rectangle[T]) Multiply(size T) Rectangle[T] {
 }
 
 func (r Rectangle[T]) Draw() []records.Record {
-	var tl, br math.Vector2[types.Twip]
-	switch any(r.TopLeft.X).(type) {
-	case types.Twip:
-		tl = math.Vector2ToType[T, types.Twip](r.TopLeft)
-		br = math.Vector2ToType[T, types.Twip](r.BottomRight)
-	case int64, float64:
-		tl = math.Vector2ToType[T, types.Twip](r.TopLeft.Multiply(types.TwipFactor))
-		br = math.Vector2ToType[T, types.Twip](r.BottomRight.Multiply(types.TwipFactor))
-	}
+	tl := math.Vector2ToType[T, types.Twip](r.TopLeft)
+	br := math.Vector2ToType[T, types.Twip](r.BottomRight)
 	return []records.Record{
 		&records.LineRecord{
 			To:    math.NewVector2(tl.X, br.Y),
@@ -74,6 +67,13 @@ func (r Rectangle[T]) Draw() []records.Record {
 			To:    tl,
 			Start: math.NewVector2(br.X, tl.Y),
 		},
+	}
+}
+
+func RectangleToType[T ~int64 | ~float64, T2 ~int64 | ~float64](r Rectangle[T]) Rectangle[T2] {
+	return Rectangle[T2]{
+		TopLeft:     math.Vector2ToType[T, T2](r.TopLeft),
+		BottomRight: math.Vector2ToType[T, T2](r.BottomRight),
 	}
 }
 

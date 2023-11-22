@@ -1,7 +1,6 @@
 package tag
 
 import (
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/line"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
@@ -13,30 +12,35 @@ type Tag interface {
 	Encode(event time.EventTime) string
 }
 
+type Event interface {
+	GetStart() int64
+	GetEnd() int64
+}
+
 type StyleTag interface {
 	Tag
-	TransitionStyleRecord(line *line.Line, record shapes.StyleRecord) StyleTag
+	TransitionStyleRecord(event Event, record shapes.StyleRecord) StyleTag
 	FromStyleRecord(record shapes.StyleRecord) StyleTag
 }
 
 type PositioningTag interface {
 	Tag
-	TransitionMatrixTransform(line *line.Line, transform math.MatrixTransform) PositioningTag
+	TransitionMatrixTransform(event Event, transform math.MatrixTransform) PositioningTag
 	FromMatrixTransform(transform math.MatrixTransform) PositioningTag
 }
 
 type PathTag interface {
 	Tag
-	TransitionShape(line *line.Line, shape *shapes.Shape) PathTag
+	TransitionShape(event Event, shape *shapes.Shape) PathTag
 }
 
 type ClipPathTag interface {
 	Tag
-	TransitionClipPath(line *line.Line, clip *types.ClipPath) ClipPathTag
+	TransitionClipPath(event Event, clip *types.ClipPath) ClipPathTag
 }
 
 type ColorTag interface {
 	Tag
 	ApplyColorTransform(transform math.ColorTransform) ColorTag
-	TransitionColor(line *line.Line, transform math.ColorTransform) ColorTag
+	TransitionColor(event Event, transform math.ColorTransform) ColorTag
 }
