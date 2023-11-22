@@ -201,13 +201,13 @@ var stringerI = reflect.TypeOf((*fmt.Stringer)(nil)).Elem()
 func (v Vector2[T]) String() string {
 	typ := reflect.TypeOf(v.X)
 	if typ.Implements(stringerI) {
-		return fmt.Sprintf("Vector2[%s](%s, %s)", typ.Name(), v.X, v.Y)
+		return fmt.Sprintf("Vector2[%s](%s, %s)", typ.Name(), any(v.X).(fmt.Stringer), any(v.Y).(fmt.Stringer))
 	}
 	switch typ.Kind() {
 	case reflect.Int64:
-		return fmt.Sprintf("Vector2[%s](%d, %d)", typ.Name(), v.X, v.Y)
+		return fmt.Sprintf("Vector2[%s](%d, %d)", typ.Name(), int64(v.X), int64(v.Y))
 	case reflect.Float64:
-		return fmt.Sprintf("Vector2[%s](%f, %f)", typ.Name(), v.X, v.Y)
+		return fmt.Sprintf("Vector2[%s](%f, %f)", typ.Name(), float64(v.X), float64(v.Y))
 	}
 	panic("unsupported type")
 }

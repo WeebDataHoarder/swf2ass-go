@@ -176,6 +176,7 @@ func MatrixTransformFromSWF(m types.MATRIX) MatrixTransform {
 		NewVector2(m.RotateSkew0.Float64(), m.RotateSkew1.Float64()),
 		NewVector2(m.TranslateX.Float64(), m.TranslateY.Float64()),
 	)
+
 	if m.HasRotate && m.HasScale && m.TranslateX != 0 {
 		fmt.Printf("\n\nScale: %s vs %f, %f\n", NewVector2(m.ScaleX.Float64(), m.ScaleY.Float64()), t.GetA(), t.GetD())
 		fmt.Printf("Skew: %s vs %f, %f\n", NewVector2(m.RotateSkew0.Float64(), m.RotateSkew1.Float64()), t.GetB(), t.GetC())
