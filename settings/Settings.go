@@ -52,9 +52,11 @@ var GlobalSettings = Settings{
 	VideoScaleMultiplier: 1,
 	VideoRateMultiplier:  1,
 
-	BakeMatrixTransforms: true,
-
 	BakeClips: false,
+
+	BakeMatrixTransforms: false,
+
+	SmoothTransitions: false,
 
 	GradientSlices:  shapes.GradientAutoSlices,
 	GradientOverlap: 2,

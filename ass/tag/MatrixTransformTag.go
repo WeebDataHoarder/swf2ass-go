@@ -61,8 +61,9 @@ func MatrixTransformTagFromTransformStable(transform math2.MatrixTransform) *Mat
 	//Numerically stable implementation by MrSmile
 
 	a := transform.GetA()
-	b := transform.GetB()
-	c := transform.GetC()
+	//TODO: why swap
+	b := transform.GetC()
+	c := transform.GetB()
 	d := transform.GetD()
 
 	ac2 := (a * a) + (c * c)
