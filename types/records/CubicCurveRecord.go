@@ -79,13 +79,17 @@ func (r *CubicCurveRecord) ToSingleQuadraticRecord() *QuadraticCurveRecord {
 
 func (r *CubicCurveRecord) ToLineRecords(scale int64) []*LineRecord {
 	distanceToleranceSquare := math.Pow(0.5/float64(scale), 2)
-	points := CubicRecursiveBezier(nil, 0.0, 0.0, distanceToleranceSquare, r.Start, r.Control1, r.Control2, r.Anchor, 0)
+	points := CubicRecursiveBezier(nil, 0.0, BezierCurveAngleTolerance, distanceToleranceSquare, r.Start, r.Control1, r.Control2, r.Anchor, 0)
 
 	result := make([]*LineRecord, 0, len(points)+1)
 
 	var current = r.Start
 
 	for _, point := range points {
+		//Remove dupe segments
+		if point.Equals(current) {
+			continue
+		}
 		result = append(result, &LineRecord{
 			To:    point,
 			Start: current,

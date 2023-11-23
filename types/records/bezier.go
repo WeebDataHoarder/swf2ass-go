@@ -6,8 +6,9 @@ import (
 )
 
 const BezierRecursionLimit = 32
-const BezierCurveCollinearityEpsilon = stdmath.SmallestNonzeroFloat64
+const BezierCurveCollinearityEpsilon = 1e-30
 const BezierCurveAngleToleranceEpsilon = 0.01
+const BezierCurveAngleTolerance = 0.4
 
 // CubicRecursiveBezier Converts a Cubic bezier curve into line segments
 func CubicRecursiveBezier(points []math.Vector2[float64], cuspLimit, angleTolerance, distanceToleranceSquare float64, v1, v2, v3, v4 math.Vector2[float64], level uint) []math.Vector2[float64] {
@@ -194,8 +195,8 @@ func CubicRecursiveBezier(points []math.Vector2[float64], cuspLimit, angleTolera
 
 	// Continue subdivision
 	//----------------------
-	points = append(points, CubicRecursiveBezier(points, cuspLimit, angleTolerance, distanceToleranceSquare, v1, math.NewVector2(x12, y12), math.NewVector2(x123, y123), math.NewVector2(x1234, y1234), level+1)...)
-	return append(points, CubicRecursiveBezier(points, cuspLimit, angleTolerance, distanceToleranceSquare, math.NewVector2(x1234, y1234), math.NewVector2(x234, y234), math.NewVector2(x34, y34), v4, level+1)...)
+	points = CubicRecursiveBezier(points, cuspLimit, angleTolerance, distanceToleranceSquare, v1, math.NewVector2(x12, y12), math.NewVector2(x123, y123), math.NewVector2(x1234, y1234), level+1)
+	return CubicRecursiveBezier(points, cuspLimit, angleTolerance, distanceToleranceSquare, math.NewVector2(x1234, y1234), math.NewVector2(x234, y234), math.NewVector2(x34, y34), v4, level+1)
 }
 
 // QuadraticRecursiveBezier Converts a Quadratic bezier curve into line segments
@@ -270,6 +271,6 @@ func QuadraticRecursiveBezier(points []math.Vector2[float64], angleTolerance, di
 
 	// Continue subdivision
 	//----------------------
-	points = append(points, QuadraticRecursiveBezier(points, angleTolerance, distanceToleranceSquare, v1, math.NewVector2(x12, y12), math.NewVector2(x123, y123), level+1)...)
-	return append(points, QuadraticRecursiveBezier(points, angleTolerance, distanceToleranceSquare, math.NewVector2(x123, y123), math.NewVector2(x23, y23), v3, level+1)...)
+	points = QuadraticRecursiveBezier(points, angleTolerance, distanceToleranceSquare, v1, math.NewVector2(x12, y12), math.NewVector2(x123, y123), level+1)
+	return QuadraticRecursiveBezier(points, angleTolerance, distanceToleranceSquare, math.NewVector2(x123, y123), math.NewVector2(x23, y23), v3, level+1)
 }
