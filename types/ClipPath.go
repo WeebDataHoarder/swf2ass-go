@@ -52,6 +52,12 @@ func (c *ClipPath) ApplyMatrixTransform(transform math.MatrixTransform, applyTra
 	}
 }
 
+func (c *ClipPath) Merge(o *ClipPath) *ClipPath {
+	return &ClipPath{
+		Clip: c.Clip.Merge(o.Clip),
+	}
+}
+
 func (c *ClipPath) Intersect(o *ClipPath) *ClipPath {
 	return &ClipPath{
 		Clip: c.Clip.Intersect(o.Clip),

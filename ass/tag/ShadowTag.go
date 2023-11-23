@@ -30,5 +30,9 @@ func (t *ShadowTag) Equals(tag Tag) bool {
 }
 
 func (t *ShadowTag) Encode(event time.EventTime) string {
+	if t.Depth == 0 {
+		return "\\shad0"
+	}
+
 	return fmt.Sprintf("\\shad%.02F", t.Depth)
 }

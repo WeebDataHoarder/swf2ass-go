@@ -13,12 +13,14 @@ type StyleRecord interface {
 type LineStyleRecord struct {
 	Width float64
 	Color math.Color
+	Blur  float64
 }
 
 func (r *LineStyleRecord) ApplyColorTransform(transform math.ColorTransform) StyleRecord {
 	return &LineStyleRecord{
 		Width: r.Width,
 		Color: transform.ApplyToColor(r.Color),
+		Blur:  r.Blur,
 	}
 }
 
@@ -26,6 +28,7 @@ type FillStyleRecord struct {
 	// Fill can be a math.Color or Gradient
 	Fill   any
 	Border *LineStyleRecord
+	Blur   float64
 }
 
 func (r *FillStyleRecord) ApplyColorTransform(transform math.ColorTransform) StyleRecord {
@@ -38,6 +41,7 @@ func (r *FillStyleRecord) ApplyColorTransform(transform math.ColorTransform) Sty
 	return &FillStyleRecord{
 		Border: r.Border,
 		Fill:   fill,
+		Blur:   r.Blur,
 	}
 }
 

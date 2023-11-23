@@ -25,16 +25,10 @@ type ViewLayout struct {
 }
 
 func NewClippingViewLayout(objectId, clipDepth uint16, object ObjectDefinition, parent *ViewLayout) *ViewLayout {
-	if object != nil && object.GetObjectId() != objectId {
-		panic("logic error")
-	}
-	return &ViewLayout{
-		Parent:     parent,
-		ClipDepth:  clipDepth,
-		Object:     object,
-		DepthMap:   make(map[uint16]*ViewLayout),
-		IsClipping: true,
-	}
+	l := NewViewLayout(objectId, object, parent)
+	l.IsClipping = true
+	l.ClipDepth = clipDepth
+	return l
 }
 
 func NewViewLayout(objectId uint16, object ObjectDefinition, parent *ViewLayout) *ViewLayout {
@@ -88,6 +82,7 @@ func (v *ViewLayout) Remove(depth uint16) {
 
 func (v *ViewLayout) NextFrame(actions ActionList) (frame *ViewFrame) {
 	frame = v.nextFrame(actions)
+
 	if v.IsClipping {
 		clip := NewClippingFrame(frame.ObjectId, v.ClipDepth, frame.DrawPathList)
 		for depth, f := range frame.DepthMap {

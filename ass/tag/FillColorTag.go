@@ -55,7 +55,7 @@ func (t *FillColorTag) TransitionColor(event Event, transform math.ColorTransfor
 }
 
 func (t *FillColorTag) Equals(tag Tag) bool {
-	if o, ok := tag.(*LineColorTag); ok {
+	if o, ok := tag.(*FillColorTag); ok {
 		return (t.Color == o.Color || (t.Color != nil && t.Color.Equals(*o.Color, true))) && (t.OriginalColor == o.OriginalColor || (t.OriginalColor != nil && t.OriginalColor.Equals(*o.OriginalColor, true)))
 	}
 	return false

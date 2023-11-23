@@ -178,7 +178,7 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 			colorTransform = &t
 		}
 
-		p.placeObject(object, node.Depth, node.ClipDepth, node.Flag.Move, node.Flag.HasClipDepth, node.Flag.HasRatio, float64(node.Ratio)/math2.MaxUint16, transform, colorTransform)
+		p.placeObject(object, node.Depth, node.ClipDepth, node.Flag.Move, node.Flag.HasRatio, node.Flag.HasClipDepth, float64(node.Ratio)/math2.MaxUint16, transform, colorTransform)
 	case *swftag.PlaceObject3:
 		//TODO: handle extra properties
 		var object ObjectDefinition
@@ -200,7 +200,7 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 			colorTransform = &t
 		}
 
-		p.placeObject(object, node.Depth, node.ClipDepth, node.Flag.Move, node.Flag.HasClipDepth, node.Flag.HasRatio, float64(node.Ratio)/math2.MaxUint16, transform, colorTransform)
+		p.placeObject(object, node.Depth, node.ClipDepth, node.Flag.Move, node.Flag.HasRatio, node.Flag.HasClipDepth, float64(node.Ratio)/math2.MaxUint16, transform, colorTransform)
 
 	case *swftag.ShowFrame:
 	case *swftag.End:

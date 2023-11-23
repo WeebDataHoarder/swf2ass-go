@@ -48,7 +48,8 @@ func NewRenderer(frameRate float64, display shapes.Rectangle[float64]) *Renderer
 			"",
 			"[V4+ Styles]",
 			"Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding",
-			"Style: f,Arial,20,&H00000000,&H00000000,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,0,0,7,0,0,0,1",
+			fmt.Sprintf("Style: %s,Arial,20,&H00000000,&H00000000,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,0,0,7,0,0,0,1", line.StyleFill),
+			fmt.Sprintf("Style: %s,Arial,20,&H00000000,&H00000000,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,0,0,7,0,0,0,1", line.StyleLine),
 			"",
 			"[Events]",
 			"Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text",
@@ -110,7 +111,6 @@ func (r *Renderer) RenderFrame(frameInfo types.FrameInformation, frame types.Ren
 			r.RunningBuffer = append(r.RunningBuffer, tagsToTransition...)
 
 			for _, l := range line.EventLinesFromRenderObject(frameInfo, object, settings.GlobalSettings.BakeMatrixTransforms) {
-				l.Style = "f"
 				l.DropCache()
 				runningBuffer = append(runningBuffer, l)
 			}
@@ -151,12 +151,14 @@ func BakeRenderedObjectGradients(o *types.RenderedObject) *types.RenderedObject 
 			if gradient, ok := fillStyleRecord.Fill.(shapes.Gradient); ok {
 				baked = true
 
-				gradientClip := types.NewClipPath(command.Commands)
+				fillClip := types.NewClipPath(command.Commands)
 				//Convert gradients to many tags
-				for _, gradientPath := range gradient.GetInterpolatedDrawPaths(0, settings.GlobalSettings.GradientSlices) {
+				for _, gradientPath := range gradient.GetInterpolatedDrawPaths(settings.GlobalSettings.GradientOverlap, settings.GlobalSettings.GradientBlur, settings.GlobalSettings.GradientSlices) {
+					gradientShape := gradientPath.Commands.ApplyMatrixTransform(gradient.GetMatrixTransform(), true)
+					gradientClip := types.NewClipPath(gradientShape)
 					newPath := shapes.DrawPath{
 						Style:    gradientPath.Style,
-						Commands: gradientClip.Intersect(types.NewClipPath(gradientPath.Commands)).GetShape(),
+						Commands: fillClip.Intersect(gradientClip).GetShape(),
 					}
 					if len(newPath.Commands.Edges) == 0 {
 						continue

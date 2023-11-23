@@ -32,6 +32,12 @@ type Settings struct {
 	// GradientSlices Number of slices each gradient will get for each step when rendering them.
 	// It is recommended to leave at shapes.GradientAutoSlices as that will automatically pick slices based on color differences across steps.
 	GradientSlices int
+
+	// GradientOverlap Overlap between slices, in pixel units, before transformation
+	GradientOverlap float64
+
+	// GradientBlur Amount of blur to apply to gradients
+	GradientBlur float64
 }
 
 const DefaultASSDrawingScale = 6
@@ -43,9 +49,9 @@ var GlobalSettings = Settings{
 	VideoScaleMultiplier: 1,
 	VideoRateMultiplier:  1,
 
-	//BakeMatrixTransforms:       false,
 	BakeMatrixTransforms: true,
-	SmoothTransitions:    false,
 
-	GradientSlices: shapes.GradientAutoSlices,
+	GradientSlices:  shapes.GradientAutoSlices,
+	GradientOverlap: 2,
+	GradientBlur:    0.1,
 }

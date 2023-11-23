@@ -147,16 +147,14 @@ func main() {
 		if !processor.Playing || processor.Loops > 0 {
 			break
 		}
-		/*
-		   $audio = $processor->getAudio();
-		   if($audio !== null and $frameOffset === 0){
-		       if($audio->getStartFrame() === null){
-		           continue;
-		       }
-		       $frameOffset = $audio->getStartFrame();
-		   }
 
-		*/
+		if processor.Audio != nil && frameOffset == 0 {
+			if processor.Audio.Start == nil {
+				continue
+			}
+			frameOffset = *processor.Audio.Start
+		}
+
 		frame.FrameOffset = frameOffset
 
 		rendered := frame.Frame.Render(0, nil, nil, nil)
@@ -180,9 +178,9 @@ func main() {
 				clipCalls++
 				clipItems += len(object.Clip.GetShape().Edges)
 			}
-			for _, path := range object.DrawPathList {
+			for _, p := range object.DrawPathList {
 				drawCalls++
-				drawItems += len(path.Commands.Edges)
+				drawItems += len(p.Commands.Edges)
 			}
 			filteredRendered = append(filteredRendered, object)
 		}

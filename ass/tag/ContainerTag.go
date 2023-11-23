@@ -24,6 +24,7 @@ func (t *ContainerTag) TransitionColor(event Event, transform math.ColorTransfor
 
 	index := event.GetEnd() - event.GetStart()
 
+	//TODO: same color is added
 	for _, tag := range container.Tags {
 		if colorTag, ok := tag.(ColorTag); ok {
 			newTag := colorTag.TransitionColor(event, transform)
@@ -50,7 +51,7 @@ func (t *ContainerTag) TransitionMatrixTransform(event Event, transform math.Mat
 
 	index := event.GetEnd() - event.GetStart()
 
-	for _, tag := range container.Tags {
+	for i, tag := range container.Tags {
 		if colorTag, ok := tag.(PositioningTag); ok {
 			newTag := colorTag.TransitionMatrixTransform(event, transform)
 			if newTag == nil {
@@ -59,7 +60,7 @@ func (t *ContainerTag) TransitionMatrixTransform(event Event, transform math.Mat
 			if !newTag.Equals(tag) {
 				//Special case
 				if _, ok := newTag.(*PositionTag); ok {
-					container.Tags = append(container.Tags, newTag)
+					container.Tags[i] = newTag
 				} else {
 					container.Transitions[index] = append(container.Transitions[index], newTag)
 				}
@@ -186,7 +187,7 @@ func (t *ContainerTag) Equals(tag Tag) bool {
 }
 
 func (t *ContainerTag) Encode(event time.EventTime) string {
-	text := make([]string, len(t.Tags)*2)
+	text := make([]string, 0, len(t.Tags)*2)
 	for _, tag := range t.Tags {
 		if _, ok := tag.(DrawingTag); !ok {
 			text = append(text, tag.Encode(event))
@@ -250,6 +251,8 @@ func ContainerTagFromPathEntry(path shapes.DrawPath, clip *types.ClipPath, color
 	*/
 
 	container.TryAppend((&BorderTag{}).FromStyleRecord(path.Style))
+
+	container.TryAppend((&BlurGaussianTag{}).FromStyleRecord(path.Style))
 
 	{
 		lineColorTag := &LineColorTag{}

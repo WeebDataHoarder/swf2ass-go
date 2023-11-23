@@ -27,7 +27,7 @@ func (g *LinearGradient) GetItems() []GradientItem {
 	return g.Colors
 }
 
-func (g *LinearGradient) GetInterpolatedDrawPaths(overlap int, gradientSlices int) DrawPathList {
+func (g *LinearGradient) GetInterpolatedDrawPaths(overlap, blur float64, gradientSlices int) DrawPathList {
 	//items is max size 8 to 15 depending on SWF version
 	size := GradientBounds.Width()
 
@@ -38,10 +38,11 @@ func (g *LinearGradient) GetInterpolatedDrawPaths(overlap int, gradientSlices in
 		paths = append(paths, DrawPathFill(
 			&FillStyleRecord{
 				Fill: item.Color,
+				Blur: blur,
 			},
 			NewShape(Rectangle[float64]{
-				TopLeft:     math.NewVector2(GradientBounds.TopLeft.X+item.Start*size-float64(overlap)/2, GradientBounds.TopLeft.Y),
-				BottomRight: math.NewVector2(GradientBounds.BottomRight.X+item.End*size+float64(overlap)/2, GradientBounds.BottomRight.Y),
+				TopLeft:     math.NewVector2(GradientBounds.TopLeft.X+item.Start*size-overlap/2, GradientBounds.TopLeft.Y),
+				BottomRight: math.NewVector2(GradientBounds.TopLeft.X+item.End*size+overlap/2, GradientBounds.BottomRight.Y),
 			}.Draw()),
 		))
 	}

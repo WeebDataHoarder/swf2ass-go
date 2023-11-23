@@ -10,16 +10,25 @@ type ComplexPolygon struct {
 	Pol geom.Polygonal
 }
 
+func (p ComplexPolygon) Merge(o ComplexPolygon) ComplexPolygon {
+	return ComplexPolygon{
+		Pol: p.Pol.Union(o.Pol),
+	}
+}
+
 func (p ComplexPolygon) Intersect(o ComplexPolygon) ComplexPolygon {
 	return ComplexPolygon{
 		Pol: p.Pol.Intersection(o.Pol),
 	}
 }
 
+const PolygonSimplifyTolerance = 0.01
+
 func (p ComplexPolygon) GetShape() (r *Shape) {
 	var edges []records.Record
 	for _, pol := range p.Pol.Polygons() {
 		for _, path := range pol {
+			//pol = pol.Simplify(PolygonSimplifyTolerance).(geom.Polygon)
 			edges = append(edges, &records.LineRecord{
 				To:    math.NewVector2(path[1].X, path[1].Y),
 				Start: math.NewVector2(path[0].X, path[0].Y),
@@ -70,28 +79,26 @@ func NewPathFromEdges(edges []*records.LineRecord) (p geom.Path) {
 	p = make(geom.Path, 0, len(edges)+1)
 	start := edges[0].Start
 	to := edges[0].To
+
 	p = append(p, geom.Point{
 		X: start.X,
 		Y: start.Y,
-	}, geom.Point{
-		X: to.X,
-		Y: to.Y,
 	})
-	for _, e := range edges[1:] {
-		to = e.To
+
+	if !start.Equals(to) {
 		p = append(p, geom.Point{
 			X: to.X,
 			Y: to.Y,
 		})
 	}
 
-	//Close drawing if not closed
-	if !start.Equals(to) {
+	for _, e := range edges[1:] {
 		p = append(p, geom.Point{
-			X: start.X,
-			Y: start.Y,
+			X: e.To.X,
+			Y: e.To.Y,
 		})
 	}
+
 	return p
 }
 

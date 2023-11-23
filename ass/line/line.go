@@ -5,6 +5,7 @@ import (
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/tag"
 	asstime "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
 	"regexp"
 	"strconv"
 	"strings"
@@ -34,6 +35,9 @@ type EventLine struct {
 
 	cachedEncode *string
 }
+
+const StyleFill = "fill"
+const StyleLine = "line"
 
 func (l *EventLine) GetStart() int64 {
 	return l.Start
@@ -223,15 +227,24 @@ func EventLineFromString(line string) (out *EventLine) {
 
 func EventLinesFromRenderObject(frameInfo types.FrameInformation, object *types.RenderedObject, bakeMatrixTransforms bool) (out []*EventLine) {
 	out = make([]*EventLine, 0, len(object.DrawPathList))
-	for i := range object.DrawPathList {
+	for i, drawPath := range object.DrawPathList {
+		style := ""
+		if _, ok := drawPath.Style.(*shapes.FillStyleRecord); ok {
+			style = StyleFill
+		} else if _, ok = drawPath.Style.(*shapes.LineStyleRecord); ok {
+			style = StyleLine
+		} else {
+			panic("unsupported")
+		}
 		out = append(out, &EventLine{
 			Layer:      object.GetDepth(),
 			ShapeIndex: i,
 			ObjectId:   object.ObjectId,
 			Start:      frameInfo.GetFrameNumber(),
 			End:        frameInfo.GetFrameNumber(),
-			Tags:       []tag.Tag{tag.ContainerTagFromPathEntry(object.DrawPathList[i], object.Clip, object.ColorTransform, object.MatrixTransform, bakeMatrixTransforms)},
+			Tags:       []tag.Tag{tag.ContainerTagFromPathEntry(drawPath, object.Clip, object.ColorTransform, object.MatrixTransform, bakeMatrixTransforms)},
 			Name:       fmt.Sprintf("o:%d d:%s", object.ObjectId, object.GetDepth().String()),
+			Style:      style,
 		})
 	}
 	return out

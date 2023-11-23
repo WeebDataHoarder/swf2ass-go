@@ -37,6 +37,9 @@ func (t *BorderTag) Equals(tag Tag) bool {
 
 func (t *BorderTag) Encode(event time.EventTime) string {
 	if t.Size.X == t.Size.Y {
+		if t.Size.X == 0 {
+			return "\\bord0"
+		}
 		return fmt.Sprintf("\\bord%.02F", t.Size.X)
 	} else {
 		return fmt.Sprintf("\\xbord%.02F\\ybord%.02F", t.Size.X, t.Size.Y)

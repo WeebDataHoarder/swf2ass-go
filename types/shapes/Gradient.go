@@ -14,7 +14,7 @@ type Gradient interface {
 	GetSpreadMode() swfsubtypes.GradientSpreadMode
 	GetInterpolationMode() swfsubtypes.GradientInterpolationMode
 	GetItems() []GradientItem
-	GetInterpolatedDrawPaths(overlap int, gradientSlices int) DrawPathList
+	GetInterpolatedDrawPaths(overlap, blur float64, gradientSlices int) DrawPathList
 	GetMatrixTransform() math2.MatrixTransform
 	ApplyColorTransform(transform math2.ColorTransform) Gradient
 }
@@ -29,12 +29,12 @@ type GradientSlice struct {
 	Color      math2.Color
 }
 
-const GradientBoundsMin = math.MinInt16 / 2
+const GradientBoundsMin swftypes.Twip = math.MinInt16 / 2
 const GradientBoundsMax = -GradientBoundsMin
 
 var GradientBounds = Rectangle[float64]{
-	TopLeft:     math2.NewVector2[float64](GradientBoundsMin, GradientBoundsMin),
-	BottomRight: math2.NewVector2[float64](GradientBoundsMax, GradientBoundsMax),
+	TopLeft:     math2.NewVector2[float64](GradientBoundsMin.Float64(), GradientBoundsMin.Float64()),
+	BottomRight: math2.NewVector2[float64](GradientBoundsMax.Float64(), GradientBoundsMax.Float64()),
 }
 
 const GradientRatioDivisor = math.MaxUint8

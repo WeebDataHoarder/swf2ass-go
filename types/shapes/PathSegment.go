@@ -86,7 +86,7 @@ func (s *PathSegment) GetShape() *Shape {
 		Edges: make([]records.Record, 0, len(*s)-1),
 	}
 
-	points := (*s)[1:]
+	points := *s
 
 	next := func() VisitedPoint {
 		point := points[0]
@@ -94,8 +94,8 @@ func (s *PathSegment) GetShape() *Shape {
 		return point
 	}
 
-	//lastPos := next().Pos
-	lastPos := points[0].Pos.Float64()
+	lastPos := next().Pos.Float64()
+	//lastPos := points[0].Pos.Float64()
 
 	for len(points) > 0 {
 		point := next()
