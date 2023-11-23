@@ -261,6 +261,8 @@ func (p *SWFTreeProcessor) NextFrame() *ViewFrame {
 
 	frame := p.Layout.NextFrame(actions)
 
+	p.LastFrame = frame
+
 	//TODO: this might need to be elsewhere?
 	for _, action := range actions {
 		switch action := action.(type) {
