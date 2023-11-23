@@ -19,6 +19,9 @@ type Settings struct {
 	// VideoRateMultiplier Adjusts framerate multiplier. Leave at 1 unless you know what you are doing.
 	VideoRateMultiplier float64
 
+	// BakeClips Clip any shape that has a clip directly, instead of emitting \clip tags
+	BakeClips bool
+
 	// BakeMatrixTransforms Transforms the shapes directly instead of writing ASS override tags
 	// Reduces compressibility, but not affect positioning. \pos tags will still be emitted
 	// Enabling this is very expensive on players, also increases output size.
@@ -50,6 +53,8 @@ var GlobalSettings = Settings{
 	VideoRateMultiplier:  1,
 
 	BakeMatrixTransforms: true,
+
+	BakeClips: false,
 
 	GradientSlices:  shapes.GradientAutoSlices,
 	GradientOverlap: 2,

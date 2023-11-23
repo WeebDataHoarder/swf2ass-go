@@ -241,7 +241,16 @@ func ContainerTagFromPathEntry(path shapes.DrawPath, clip *types.ClipPath, color
 		Transitions: make(map[int64][]Tag),
 	}
 
-	container.TryAppend(NewClipTag(clip, settings.GlobalSettings.ASSDrawingScale))
+	if settings.GlobalSettings.BakeClips {
+		if clip != nil {
+			path = shapes.DrawPath{
+				Style:    path.Style,
+				Commands: clip.Intersect(types.NewClipPath(path.Commands)).GetShape(),
+			}
+		}
+	} else {
+		container.TryAppend(NewClipTag(clip, settings.GlobalSettings.ASSDrawingScale))
+	}
 
 	/*
 		//TODO Convert to fill????
