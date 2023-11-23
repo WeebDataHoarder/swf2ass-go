@@ -53,7 +53,7 @@ func (f *ViewFrame) Render(baseDepth uint16, depthChain Depth, parentColor *math
 	matrixTransform := math.IdentityTransform()
 	if f.MatrixTransform != nil {
 		if parentMatrix != nil {
-			matrixTransform = f.MatrixTransform.Multiply(*parentMatrix)
+			matrixTransform = parentMatrix.Multiply(*f.MatrixTransform)
 		} else {
 			matrixTransform = *f.MatrixTransform
 		}
@@ -64,7 +64,7 @@ func (f *ViewFrame) Render(baseDepth uint16, depthChain Depth, parentColor *math
 	colorTransform := math.IdentityColorTransform()
 	if f.ColorTransform != nil {
 		if parentColor != nil {
-			colorTransform = f.ColorTransform.Combine(*parentColor)
+			colorTransform = parentColor.Combine(*f.ColorTransform)
 		} else {
 			colorTransform = *f.ColorTransform
 		}

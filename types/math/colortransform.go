@@ -84,6 +84,7 @@ func (t ColorTransform) Combine(o ColorTransform) ColorTransform {
 			Alpha types.Fixed8
 		}{
 			//TODO: maybe needs more than just /(math.MaxUint8+1)
+			//TODO: maybe this wraps?
 			Red:   types.Fixed8(max(math.MinInt16, min((int64(t.Multiply.Red)*int64(o.Multiply.Red))/ColorTransformMultiplyFactor, math.MaxInt16))),
 			Green: types.Fixed8(max(math.MinInt16, min((int64(t.Multiply.Green)*int64(o.Multiply.Green))/ColorTransformMultiplyFactor, math.MaxInt16))),
 			Blue:  types.Fixed8(max(math.MinInt16, min((int64(t.Multiply.Blue)*int64(o.Multiply.Blue))/ColorTransformMultiplyFactor, math.MaxInt16))),
@@ -96,10 +97,10 @@ func (t ColorTransform) Combine(o ColorTransform) ColorTransform {
 			Blue  int16
 			Alpha int16
 		}{
-			Red:   int16(max(math.MinInt16, min(int64(t.Add.Red)+int64(o.Add.Red), math.MaxInt16))),
-			Green: int16(max(math.MinInt16, min(int64(t.Add.Green)+int64(o.Add.Green), math.MaxInt16))),
-			Blue:  int16(max(math.MinInt16, min(int64(t.Add.Blue)+int64(o.Add.Blue), math.MaxInt16))),
-			Alpha: int16(max(math.MinInt16, min(int64(t.Add.Alpha)+int64(o.Add.Alpha), math.MaxInt16))),
+			Red:   int16(max(math.MinInt16, min(int64(t.Add.Red)+(int64(t.Multiply.Red)*int64(o.Add.Red))/ColorTransformMultiplyFactor, math.MaxInt16))),
+			Green: int16(max(math.MinInt16, min(int64(t.Add.Green)+(int64(t.Multiply.Green)*int64(o.Add.Green))/ColorTransformMultiplyFactor, math.MaxInt16))),
+			Blue:  int16(max(math.MinInt16, min(int64(t.Add.Blue)+(int64(t.Multiply.Blue)*int64(o.Add.Blue))/ColorTransformMultiplyFactor, math.MaxInt16))),
+			Alpha: int16(max(math.MinInt16, min(int64(t.Add.Alpha)+(int64(t.Multiply.Alpha)*int64(o.Add.Alpha))/ColorTransformMultiplyFactor, math.MaxInt16))),
 		},
 	}
 }

@@ -20,6 +20,7 @@ func (d *SpriteDefinition) GetShapeList(ratio float64) (list shapes.DrawPathList
 			list = append(list, object.DrawPathList...)
 		}
 	}
+	panic("should not be called")
 	return list
 }
 
