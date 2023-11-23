@@ -24,7 +24,7 @@ func (t *MORPHFILLSTYLEARRAY) FillStylesLength(ctx types.ReaderContext) uint64 {
 }
 
 type MORPHFILLSTYLE struct {
-	_             struct{} `swfFlags:"root,alignend"`
+	_             struct{} `swfFlags:"root"`
 	FillStyleType FillStyleType
 
 	StartColor, EndColor types.RGBA `swfCondition:"HasRGB()"`
@@ -42,7 +42,6 @@ func (s *MORPHFILLSTYLE) HasRGB(ctx types.ReaderContext) bool {
 	case FillStyleSolid:
 	case FillStyleLinearGradient:
 	case FillStyleRadialGradient:
-	case FillStyleFocalRadialGradient:
 	case FillStyleRepeatingBitmap:
 	case FillStyleClippedBitmap:
 	case FillStyleNonSmoothedRepeatingBitmap:
@@ -83,7 +82,7 @@ func (t *MORPHLINESTYLEARRAY) HasLineStyles(ctx types.ReaderContext) bool {
 }
 
 func (t *MORPHLINESTYLEARRAY) HasLineStyles2(ctx types.ReaderContext) bool {
-	return slices.Contains(ctx.Flags, "Shape4")
+	return slices.Contains(ctx.Flags, "MorphShape2")
 }
 
 func (t *MORPHLINESTYLEARRAY) LineStylesLength(ctx types.ReaderContext) uint64 {

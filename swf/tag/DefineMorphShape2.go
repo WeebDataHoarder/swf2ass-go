@@ -15,7 +15,7 @@ type DefineMorphShape2 struct {
 	UsesScalingStrokes             bool
 	Offset                         uint32
 	MorphFillStyles                subtypes.MORPHFILLSTYLEARRAY
-	MorphLineStyles                subtypes.MORPHLINESTYLEARRAY
+	MorphLineStyles                subtypes.MORPHLINESTYLEARRAY `swfFlags:"MorphShape2"`
 	StartEdges, EndEdges           subtypes.SHAPE
 }
 
