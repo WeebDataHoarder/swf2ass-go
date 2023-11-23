@@ -113,12 +113,24 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 		}
 		p.Objects.Add(MorphShapeDefinitionFromSWF(node.CharacterId, shapes.RectangleFromSWF(node.StartBounds), shapes.RectangleFromSWF(node.EndBounds), node.StartEdges.Records, node.EndEdges.Records, node.MorphFillStyles, node.MorphLineStyles))
 	case *swftag.DefineShape:
+		if p.Loops > 0 {
+			break
+		}
 		p.Objects.Add(ShapeDefinitionFromSWF(node.ShapeId, shapes.RectangleFromSWF(node.ShapeBounds), node.Shapes.Records, node.Shapes.FillStyles, node.Shapes.LineStyles))
 	case *swftag.DefineShape2:
+		if p.Loops > 0 {
+			break
+		}
 		p.Objects.Add(ShapeDefinitionFromSWF(node.ShapeId, shapes.RectangleFromSWF(node.ShapeBounds), node.Shapes.Records, node.Shapes.FillStyles, node.Shapes.LineStyles))
 	case *swftag.DefineShape3:
+		if p.Loops > 0 {
+			break
+		}
 		p.Objects.Add(ShapeDefinitionFromSWF(node.ShapeId, shapes.RectangleFromSWF(node.ShapeBounds), node.Shapes.Records, node.Shapes.FillStyles, node.Shapes.LineStyles))
 	case *swftag.DefineShape4:
+		if p.Loops > 0 {
+			break
+		}
 		p.Objects.Add(ShapeDefinitionFromSWF(node.ShapeId, shapes.RectangleFromSWF(node.ShapeBounds), node.Shapes.Records, node.Shapes.FillStyles, node.Shapes.LineStyles))
 	//TODO: case *swftag.DefineShape5:
 	case *swftag.DefineSprite:
