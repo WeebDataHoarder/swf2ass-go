@@ -20,6 +20,8 @@ type ColorTransform struct {
 	}
 }
 
+const ColorTransformMultiplyFactor = math.MaxUint8 + 1
+
 func IdentityColorTransform() ColorTransform {
 	return ColorTransform{
 		Multiply: struct {
@@ -28,10 +30,10 @@ func IdentityColorTransform() ColorTransform {
 			Blue  types.Fixed8
 			Alpha types.Fixed8
 		}{
-			Red:   256,
-			Green: 256,
-			Blue:  256,
-			Alpha: 256,
+			Red:   ColorTransformMultiplyFactor,
+			Green: ColorTransformMultiplyFactor,
+			Blue:  ColorTransformMultiplyFactor,
+			Alpha: ColorTransformMultiplyFactor,
 		},
 		Add: struct {
 			Red   int16
@@ -66,10 +68,10 @@ func (t ColorTransform) ApplyAdditionToColor(color Color) Color {
 
 func (t ColorTransform) ApplyToColor(color Color) Color {
 	return Color{
-		R:     uint8(max(0, min((int64(t.Multiply.Red)*int64(color.R))/(math.MaxUint8+1)+int64(t.Add.Red), 255))),
-		G:     uint8(max(0, min((int64(t.Multiply.Green)*int64(color.G))/(math.MaxUint8+1)+int64(t.Add.Green), 255))),
-		B:     uint8(max(0, min((int64(t.Multiply.Blue)*int64(color.B))/(math.MaxUint8+1)+int64(t.Add.Blue), 255))),
-		Alpha: uint8(max(0, min((int64(t.Multiply.Alpha)*int64(color.Alpha))/(math.MaxUint8+1)+int64(t.Add.Alpha), 255))),
+		R:     uint8(max(0, min((int64(t.Multiply.Red)*int64(color.R))/ColorTransformMultiplyFactor+int64(t.Add.Red), 255))),
+		G:     uint8(max(0, min((int64(t.Multiply.Green)*int64(color.G))/ColorTransformMultiplyFactor+int64(t.Add.Green), 255))),
+		B:     uint8(max(0, min((int64(t.Multiply.Blue)*int64(color.B))/ColorTransformMultiplyFactor+int64(t.Add.Blue), 255))),
+		Alpha: uint8(max(0, min((int64(t.Multiply.Alpha)*int64(color.Alpha))/ColorTransformMultiplyFactor+int64(t.Add.Alpha), 255))),
 	}
 }
 
@@ -82,10 +84,10 @@ func (t ColorTransform) Combine(o ColorTransform) ColorTransform {
 			Alpha types.Fixed8
 		}{
 			//TODO: maybe needs more than just /(math.MaxUint8+1)
-			Red:   types.Fixed8(max(math.MinInt16, min((int64(t.Multiply.Red)*int64(o.Multiply.Red))/(math.MaxUint8+1), math.MaxInt16))),
-			Green: types.Fixed8(max(math.MinInt16, min((int64(t.Multiply.Green)*int64(o.Multiply.Green))/(math.MaxUint8+1), math.MaxInt16))),
-			Blue:  types.Fixed8(max(math.MinInt16, min((int64(t.Multiply.Blue)*int64(o.Multiply.Blue))/(math.MaxUint8+1), math.MaxInt16))),
-			Alpha: types.Fixed8(max(math.MinInt16, min((int64(t.Multiply.Alpha)*int64(o.Multiply.Alpha))/(math.MaxUint8+1), math.MaxInt16))),
+			Red:   types.Fixed8(max(math.MinInt16, min((int64(t.Multiply.Red)*int64(o.Multiply.Red))/ColorTransformMultiplyFactor, math.MaxInt16))),
+			Green: types.Fixed8(max(math.MinInt16, min((int64(t.Multiply.Green)*int64(o.Multiply.Green))/ColorTransformMultiplyFactor, math.MaxInt16))),
+			Blue:  types.Fixed8(max(math.MinInt16, min((int64(t.Multiply.Blue)*int64(o.Multiply.Blue))/ColorTransformMultiplyFactor, math.MaxInt16))),
+			Alpha: types.Fixed8(max(math.MinInt16, min((int64(t.Multiply.Alpha)*int64(o.Multiply.Alpha))/ColorTransformMultiplyFactor, math.MaxInt16))),
 		},
 
 		Add: struct {
@@ -108,7 +110,7 @@ func ColorTransformFromSWFAlpha(cx types.CXFORMWITHALPHA) (t ColorTransform) {
 	t.Multiply.Blue = cx.Multiply.Blue
 	t.Multiply.Alpha = cx.Multiply.Alpha
 	t.Add.Red = cx.Add.Red
-	t.Add.Green = cx.Add.Red
+	t.Add.Green = cx.Add.Green
 	t.Add.Blue = cx.Add.Blue
 	t.Add.Alpha = cx.Add.Alpha
 	return t
@@ -118,9 +120,9 @@ func ColorTransformFromSWF(cx types.CXFORM) (t ColorTransform) {
 	t.Multiply.Red = cx.Multiply.Red
 	t.Multiply.Green = cx.Multiply.Red
 	t.Multiply.Blue = cx.Multiply.Blue
-	t.Multiply.Alpha = 256
+	t.Multiply.Alpha = ColorTransformMultiplyFactor
 	t.Add.Red = cx.Add.Red
-	t.Add.Green = cx.Add.Red
+	t.Add.Green = cx.Add.Green
 	t.Add.Blue = cx.Add.Blue
 	t.Add.Alpha = 0
 	return t
