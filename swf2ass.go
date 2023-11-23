@@ -99,15 +99,14 @@ func main() {
 	}
 
 	var frameOffset int64
-	frameSize := swfReader.Header().FrameSize
 
-	processor := types.NewSWFProcessor(tags, shapes.RectangleFromSWF(frameSize), swfReader.Header().FrameRate.Float64(), int64(swfReader.Header().FrameCount))
+	processor := types.NewSWFProcessor(tags, shapes.RectangleFromSWF(swfReader.Header().FrameSize), swfReader.Header().FrameRate.Float64(), int64(swfReader.Header().FrameCount))
 
-	assRenderer := ass.NewRenderer(swfReader.Header().FrameRate.Float64(), processor.ViewPort)
+	assRenderer := ass.NewRenderer(processor.FrameRate, processor.ViewPort)
 
 	const KeyFrameEveryNSeconds = 10
 
-	keyframeInterval := int64(KeyFrameEveryNSeconds * swfReader.Header().FrameRate.Float64())
+	keyframeInterval := int64(KeyFrameEveryNSeconds * processor.FrameRate)
 
 	var ks KnownSignature
 
