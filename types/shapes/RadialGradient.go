@@ -7,7 +7,7 @@ import (
 	"slices"
 )
 
-type LinearGradient struct {
+type RadialGradient struct {
 	Colors []GradientItem
 
 	Transform         math.MatrixTransform
@@ -15,19 +15,19 @@ type LinearGradient struct {
 	InterpolationMode swfsubtypes.GradientInterpolationMode
 }
 
-func (g *LinearGradient) GetSpreadMode() swfsubtypes.GradientSpreadMode {
+func (g *RadialGradient) GetSpreadMode() swfsubtypes.GradientSpreadMode {
 	return g.SpreadMode
 }
 
-func (g *LinearGradient) GetInterpolationMode() swfsubtypes.GradientInterpolationMode {
+func (g *RadialGradient) GetInterpolationMode() swfsubtypes.GradientInterpolationMode {
 	return g.InterpolationMode
 }
 
-func (g *LinearGradient) GetItems() []GradientItem {
+func (g *RadialGradient) GetItems() []GradientItem {
 	return g.Colors
 }
 
-func (g *LinearGradient) GetInterpolatedDrawPaths(overlap, blur float64, gradientSlices int) DrawPathList {
+func (g *RadialGradient) GetInterpolatedDrawPaths(overlap, blur float64, gradientSlices int) DrawPathList {
 	//items is max size 8 to 15 depending on SWF version
 	size := GradientBounds.Width()
 
@@ -35,25 +35,26 @@ func (g *LinearGradient) GetInterpolatedDrawPaths(overlap, blur float64, gradien
 
 	var paths DrawPathList
 	for _, item := range LerpGradient(g, gradientSlices) {
+		//Create concentric circles to cut out a shape
+		var shape Shape
+		shape.Edges = append(shape.Edges, NewCircle(math.NewVector2[float64](0, 0), (item.End*size)/2+overlap/4).Draw()...)
+		shape.Edges = append(shape.Edges, NewCircle(math.NewVector2[float64](0, 0), (item.Start*size)/2-overlap/4).Draw()...)
 		paths = append(paths, DrawPathFill(
 			&FillStyleRecord{
 				Fill: item.Color,
 				Blur: blur,
 			},
-			NewShape(Rectangle[float64]{
-				TopLeft:     math.NewVector2(GradientBounds.TopLeft.X+item.Start*size-overlap/2, GradientBounds.TopLeft.Y),
-				BottomRight: math.NewVector2(GradientBounds.TopLeft.X+item.End*size+overlap/2, GradientBounds.BottomRight.Y),
-			}.Draw()).ApplyMatrixTransform(g.Transform, true),
+			shape.ApplyMatrixTransform(g.Transform, true),
 		))
 	}
 	return paths
 }
 
-func (g *LinearGradient) GetMatrixTransform() math.MatrixTransform {
+func (g *RadialGradient) GetMatrixTransform() math.MatrixTransform {
 	return g.Transform
 }
 
-func (g *LinearGradient) ApplyColorTransform(transform math.ColorTransform) Gradient {
+func (g *RadialGradient) ApplyColorTransform(transform math.ColorTransform) Gradient {
 	g2 := *g
 	g2.Colors = slices.Clone(g2.Colors)
 	for i, g := range g2.Colors {
@@ -65,7 +66,7 @@ func (g *LinearGradient) ApplyColorTransform(transform math.ColorTransform) Grad
 	return &g2
 }
 
-func LinearGradientFromSWF(records []swfsubtypes.GRADRECORD, transform types.MATRIX, spreadMode swfsubtypes.GradientSpreadMode, interpolationMode swfsubtypes.GradientInterpolationMode) *LinearGradient {
+func RadialGradientFromSWF(records []swfsubtypes.GRADRECORD, transform types.MATRIX, spreadMode swfsubtypes.GradientSpreadMode, interpolationMode swfsubtypes.GradientInterpolationMode) *RadialGradient {
 	items := make([]GradientItem, 0, len(records))
 	for _, r := range records {
 		items = append(items, GradientItemFromSWF(r.Ratio, r.Color))
@@ -73,7 +74,7 @@ func LinearGradientFromSWF(records []swfsubtypes.GRADRECORD, transform types.MAT
 
 	//TODO: interpolationMode, spreadMode
 
-	return &LinearGradient{
+	return &RadialGradient{
 		Colors:            items,
 		Transform:         math.MatrixTransformFromSWF(transform),
 		SpreadMode:        spreadMode,

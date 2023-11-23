@@ -154,8 +154,7 @@ func BakeRenderedObjectGradients(o *types.RenderedObject) *types.RenderedObject 
 				fillClip := types.NewClipPath(command.Commands)
 				//Convert gradients to many tags
 				for _, gradientPath := range gradient.GetInterpolatedDrawPaths(settings.GlobalSettings.GradientOverlap, settings.GlobalSettings.GradientBlur, settings.GlobalSettings.GradientSlices) {
-					gradientShape := gradientPath.Commands.ApplyMatrixTransform(gradient.GetMatrixTransform(), true)
-					gradientClip := types.NewClipPath(gradientShape)
+					gradientClip := types.NewClipPath(gradientPath.Commands)
 					newPath := shapes.DrawPath{
 						Style:    gradientPath.Style,
 						Commands: fillClip.Intersect(gradientClip).GetShape(),

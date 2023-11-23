@@ -60,6 +60,20 @@ func FillStyleRecordFromSWF(fillType swfsubtypes.FillStyleType, color swftypes.C
 		return &FillStyleRecord{
 			Fill: LinearGradientFromSWF(gradient.Records, gradientMatrix, gradient.SpreadMode, gradient.InterpolationMode),
 		}
+	case swfsubtypes.FillStyleRadialGradient:
+		return &FillStyleRecord{
+			Fill: RadialGradientFromSWF(gradient.Records, gradientMatrix, gradient.SpreadMode, gradient.InterpolationMode),
+		}
+	case swfsubtypes.FillStyleFocalRadialGradient:
+		//TODO: do it properly
+		return &FillStyleRecord{
+			Fill: math.Color{
+				R:     gradient.Records[0].Color.R(),
+				G:     gradient.Records[0].Color.G(),
+				B:     gradient.Records[0].Color.B(),
+				Alpha: gradient.Records[0].Color.A(),
+			},
+		}
 		//TODO other styles
 	}
 
