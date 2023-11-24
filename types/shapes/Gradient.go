@@ -1,6 +1,7 @@
 package shapes
 
 import (
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/settings"
 	swfsubtypes "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/tag/subtypes"
 	swftypes "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	math2 "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
@@ -8,15 +9,14 @@ import (
 	"slices"
 )
 
-const GradientAutoSlices = -1
-
 type Gradient interface {
+	Fillable
 	GetSpreadMode() swfsubtypes.GradientSpreadMode
 	GetInterpolationMode() swfsubtypes.GradientInterpolationMode
 	GetItems() []GradientItem
 	GetInterpolatedDrawPaths(overlap, blur float64, gradientSlices int) DrawPathList
 	GetMatrixTransform() math2.MatrixTransform
-	ApplyColorTransform(transform math2.ColorTransform) Gradient
+	ApplyColorTransform(transform math2.ColorTransform) Fillable
 }
 
 type GradientItem struct {
@@ -82,7 +82,7 @@ func LerpGradient(gradient Gradient, gradientSlices int) (result []GradientSlice
 		var partitions int
 		if maxColorDistance < math.SmallestNonzeroFloat64 {
 			partitions = 1
-		} else if gradientSlices == GradientAutoSlices {
+		} else if gradientSlices == settings.GradientAutoSlices {
 			partitions = max(1, int(math.Ceil(min(GradientRatioDivisor/float64(len(items)+1), max(1, math.Ceil(maxColorDistance))))))
 		} else {
 			partitions = max(1, int(math.Ceil((distance/GradientRatioDivisor)*float64(gradientSlices))))

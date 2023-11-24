@@ -27,7 +27,7 @@ const PolygonSimplifyTolerance = 0.01
 func (p ComplexPolygon) GetShape() (r *Shape) {
 	var edges []records.Record
 	for _, pol := range p.Pol.Polygons() {
-		for _, path := range pol {
+		for _, path := range pol.Simplify(0.01).(geom.Polygon) {
 			//pol = pol.Simplify(PolygonSimplifyTolerance).(geom.Polygon)
 			edges = append(edges, &records.LineRecord{
 				To:    math.NewVector2(path[1].X, path[1].Y),

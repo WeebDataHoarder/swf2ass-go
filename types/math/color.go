@@ -5,8 +5,43 @@ import (
 	"math"
 )
 
+type PackedColor uint32
+
+func NewPackedColor(r, g, b, a uint8) PackedColor {
+	return PackedColor((uint64(a) << 24) | (uint64(r) << 16) | (uint64(g) << 8) | uint64(b))
+}
+
+func (c PackedColor) Alpha() uint8 {
+	return uint8((c >> 24) & 0xFF)
+}
+
+func (c PackedColor) R() uint8 {
+	return uint8((c >> 16) & 0xFF)
+}
+
+func (c PackedColor) G() uint8 {
+	return uint8((c >> 8) & 0xFF)
+}
+
+func (c PackedColor) B() uint8 {
+	return uint8(c & 0xFF)
+}
+
+func (c PackedColor) Color() Color {
+	return Color{
+		R:     c.R(),
+		G:     c.G(),
+		B:     c.B(),
+		Alpha: c.Alpha(),
+	}
+}
+
 type Color struct {
 	R, G, B, Alpha uint8
+}
+
+func (c Color) Packed() PackedColor {
+	return NewPackedColor(c.R, c.G, c.B, c.Alpha)
 }
 
 func (c Color) Equals(o Color, alpha bool) bool {

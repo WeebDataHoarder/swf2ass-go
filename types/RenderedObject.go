@@ -11,7 +11,7 @@ type RenderedObject struct {
 
 	DrawPathList shapes.DrawPathList
 
-	Clip *ClipPath
+	Clip *shapes.ClipPath
 
 	ColorTransform  math.ColorTransform
 	MatrixTransform math.MatrixTransform

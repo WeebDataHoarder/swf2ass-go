@@ -106,7 +106,7 @@ func main() {
 
 	const KeyFrameEveryNSeconds = 10
 
-	keyframeInterval := int64(KeyFrameEveryNSeconds * processor.FrameRate)
+	keyframeInterval := int64(-1) //int64(KeyFrameEveryNSeconds * processor.FrameRate)
 
 	var ks KnownSignature
 
@@ -216,7 +216,7 @@ func main() {
 		outputLines(assRenderer.RenderFrame(*frame, filteredRendered)...)
 
 		//TODO: do this per object transition? GlobalSettings?
-		if frame.GetFrameNumber() > 0 && frame.GetFrameNumber()%keyframeInterval == 0 {
+		if frame.GetFrameNumber() > 0 && keyframeInterval != -1 && frame.GetFrameNumber()%keyframeInterval == 0 {
 			outputLines(assRenderer.Flush(*frame)...)
 		}
 

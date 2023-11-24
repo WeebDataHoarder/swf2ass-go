@@ -1,35 +1,34 @@
-package types
+package shapes
 
 import (
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
 	"github.com/ctessum/geom"
 )
 
 type ClipPath struct {
-	Clip shapes.ComplexPolygon
+	Clip ComplexPolygon
 }
 
-func NewClipPath(shape *shapes.Shape) *ClipPath {
+func NewClipPath(shape *Shape) *ClipPath {
 	if shape == nil {
 		return &ClipPath{
-			Clip: shapes.ComplexPolygon{
-				Pol: shapes.NewPolygonFromShape(&shapes.Shape{}),
+			Clip: ComplexPolygon{
+				Pol: NewPolygonFromShape(&Shape{}),
 			},
 		}
 	}
 	return &ClipPath{
-		Clip: shapes.ComplexPolygon{
-			Pol: shapes.NewPolygonFromShape(shape),
+		Clip: ComplexPolygon{
+			Pol: NewPolygonFromShape(shape),
 		},
 	}
 }
 
-func (c *ClipPath) AddShape(shape *shapes.Shape) {
-	c.Clip.Pol = c.Clip.Pol.Union(shapes.NewPolygonFromShape(shape))
+func (c *ClipPath) AddShape(shape *Shape) {
+	c.Clip.Pol = c.Clip.Pol.Union(NewPolygonFromShape(shape))
 }
 
-func (c *ClipPath) GetShape() *shapes.Shape {
+func (c *ClipPath) GetShape() *Shape {
 	return c.Clip.GetShape()
 }
 
@@ -45,7 +44,7 @@ func (c *ClipPath) ApplyMatrixTransform(transform math.MatrixTransform, applyTra
 		panic("invalid result")
 	} else {
 		return &ClipPath{
-			Clip: shapes.ComplexPolygon{
+			Clip: ComplexPolygon{
 				Pol: newPol,
 			},
 		}
@@ -56,6 +55,12 @@ func (c *ClipPath) Merge(o *ClipPath) *ClipPath {
 	return &ClipPath{
 		Clip: c.Clip.Merge(o.Clip),
 	}
+}
+
+func (c *ClipPath) ClipShape(o *Shape) *Shape {
+	return c.Clip.Intersect(ComplexPolygon{
+		Pol: NewPolygonFromShape(o),
+	}).GetShape()
 }
 
 func (c *ClipPath) Intersect(o *ClipPath) *ClipPath {

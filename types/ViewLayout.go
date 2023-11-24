@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 	math2 "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
 	"golang.org/x/exp/maps"
 	"math"
 	"slices"
@@ -13,7 +14,7 @@ type ViewLayout struct {
 
 	DepthMap map[uint16]*ViewLayout
 
-	Object ObjectDefinition
+	Object shapes.ObjectDefinition
 
 	ColorTransform  *math2.ColorTransform
 	MatrixTransform *math2.MatrixTransform
@@ -24,14 +25,14 @@ type ViewLayout struct {
 	ClipDepth  uint16
 }
 
-func NewClippingViewLayout(objectId, clipDepth uint16, object ObjectDefinition, parent *ViewLayout) *ViewLayout {
+func NewClippingViewLayout(objectId, clipDepth uint16, object shapes.ObjectDefinition, parent *ViewLayout) *ViewLayout {
 	l := NewViewLayout(objectId, object, parent)
 	l.IsClipping = true
 	l.ClipDepth = clipDepth
 	return l
 }
 
-func NewViewLayout(objectId uint16, object ObjectDefinition, parent *ViewLayout) *ViewLayout {
+func NewViewLayout(objectId uint16, object shapes.ObjectDefinition, parent *ViewLayout) *ViewLayout {
 	if object != nil && object.GetObjectId() != objectId {
 		panic("logic error")
 	}

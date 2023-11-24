@@ -236,13 +236,17 @@ func EventLinesFromRenderObject(frameInfo types.FrameInformation, object *types.
 		} else {
 			panic("unsupported")
 		}
+		t := tag.ContainerTagFromPathEntry(drawPath, object.Clip, object.ColorTransform, object.MatrixTransform, bakeMatrixTransforms)
+		if t == nil {
+			continue
+		}
 		out = append(out, &EventLine{
 			Layer:      object.GetDepth(),
 			ShapeIndex: i,
 			ObjectId:   object.ObjectId,
 			Start:      frameInfo.GetFrameNumber(),
 			End:        frameInfo.GetFrameNumber(),
-			Tags:       []tag.Tag{tag.ContainerTagFromPathEntry(drawPath, object.Clip, object.ColorTransform, object.MatrixTransform, bakeMatrixTransforms)},
+			Tags:       []tag.Tag{t},
 			Name:       fmt.Sprintf("o:%d d:%s", object.ObjectId, object.GetDepth().String()),
 			Style:      style,
 		})

@@ -39,6 +39,23 @@ const (
 	FillStyleNonSmoothedClippedBitmap   = FillStyleType(0x43)
 )
 
+func (t *FillStyleType) SWFRead(r types.DataReader, ctx types.ReaderContext) (err error) {
+	err = types.ReadU8(r, t)
+	if err != nil {
+		return err
+	}
+	// Bitmap smoothing only occurs in SWF version 8+.
+	if ctx.Version < 8 {
+		switch *t {
+		case FillStyleClippedBitmap:
+			*t = FillStyleNonSmoothedClippedBitmap
+		case FillStyleRepeatingBitmap:
+			*t = FillStyleNonSmoothedRepeatingBitmap
+		}
+	}
+	return nil
+}
+
 type FILLSTYLE struct {
 	_             struct{} `swfFlags:"root,alignend"`
 	FillStyleType FillStyleType

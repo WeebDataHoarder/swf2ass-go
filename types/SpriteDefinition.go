@@ -33,7 +33,7 @@ func (d *SpriteDefinition) NextFrame() *ViewFrame {
 	return d.CurrentFrame
 }
 
-func (d *SpriteDefinition) GetSafeObject() ObjectDefinition {
+func (d *SpriteDefinition) GetSafeObject() shapes.ObjectDefinition {
 	return &SpriteDefinition{
 		ObjectId:  d.ObjectId,
 		Processor: NewSWFTreeProcessor(d.ObjectId, d.Processor.Tags, d.Processor.Objects),

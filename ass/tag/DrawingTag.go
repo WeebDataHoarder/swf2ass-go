@@ -1,64 +1,72 @@
 package tag
 
 import (
-	"fmt"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/records"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
-	"strings"
+	"strconv"
 )
 
 type DrawingTag interface {
 	Tag
 	ApplyMatrixTransform(transform math.MatrixTransform, applyTranslation bool) DrawingTag
 	AsShape() *shapes.Shape
-	GetCommands(scale, precision int64) []string
+	GetCommands(scale, precision int) string
 }
 
 type BaseDrawingTag shapes.Shape
 
-func entryToPrecisionAndScaleTag(tag string, scale, precision int64, vectors ...math.Vector2[float64]) string {
-	result := make([]string, 0, len(vectors)+1)
+func entryToPrecisionAndScaleTag(buf []byte, tag string, scale, precision int, vectors ...math.Vector2[float64]) []byte {
+	if len(buf) > 0 {
+		buf = append(buf, ' ')
+	}
 	if len(tag) > 0 {
-		result = append(result, tag)
+		buf = append(buf, tag...)
+		buf = append(buf, ' ')
 	}
-	for _, v := range vectors {
-		result = append(result, vectorToPrecisionAndScale(scale, precision, v))
+	for i, v := range vectors {
+		if i > 0 {
+			buf = append(buf, ' ')
+		}
+		buf = vectorToPrecisionAndScale(buf, scale, precision, v)
 	}
-	return strings.Join(result, " ")
+	return buf
 }
 
-func vectorToPrecisionAndScale(scale, precision int64, v math.Vector2[float64]) string {
+func vectorToPrecisionAndScale(buf []byte, scale, precision int, v math.Vector2[float64]) []byte {
 	coords := v.Multiply(float64(scale))
-	return fmt.Sprintf("%.*f %.*f", precision, coords.X, precision, coords.Y)
+	buf = strconv.AppendFloat(buf, coords.X, 'f', precision, 64)
+	buf = append(buf, ' ')
+	buf = strconv.AppendFloat(buf, coords.Y, 'f', precision, 64)
+	return buf
 }
 
 func (b *BaseDrawingTag) AsShape() *shapes.Shape {
 	return (*shapes.Shape)(b)
 }
 
-func (b *BaseDrawingTag) GetCommands(scale, precision int64) []string {
-	commands := make([]string, 0, len(b.Edges)*2)
+func (b *BaseDrawingTag) GetCommands(scale, precision int) string {
 	var lastEdge records.Record
 
+	commands := make([]byte, 0, len(b.Edges)*2*10)
 	for _, edge := range b.Edges {
 		moveRecord, isMoveRecord := edge.(*records.MoveRecord)
 		if !isMoveRecord {
 			if lastEdge == nil {
-				commands = append(commands, entryToPrecisionAndScaleTag("m", scale, precision, edge.GetStart()))
+				commands = entryToPrecisionAndScaleTag(commands, "m", scale, precision, edge.GetStart())
 			} else if !lastEdge.GetEnd().Equals(edge.GetStart()) {
-				commands = append(commands, entryToPrecisionAndScaleTag("m", scale, precision, edge.GetStart()))
+				commands = entryToPrecisionAndScaleTag(commands, "m", scale, precision, edge.GetStart())
 				lastEdge = nil
 			}
 		}
 
 		if isMoveRecord {
-			commands = append(commands, entryToPrecisionAndScaleTag("m", scale, precision, moveRecord.To))
+			commands = entryToPrecisionAndScaleTag(commands, "m", scale, precision, moveRecord.To)
 		} else if lineRecord, ok := edge.(*records.LineRecord); ok {
 			if _, ok = lastEdge.(*records.LineRecord); ok {
-				commands = append(commands, entryToPrecisionAndScaleTag("", scale, precision, lineRecord.To))
+				commands = entryToPrecisionAndScaleTag(commands, "", scale, precision, lineRecord.To)
 			} else {
-				commands = append(commands, entryToPrecisionAndScaleTag("l", scale, precision, lineRecord.To))
+				commands = entryToPrecisionAndScaleTag(commands, "l", scale, precision, lineRecord.To)
 			}
 		} else if quadraticRecord, ok := edge.(*records.QuadraticCurveRecord); ok {
 			edge = records.CubicCurveFromQuadraticRecord(quadraticRecord)
@@ -66,9 +74,9 @@ func (b *BaseDrawingTag) GetCommands(scale, precision int64) []string {
 
 		if cubicRecord, ok := edge.(*records.CubicCurveRecord); ok {
 			if _, ok = lastEdge.(*records.CubicCurveRecord); ok {
-				commands = append(commands, entryToPrecisionAndScaleTag("", scale, precision, cubicRecord.Control1, cubicRecord.Control2, cubicRecord.Anchor))
+				commands = entryToPrecisionAndScaleTag(commands, "", scale, precision, cubicRecord.Control1, cubicRecord.Control2, cubicRecord.Anchor)
 			} else {
-				commands = append(commands, entryToPrecisionAndScaleTag("b", scale, precision, cubicRecord.Control1, cubicRecord.Control2, cubicRecord.Anchor))
+				commands = entryToPrecisionAndScaleTag(commands, "b", scale, precision, cubicRecord.Control1, cubicRecord.Control2, cubicRecord.Anchor)
 			}
 		} else if cubicSplineRecord, ok := edge.(*records.CubicSplineCurveRecord); ok {
 			_ = cubicSplineRecord
@@ -83,5 +91,5 @@ func (b *BaseDrawingTag) GetCommands(scale, precision int64) []string {
 	    $commands[] = "n " . round($coords->x, $precision) . " " . round($coords->y, $precision);
 	}*/
 
-	return commands
+	return string(commands)
 }

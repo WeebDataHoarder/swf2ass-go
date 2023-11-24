@@ -6,6 +6,7 @@ import (
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/settings"
 	math2 "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"math"
+	"strconv"
 )
 
 type PositionTag struct {
@@ -89,12 +90,10 @@ func (t *PositionTag) Encode(event time.EventTime) string {
 			start = event.GetDurationFromStartOffset(t.Start).Milliseconds() - 1
 			end = event.GetDurationFromStartOffset(t.Start).Milliseconds()
 		}
-		//TODO: precision?
-		return fmt.Sprintf("\\move(%f,%f,%f,%f,%d,%d)", t.From.X, t.From.Y, t.To.X, t.To.Y, start, end)
+		return fmt.Sprintf("\\move(%s,%s,%s,%s,%d,%d)", strconv.FormatFloat(t.From.X, 'f', 0, 64), strconv.FormatFloat(t.From.Y, 'f', 0, 64), strconv.FormatFloat(t.To.X, 'f', 0, 64), strconv.FormatFloat(t.To.Y, 'f', 0, 64), start, end)
 	}
 
-	//TODO: precision?
-	return fmt.Sprintf("\\pos(%f,%f)", t.From.X, t.From.Y)
+	return fmt.Sprintf("\\pos(%s,%s)", strconv.FormatFloat(t.From.X, 'f', 0, 64), strconv.FormatFloat(t.From.Y, 'f', 0, 64))
 }
 
 func (t *PositionTag) Equals(tag Tag) bool {

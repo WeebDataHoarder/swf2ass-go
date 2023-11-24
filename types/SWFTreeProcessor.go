@@ -13,7 +13,7 @@ import (
 type SWFTreeProcessor struct {
 	Layout *ViewLayout
 
-	Objects ObjectCollection
+	Objects shapes.ObjectCollection
 
 	Tags []swftag.Tag
 
@@ -28,7 +28,7 @@ type SWFTreeProcessor struct {
 	processFunc func(actions ActionList) (tag swftag.Tag, newActions ActionList)
 }
 
-func NewSWFTreeProcessor(objectId uint16, tags []swftag.Tag, objects ObjectCollection) *SWFTreeProcessor {
+func NewSWFTreeProcessor(objectId uint16, tags []swftag.Tag, objects shapes.ObjectCollection) *SWFTreeProcessor {
 	return &SWFTreeProcessor{
 		Objects: objects,
 		Frame:   0,
@@ -56,7 +56,7 @@ func (p *SWFTreeProcessor) Process(actions ActionList) (tag swftag.Tag, newActio
 	return p.process(actions)
 }
 
-func (p *SWFTreeProcessor) placeObject(object ObjectDefinition, depth, clipDepth uint16, isMove, hasRatio, hasClipDepth bool, ratio float64, transform *math.MatrixTransform, colorTransform *math.ColorTransform) {
+func (p *SWFTreeProcessor) placeObject(object shapes.ObjectDefinition, depth, clipDepth uint16, isMove, hasRatio, hasClipDepth bool, ratio float64, transform *math.MatrixTransform, colorTransform *math.ColorTransform) {
 	if object == nil {
 		//TODO: place bogus element
 		fmt.Printf("Object at depth:%d not found\n", depth)
@@ -106,32 +106,32 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 		if p.Loops > 0 {
 			break
 		}
-		p.Objects.Add(MorphShapeDefinitionFromSWF(node.CharacterId, shapes.RectangleFromSWF(node.StartBounds), shapes.RectangleFromSWF(node.EndBounds), node.StartEdges.Records, node.EndEdges.Records, node.MorphFillStyles, node.MorphLineStyles))
+		p.Objects.Add(MorphShapeDefinitionFromSWF(p.Objects, node.CharacterId, shapes.RectangleFromSWF(node.StartBounds), shapes.RectangleFromSWF(node.EndBounds), node.StartEdges.Records, node.EndEdges.Records, node.MorphFillStyles, node.MorphLineStyles))
 	case *swftag.DefineMorphShape2:
 		if p.Loops > 0 {
 			break
 		}
-		p.Objects.Add(MorphShapeDefinitionFromSWF(node.CharacterId, shapes.RectangleFromSWF(node.StartBounds), shapes.RectangleFromSWF(node.EndBounds), node.StartEdges.Records, node.EndEdges.Records, node.MorphFillStyles, node.MorphLineStyles))
+		p.Objects.Add(MorphShapeDefinitionFromSWF(p.Objects, node.CharacterId, shapes.RectangleFromSWF(node.StartBounds), shapes.RectangleFromSWF(node.EndBounds), node.StartEdges.Records, node.EndEdges.Records, node.MorphFillStyles, node.MorphLineStyles))
 	case *swftag.DefineShape:
 		if p.Loops > 0 {
 			break
 		}
-		p.Objects.Add(ShapeDefinitionFromSWF(node.ShapeId, shapes.RectangleFromSWF(node.ShapeBounds), node.Shapes.Records, node.Shapes.FillStyles, node.Shapes.LineStyles))
+		p.Objects.Add(ShapeDefinitionFromSWF(p.Objects, node.ShapeId, shapes.RectangleFromSWF(node.ShapeBounds), node.Shapes.Records, node.Shapes.FillStyles, node.Shapes.LineStyles))
 	case *swftag.DefineShape2:
 		if p.Loops > 0 {
 			break
 		}
-		p.Objects.Add(ShapeDefinitionFromSWF(node.ShapeId, shapes.RectangleFromSWF(node.ShapeBounds), node.Shapes.Records, node.Shapes.FillStyles, node.Shapes.LineStyles))
+		p.Objects.Add(ShapeDefinitionFromSWF(p.Objects, node.ShapeId, shapes.RectangleFromSWF(node.ShapeBounds), node.Shapes.Records, node.Shapes.FillStyles, node.Shapes.LineStyles))
 	case *swftag.DefineShape3:
 		if p.Loops > 0 {
 			break
 		}
-		p.Objects.Add(ShapeDefinitionFromSWF(node.ShapeId, shapes.RectangleFromSWF(node.ShapeBounds), node.Shapes.Records, node.Shapes.FillStyles, node.Shapes.LineStyles))
+		p.Objects.Add(ShapeDefinitionFromSWF(p.Objects, node.ShapeId, shapes.RectangleFromSWF(node.ShapeBounds), node.Shapes.Records, node.Shapes.FillStyles, node.Shapes.LineStyles))
 	case *swftag.DefineShape4:
 		if p.Loops > 0 {
 			break
 		}
-		p.Objects.Add(ShapeDefinitionFromSWF(node.ShapeId, shapes.RectangleFromSWF(node.ShapeBounds), node.Shapes.Records, node.Shapes.FillStyles, node.Shapes.LineStyles))
+		p.Objects.Add(ShapeDefinitionFromSWF(p.Objects, node.ShapeId, shapes.RectangleFromSWF(node.ShapeBounds), node.Shapes.Records, node.Shapes.FillStyles, node.Shapes.LineStyles))
 	//TODO: case *swftag.DefineShape5:
 	case *swftag.DefineSprite:
 		if p.Loops > 0 {
@@ -141,7 +141,51 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 			ObjectId:  node.SpriteId,
 			Processor: NewSWFTreeProcessor(node.SpriteId, node.ControlTags, p.Objects),
 		})
-
+	case *swftag.DefineBits:
+		if p.Loops > 0 {
+			break
+		}
+		fmt.Printf("Unsupported image: DefineBits\n")
+	case *swftag.DefineBitsLossless2:
+		if p.Loops > 0 {
+			break
+		}
+		bitDef := BitmapDefinitionFromSWFLossless(node.CharacterId, node.GetImage())
+		if bitDef == nil {
+			fmt.Printf("Unsupported lossless bitmap\n")
+			break
+		}
+		p.Objects.Add(bitDef)
+	case *swftag.DefineBitsJPEG2:
+		if p.Loops > 0 {
+			break
+		}
+		bitDef, err := BitmapDefinitionFromSWF(node.CharacterId, node.Data, nil)
+		if err != nil {
+			fmt.Printf("Unsupported bitmap: %s\n", err)
+			break
+		}
+		p.Objects.Add(bitDef)
+	case *swftag.DefineBitsJPEG3:
+		if p.Loops > 0 {
+			break
+		}
+		bitDef, err := BitmapDefinitionFromSWF(node.CharacterId, node.ImageData, node.GetAlphaData())
+		if err != nil {
+			fmt.Printf("Unsupported bitmap: %s\n", err)
+			break
+		}
+		p.Objects.Add(bitDef)
+	case *swftag.DefineBitsJPEG4:
+		if p.Loops > 0 {
+			break
+		}
+		bitDef, err := BitmapDefinitionFromSWF(node.CharacterId, node.ImageData, node.GetAlphaData())
+		if err != nil {
+			fmt.Printf("Unsupported bitmap: %s\n", err)
+			break
+		}
+		p.Objects.Add(bitDef)
 	case *swftag.RemoveObject:
 		//TODO: maybe replicate swftag.RemoveObject2 behavior?
 		if o := p.Layout.Get(node.Depth); o != nil && o.GetObjectId() == node.CharacterId {
@@ -153,7 +197,7 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 		p.Layout.Remove(node.Depth)
 
 	case *swftag.PlaceObject:
-		var object ObjectDefinition
+		var object shapes.ObjectDefinition
 		if vl := p.Layout.Get(node.Depth); vl != nil {
 			object = vl.Object
 		}
@@ -171,7 +215,7 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 
 		p.placeObject(object, node.Depth, 0, false, false, false, 0, transform, colorTransform)
 	case *swftag.PlaceObject2:
-		var object ObjectDefinition
+		var object shapes.ObjectDefinition
 		if node.Flag.HasCharacter {
 			object = p.Objects[node.CharacterId]
 		} else if vl := p.Layout.Get(node.Depth); vl != nil {
@@ -193,7 +237,7 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 		p.placeObject(object, node.Depth, node.ClipDepth, node.Flag.Move, node.Flag.HasRatio, node.Flag.HasClipDepth, float64(node.Ratio)/math2.MaxUint16, transform, colorTransform)
 	case *swftag.PlaceObject3:
 		//TODO: handle extra properties
-		var object ObjectDefinition
+		var object shapes.ObjectDefinition
 		if node.Flag.HasCharacter {
 			object = p.Objects[node.CharacterId]
 		} else {

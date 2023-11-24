@@ -1,16 +1,12 @@
 package settings
 
-import (
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
-)
-
 type Settings struct {
 	// ASSDrawingScale Scale that ASS drawing override tags will use. Coordinates will be multiplied by 2^(ASSDrawingScale-1) to enhance precision
-	ASSDrawingScale int64
+	ASSDrawingScale int
 
 	// ASSDrawingPrecision Number of decimals that ASS drawing override tags will produce
 	// Note that at high ASSDrawingScale >= 5 this will be brought down to 0 regardless
-	ASSDrawingPrecision int64
+	ASSDrawingPrecision int
 
 	// VideoRateMultiplier Adjusts the viewport scale. All operations and transforms will be adjusted accordingly
 	// For example, VideoScaleMultiplier = 2 will make a 640x480 viewport become 1280x960
@@ -41,8 +37,12 @@ type Settings struct {
 
 	// GradientBlur Amount of blur to apply to gradients
 	GradientBlur float64
+
+	BitmapPaletteSize  int
+	BitmapMaxDimension int
 }
 
+const GradientAutoSlices = -1
 const DefaultASSDrawingScale = 6
 const DefaultASSDrawingPrecision = 2
 
@@ -58,7 +58,10 @@ var GlobalSettings = Settings{
 
 	SmoothTransitions: false,
 
-	GradientSlices:  shapes.GradientAutoSlices,
+	GradientSlices:  GradientAutoSlices,
 	GradientOverlap: 2,
 	GradientBlur:    0.1,
+
+	BitmapPaletteSize:  32,
+	BitmapMaxDimension: 256,
 }

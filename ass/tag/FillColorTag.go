@@ -17,13 +17,8 @@ func (t *FillColorTag) FromStyleRecord(record shapes.StyleRecord) StyleTag {
 		if color, ok := fillStyleRecord.Fill.(math.Color); ok {
 			t.Color = &color
 			t.OriginalColor = &color
-		} else if gradient, ok := fillStyleRecord.Fill.(shapes.Gradient); ok {
-			items := gradient.GetItems()
-			t.Color = &items[0].Color
-			t.OriginalColor = &items[0].Color
-			panic("Gradient fill not supported here")
 		} else {
-			panic("not implemented")
+			panic("not supported")
 		}
 	} else {
 		t.OriginalColor = nil

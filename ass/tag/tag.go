@@ -2,7 +2,6 @@ package tag
 
 import (
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
 )
@@ -36,7 +35,7 @@ type PathTag interface {
 
 type ClipPathTag interface {
 	Tag
-	TransitionClipPath(event Event, clip *types.ClipPath) ClipPathTag
+	TransitionClipPath(event Event, clip *shapes.ClipPath) ClipPathTag
 }
 
 type ColorTag interface {

@@ -9,7 +9,8 @@ import (
 )
 
 type ShapeConverter struct {
-	Styles StyleList
+	Collection ObjectCollection
+	Styles     StyleList
 
 	FillStyle0 *ActivePath
 	FillStyle1 *ActivePath
@@ -26,8 +27,9 @@ type ShapeConverter struct {
 	FirstElement, SecondElement subtypes.SHAPERECORDS
 }
 
-func NewShapeConverter(element subtypes.SHAPERECORDS, styles StyleList) *ShapeConverter {
+func NewShapeConverter(collection ObjectCollection, element subtypes.SHAPERECORDS, styles StyleList) *ShapeConverter {
 	return &ShapeConverter{
+		Collection:   collection,
 		Styles:       styles,
 		Position:     math.NewVector2[types.Twip](0, 0),
 		Fills:        make(PendingPathMap),
@@ -36,8 +38,9 @@ func NewShapeConverter(element subtypes.SHAPERECORDS, styles StyleList) *ShapeCo
 	}
 }
 
-func NewMorphShapeConverter(firstElement, secondElement subtypes.SHAPERECORDS, styles StyleList) *ShapeConverter {
+func NewMorphShapeConverter(collection ObjectCollection, firstElement, secondElement subtypes.SHAPERECORDS, styles StyleList) *ShapeConverter {
 	return &ShapeConverter{
+		Collection:    collection,
 		Styles:        styles,
 		Position:      math.NewVector2[types.Twip](0, 0),
 		Fills:         make(PendingPathMap),
@@ -186,7 +189,7 @@ func (c *ShapeConverter) HandleNode(node subtypes.SHAPERECORD) {
 
 		if node.Flag.NewStyles {
 			c.FlushLayer()
-			c.Styles = StyleListFromSWFItems(node.FillStyles, node.LineStyles)
+			c.Styles = StyleListFromSWFItems(c.Collection, node.FillStyles, node.LineStyles)
 		}
 
 		if node.Flag.FillStyle1 {
@@ -300,7 +303,7 @@ func (c *ShapeConverter) FlushLayer() {
 		if style == nil {
 			panic("should not happen")
 		}
-		c.Commands = append(c.Commands, DrawPathFill(style, path.GetShape()))
+		c.Commands = append(c.Commands, DrawPathFill(style, path.GetShape(), nil))
 	}
 	clear(c.Fills)
 
@@ -333,7 +336,7 @@ func (c *ShapeConverter) FlushLayer() {
 			//TODO: using custom line borders later using fills this can be removed
 			fixedStyle := *style
 			fixedStyle.Width /= 2
-			c.Commands = append(c.Commands, DrawPathStroke(&fixedStyle, newSegments.GetShape()))
+			c.Commands = append(c.Commands, DrawPathStroke(&fixedStyle, newSegments.GetShape(), nil))
 		}
 		//TODO: leave this as-is and create a fill in renderer
 	}

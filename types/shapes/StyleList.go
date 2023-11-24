@@ -25,9 +25,9 @@ func (l *StyleList) GetLineStyle(i int) *LineStyleRecord {
 	return nil
 }
 
-func StyleListFromSWFItems(fillStyles subtypes.FILLSTYLEARRAY, lineStyles subtypes.LINESTYLEARRAY) (r StyleList) {
+func StyleListFromSWFItems(collection ObjectCollection, fillStyles subtypes.FILLSTYLEARRAY, lineStyles subtypes.LINESTYLEARRAY) (r StyleList) {
 	for _, s := range fillStyles.FillStyles {
-		r.FillStyles = append(r.FillStyles, FillStyleRecordFromSWF(s.FillStyleType, s.Color, s.Gradient, s.GradientMatrix))
+		r.FillStyles = append(r.FillStyles, FillStyleRecordFromSWF(collection, s.FillStyleType, s.Color, s.Gradient, s.GradientMatrix, s.BitmapMatrix, s.BitmapId))
 	}
 
 	if len(lineStyles.LineStyles) > 0 {
@@ -57,7 +57,7 @@ func StyleListFromSWFItems(fillStyles subtypes.FILLSTYLEARRAY, lineStyles subtyp
 					},
 				})
 			} else {
-				fill := FillStyleRecordFromSWF(s.FillType.FillStyleType, s.FillType.Color, s.FillType.Gradient, s.FillType.GradientMatrix)
+				fill := FillStyleRecordFromSWF(collection, s.FillType.FillStyleType, s.FillType.Color, s.FillType.Gradient, s.FillType.GradientMatrix, s.FillType.BitmapMatrix, s.FillType.BitmapId)
 				switch fillEntry := fill.Fill.(type) {
 				case types.Color:
 					r.LineStyles = append(r.LineStyles, &LineStyleRecord{
@@ -86,10 +86,10 @@ func StyleListFromSWFItems(fillStyles subtypes.FILLSTYLEARRAY, lineStyles subtyp
 	return r
 }
 
-func StyleListFromSWFMorphItems(fillStyles subtypes.MORPHFILLSTYLEARRAY, lineStyles subtypes.MORPHLINESTYLEARRAY) (start, end StyleList) {
+func StyleListFromSWFMorphItems(collection ObjectCollection, fillStyles subtypes.MORPHFILLSTYLEARRAY, lineStyles subtypes.MORPHLINESTYLEARRAY) (start, end StyleList) {
 	for _, s := range fillStyles.FillStyles {
-		start.FillStyles = append(start.FillStyles, FillStyleRecordFromSWFMORPHFILLSTYLEStart(s))
-		end.FillStyles = append(end.FillStyles, FillStyleRecordFromSWFMORPHFILLSTYLEEnd(s))
+		start.FillStyles = append(start.FillStyles, FillStyleRecordFromSWFMORPHFILLSTYLEStart(collection, s))
+		end.FillStyles = append(end.FillStyles, FillStyleRecordFromSWFMORPHFILLSTYLEEnd(collection, s))
 	}
 
 	if len(lineStyles.LineStyles) > 0 {
@@ -140,8 +140,8 @@ func StyleListFromSWFMorphItems(fillStyles subtypes.MORPHFILLSTYLEARRAY, lineSty
 					},
 				})
 			} else {
-				fillStart := FillStyleRecordFromSWFMORPHFILLSTYLEStart(s.FillType)
-				fillEnd := FillStyleRecordFromSWFMORPHFILLSTYLEEnd(s.FillType)
+				fillStart := FillStyleRecordFromSWFMORPHFILLSTYLEStart(collection, s.FillType)
+				fillEnd := FillStyleRecordFromSWFMORPHFILLSTYLEEnd(collection, s.FillType)
 				switch fillEntry := fillStart.Fill.(type) {
 				case types.Color:
 					start.LineStyles = append(start.LineStyles, &LineStyleRecord{

@@ -128,6 +128,17 @@ func (m MatrixTransform) GetTranslation() Vector2[float64] {
 	return m.ApplyToVector(NewVector2[float64](0, 0), true)
 }
 
+func (m MatrixTransform) Inverse() *MatrixTransform {
+	var r mat.Dense
+	err := r.Inverse(m.matrix)
+	if err != nil {
+		return nil
+	}
+	return &MatrixTransform{
+		matrix: &r,
+	}
+}
+
 func MatrixTransformApplyToVector[T ~int64 | ~float64](m MatrixTransform, v Vector2[T], applyTranslation bool) Vector2[T] {
 	return Vector2ToType[float64, T](m.ApplyToVector(v.Float64(), applyTranslation))
 }

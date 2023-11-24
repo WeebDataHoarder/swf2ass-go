@@ -78,13 +78,13 @@ func (d *MorphShapeDefinition) GetShapeList(ratio float64) (list shapes.DrawPath
 				list = append(list, shapes.DrawPathFill(&shapes.FillStyleRecord{
 					Fill:   math2.LerpColor(c1Color, c2FillStyle.Fill.(math2.Color), ratio),
 					Border: c1FillStyle.Border,
-				}, &shape))
+				}, &shape, nil))
 			} else if c1Gradient, ok := c1FillStyle.Fill.(shapes.Gradient); ok {
 				//TODO: proper gradients
 				list = append(list, shapes.DrawPathFill(&shapes.FillStyleRecord{
 					Fill:   math2.LerpColor(c1Gradient.GetItems()[0].Color, c2FillStyle.Fill.(shapes.Gradient).GetItems()[0].Color, ratio),
 					Border: c1FillStyle.Border,
-				}, &shape))
+				}, &shape, nil))
 			} else {
 				panic("unsupported")
 			}
@@ -92,7 +92,7 @@ func (d *MorphShapeDefinition) GetShapeList(ratio float64) (list shapes.DrawPath
 			list = append(list, shapes.DrawPathStroke(&shapes.LineStyleRecord{
 				Width: math2.Lerp(c1LineStyle.Width, c2LineStyle.Width, ratio),
 				Color: math2.LerpColor(c1LineStyle.Color, c2LineStyle.Color, ratio),
-			}, &shape))
+			}, &shape, nil))
 		} else {
 			panic("unsupported")
 		}
@@ -101,17 +101,17 @@ func (d *MorphShapeDefinition) GetShapeList(ratio float64) (list shapes.DrawPath
 	return list
 }
 
-func (d *MorphShapeDefinition) GetSafeObject() ObjectDefinition {
+func (d *MorphShapeDefinition) GetSafeObject() shapes.ObjectDefinition {
 	return d
 }
 
-func MorphShapeDefinitionFromSWF(shapeId uint16, startBounds, endBounds shapes.Rectangle[float64], startRecords, endRecords subtypes.SHAPERECORDS, fillStyles subtypes.MORPHFILLSTYLEARRAY, lineStyles subtypes.MORPHLINESTYLEARRAY) *MorphShapeDefinition {
-	startStyles, endStyles := shapes.StyleListFromSWFMorphItems(fillStyles, lineStyles)
+func MorphShapeDefinitionFromSWF(collection shapes.ObjectCollection, shapeId uint16, startBounds, endBounds shapes.Rectangle[float64], startRecords, endRecords subtypes.SHAPERECORDS, fillStyles subtypes.MORPHFILLSTYLEARRAY, lineStyles subtypes.MORPHLINESTYLEARRAY) *MorphShapeDefinition {
+	startStyles, endStyles := shapes.StyleListFromSWFMorphItems(collection, fillStyles, lineStyles)
 
-	start := shapes.DrawPathListFromSWFMorph(startRecords, endRecords, startStyles, false)
+	start := shapes.DrawPathListFromSWFMorph(collection, startRecords, endRecords, startStyles, false)
 	//TODO: morph styles properly
 	_ = endStyles
-	end := shapes.DrawPathListFromSWFMorph(startRecords, endRecords, startStyles, true)
+	end := shapes.DrawPathListFromSWFMorph(collection, startRecords, endRecords, startStyles, true)
 
 	if len(start) != len(end) {
 		panic("length does not match")

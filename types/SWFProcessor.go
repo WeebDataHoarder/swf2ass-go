@@ -23,7 +23,7 @@ type SWFProcessor struct {
 
 func NewSWFProcessor(tags []swftag.Tag, viewPort shapes.Rectangle[float64], frameRate float64, frameCount int64) *SWFProcessor {
 	p := &SWFProcessor{
-		SWFTreeProcessor: *NewSWFTreeProcessor(0, tags, make(ObjectCollection)),
+		SWFTreeProcessor: *NewSWFTreeProcessor(0, tags, make(shapes.ObjectCollection)),
 		Background: &shapes.FillStyleRecord{
 			Fill: math.Color{
 				R:     255,
@@ -94,7 +94,7 @@ func (p *SWFProcessor) NextFrameOutput() *FrameInformation {
 
 	//TODO: actions?
 
-	frame.AddChild(BackgroundObjectDepth, NewViewFrame(BackgroundObjectId, &shapes.DrawPathList{shapes.DrawPathFill(p.Background, shapes.NewShape(p.ViewPort.Draw()))}))
+	frame.AddChild(BackgroundObjectDepth, NewViewFrame(BackgroundObjectId, &shapes.DrawPathList{shapes.DrawPathFill(p.Background, shapes.NewShape(p.ViewPort.Draw()), nil)}))
 	return &FrameInformation{
 		FrameNumber: p.Frame - 1,
 		FrameRate:   p.FrameRate,

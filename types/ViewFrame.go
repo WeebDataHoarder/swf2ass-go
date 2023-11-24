@@ -85,7 +85,7 @@ func (f *ViewFrame) Render(baseDepth uint16, depthChain Depth, parentColor *math
 		})
 	} else {
 		clipMap := make(map[uint16]*ViewFrame)
-		clipPaths := make(map[uint16]*ClipPath)
+		clipPaths := make(map[uint16]*shapes.ClipPath)
 
 		matrixTransform := &matrixTransform
 		if matrixTransform.IsIdentity() {
@@ -102,12 +102,16 @@ func (f *ViewFrame) Render(baseDepth uint16, depthChain Depth, parentColor *math
 			frame := f.DepthMap[depth]
 			if frame.IsClipping { //Process clips as they come
 				clipMap[depth] = frame
-				var clipPath *ClipPath
+				var clipPath *shapes.ClipPath
 				for _, clipObject := range frame.Render(depth, depthChain, colorTransform, matrixTransform) {
-					clipShape := NewClipPath(nil)
+					clipShape := shapes.NewClipPath(nil)
 					for _, p := range clipObject.DrawPathList {
 						if _, ok := p.Style.(*shapes.FillStyleRecord); ok { //Only clip with fills TODO: is this correct?
-							clipShape.AddShape(p.Commands)
+							if p.Clip != nil {
+								clipShape.AddShape(p.Clip.ClipShape(p.Commands))
+							} else {
+								clipShape.AddShape(p.Commands)
+							}
 						}
 					}
 
@@ -137,7 +141,7 @@ func (f *ViewFrame) Render(baseDepth uint16, depthChain Depth, parentColor *math
 			if frame.IsClipping { //Already processed
 				continue
 			}
-			var clipPath *ClipPath
+			var clipPath *shapes.ClipPath
 
 			for _, clipDepth := range clipMapKeys {
 				clip := clipMap[clipDepth]

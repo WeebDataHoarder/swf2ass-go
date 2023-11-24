@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/settings"
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
 	"golang.org/x/exp/maps"
@@ -20,7 +19,7 @@ type ContainerTag struct {
 }
 
 func (t *ContainerTag) TransitionColor(event Event, transform math.ColorTransform) ColorTag {
-	container := t.Clone()
+	container := t.Clone(false)
 
 	index := event.GetEnd() - event.GetStart()
 
@@ -47,7 +46,7 @@ func (t *ContainerTag) TransitionMatrixTransform(event Event, transform math.Mat
 		}
 	}
 
-	container := t.Clone()
+	container := t.Clone(true)
 
 	index := event.GetEnd() - event.GetStart()
 
@@ -71,7 +70,7 @@ func (t *ContainerTag) TransitionMatrixTransform(event Event, transform math.Mat
 }
 
 func (t *ContainerTag) TransitionStyleRecord(event Event, record shapes.StyleRecord) StyleTag {
-	container := t.Clone()
+	container := t.Clone(false)
 
 	index := event.GetEnd() - event.GetStart()
 
@@ -90,7 +89,7 @@ func (t *ContainerTag) TransitionStyleRecord(event Event, record shapes.StyleRec
 }
 
 func (t *ContainerTag) TransitionShape(event Event, shape *shapes.Shape) PathTag {
-	container := t.Clone()
+	container := t.Clone(false)
 
 	index := event.GetEnd() - event.GetStart()
 
@@ -108,8 +107,8 @@ func (t *ContainerTag) TransitionShape(event Event, shape *shapes.Shape) PathTag
 	return container
 }
 
-func (t *ContainerTag) TransitionClipPath(event Event, clip *types.ClipPath) ClipPathTag {
-	container := t.Clone()
+func (t *ContainerTag) TransitionClipPath(event Event, clip *shapes.ClipPath) ClipPathTag {
+	container := t.Clone(false)
 
 	index := event.GetEnd() - event.GetStart()
 
@@ -139,7 +138,7 @@ func (t *ContainerTag) FromStyleRecord(record shapes.StyleRecord) StyleTag {
 	panic("not supported")
 }
 
-func (t *ContainerTag) Clone() *ContainerTag {
+func (t *ContainerTag) Clone(cloneTags bool) *ContainerTag {
 	var transform *math.MatrixTransform
 	if t.BakeTransforms != nil {
 		t2 := *t.BakeTransforms
@@ -149,15 +148,26 @@ func (t *ContainerTag) Clone() *ContainerTag {
 	for k := range t.Transitions {
 		transitions[k] = slices.Clone(t.Transitions[k])
 	}
-	return &ContainerTag{
-		Tags:           slices.Clone(t.Tags),
-		Transitions:    transitions,
-		BakeTransforms: transform,
+	if cloneTags {
+		return &ContainerTag{
+			Tags:           slices.Clone(t.Tags),
+			Transitions:    transitions,
+			BakeTransforms: transform,
+		}
+	} else {
+		return &ContainerTag{
+			Tags:           t.Tags,
+			Transitions:    transitions,
+			BakeTransforms: transform,
+		}
 	}
 }
 
 func (t *ContainerTag) Equals(tag Tag) bool {
 	if o, ok := tag.(*ContainerTag); ok && len(t.Tags) == len(o.Tags) {
+		if o == t {
+			return true
+		}
 		//TODO: optimize this?
 		tags := slices.Clone(t.Tags)
 		otherTags := slices.Clone(o.Tags)
@@ -236,16 +246,36 @@ func (t *ContainerTag) TryAppend(tag Tag) {
 
 var identityMatrixTransform = math.IdentityTransform()
 
-func ContainerTagFromPathEntry(path shapes.DrawPath, clip *types.ClipPath, colorTransform math.ColorTransform, matrixTransform math.MatrixTransform, bakeMatrixTransforms bool) *ContainerTag {
+func ContainerTagFromPathEntry(path shapes.DrawPath, clip *shapes.ClipPath, colorTransform math.ColorTransform, matrixTransform math.MatrixTransform, bakeMatrixTransforms bool) *ContainerTag {
 	container := &ContainerTag{
 		Transitions: make(map[int64][]Tag),
 	}
 
+	if !matrixTransform.EqualsExact(identityMatrixTransform) {
+		if bakeMatrixTransforms {
+			path = path.ApplyMatrixTransform(matrixTransform, false)
+		} else {
+			/*if path.Clip != nil {
+				path.Clip = path.Clip.ApplyMatrixTransform(matrixTransform, true)
+			}*/
+		}
+	}
+
+	if path.Clip != nil {
+		if clip != nil {
+			clip = path.Clip.Intersect(clip)
+		} else {
+			clip = path.Clip
+		}
+	}
+
 	if settings.GlobalSettings.BakeClips {
 		if clip != nil {
+			//Clip is given in absolute coordinates. path is relative to translation
+			translationTransform := math.TranslateTransform(matrixTransform.GetTranslation().Multiply(-1))
 			path = shapes.DrawPath{
 				Style:    path.Style,
-				Commands: clip.Intersect(types.NewClipPath(path.Commands)).GetShape(),
+				Commands: clip.ApplyMatrixTransform(translationTransform, true).ClipShape(path.Commands),
 			}
 		}
 	} else {
@@ -258,6 +288,10 @@ func ContainerTagFromPathEntry(path shapes.DrawPath, clip *types.ClipPath, color
 
 		}
 	*/
+
+	if len(path.Commands.Edges) == 0 {
+		return nil
+	}
 
 	container.TryAppend((&BorderTag{}).FromStyleRecord(path.Style))
 
@@ -281,9 +315,6 @@ func ContainerTagFromPathEntry(path shapes.DrawPath, clip *types.ClipPath, color
 		container.TryAppend((&PositionTag{}).FromMatrixTransform(matrixTransform))
 
 		drawTag := DrawingTag(NewDrawTag(path.Commands, settings.GlobalSettings.ASSDrawingScale))
-		if !matrixTransform.EqualsExact(identityMatrixTransform) {
-			drawTag = drawTag.ApplyMatrixTransform(matrixTransform, false)
-		}
 
 		container.TryAppend(drawTag)
 	} else {

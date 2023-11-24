@@ -10,6 +10,7 @@ require (
 
 require (
 	github.com/ctessum/geom v0.2.12
+	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa
 	golang.org/x/text v0.14.0
 	gonum.org/v1/gonum v0.14.0

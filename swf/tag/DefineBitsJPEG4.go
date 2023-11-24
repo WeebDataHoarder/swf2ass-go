@@ -1,7 +1,10 @@
 package tag
 
 import (
+	"bytes"
+	"compress/zlib"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
+	"io"
 )
 
 type DefineBitsJPEG4 struct {
@@ -11,6 +14,22 @@ type DefineBitsJPEG4 struct {
 	DeblockParam    types.Fixed8
 	ImageData       []byte `swfCount:"AlphaDataOffset"`
 	BitmapAlphaData types.Bytes
+}
+
+func (t *DefineBitsJPEG4) GetAlphaData() []byte {
+	if len(t.BitmapAlphaData) == 0 {
+		return nil
+	}
+	r, err := zlib.NewReader(bytes.NewReader(t.BitmapAlphaData))
+	if err != nil {
+		return nil
+	}
+	defer r.Close()
+	buf, err := io.ReadAll(r)
+	if err != nil {
+		return nil
+	}
+	return buf
 }
 
 func (t *DefineBitsJPEG4) Code() Code {
