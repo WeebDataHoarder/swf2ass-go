@@ -11,20 +11,7 @@ import (
 
 type StyleRecord interface {
 	ApplyColorTransform(transform math.ColorTransform) StyleRecord
-}
-
-type LineStyleRecord struct {
-	Width float64
-	Color math.Color
-	Blur  float64
-}
-
-func (r *LineStyleRecord) ApplyColorTransform(transform math.ColorTransform) StyleRecord {
-	return &LineStyleRecord{
-		Width: r.Width,
-		Color: transform.ApplyToColor(r.Color),
-		Blur:  r.Blur,
-	}
+	ApplyMatrixTransform(transform math.MatrixTransform, applyTranslation bool) StyleRecord
 }
 
 type Fillable interface {
@@ -72,6 +59,17 @@ func (r *FillStyleRecord) Flatten(s *Shape) DrawPathList {
 	} else {
 		panic("not supported")
 	}
+}
+
+func (r *FillStyleRecord) ApplyMatrixTransform(transform math.MatrixTransform, applyTranslation bool) StyleRecord {
+	if r.Border != nil {
+		return &FillStyleRecord{
+			Fill:   r.Fill,
+			Border: r.Border.ApplyMatrixTransform(transform, applyTranslation).(*LineStyleRecord),
+			Blur:   r.Blur, //TODO: scale blur?
+		}
+	}
+	return r
 }
 
 func (r *FillStyleRecord) ApplyColorTransform(transform math.ColorTransform) StyleRecord {

@@ -37,8 +37,8 @@ func NewRenderer(frameRate float64, display shapes.Rectangle[float64]) *Renderer
 			"; https://git.gammaspectra.live/WeebDataHoarder/swf2ass-go",
 			"Title: swf2ass",
 			"ScriptType: v4.00+",
-			"; TODO: maybe set WrapStyle: 2",
-			"WrapStyle: 0",
+			//TODO: WrapStyle: 0 or 2?
+			"WrapStyle: 2",
 			"ScaledBorderAndShadow: yes",
 			"YCbCr Matrix: PC.709",
 			fmt.Sprintf("PlayResX: %d", width),

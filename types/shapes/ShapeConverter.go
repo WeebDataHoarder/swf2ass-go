@@ -246,7 +246,7 @@ func (c *ShapeConverter) HandleNode(node subtypes.SHAPERECORD) {
 }
 
 func (c *ShapeConverter) VisitPoint(pos math.Vector2[types.Twip], isBezierControlPoint bool) {
-	point := VisitedPoint{
+	point := VisitedPoint[types.Twip]{
 		Pos:             pos,
 		IsBezierControl: isBezierControlPoint,
 	}
@@ -322,7 +322,7 @@ func (c *ShapeConverter) FlushLayer() {
 
 		//wrap around all segments, even if closed. ASS does NOT like them otherwise. so we draw everything backwards to have border around the line, not just on one side
 		//TODO: using custom line borders later using fills this can be removed
-		var newSegments PendingPath
+		var newSegments PendingPath[types.Twip]
 		for _, segment := range *path {
 			other := slices.Clone(*segment)
 			other.Flip()

@@ -18,8 +18,8 @@ type Event interface {
 
 type StyleTag interface {
 	Tag
-	TransitionStyleRecord(event Event, record shapes.StyleRecord) StyleTag
-	FromStyleRecord(record shapes.StyleRecord) StyleTag
+	TransitionStyleRecord(event Event, record shapes.StyleRecord, transform math.MatrixTransform) StyleTag
+	FromStyleRecord(record shapes.StyleRecord, transform math.MatrixTransform) StyleTag
 }
 
 type PositioningTag interface {

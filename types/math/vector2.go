@@ -106,6 +106,16 @@ func (v Vector2[T]) SubVector(b Vector2[T]) Vector2[T] {
 	}
 }
 
+func (v Vector2[T]) Normals() (a, b Vector2[T]) {
+	return Vector2[T]{
+			X: -v.Y,
+			Y: v.X,
+		}, Vector2[T]{
+			X: v.Y,
+			Y: -v.X,
+		}
+}
+
 func (v Vector2[T]) Abs() Vector2[T] {
 	x := v.X
 	if x < 0 {

@@ -12,7 +12,7 @@ type LineColorTag struct {
 	OriginalColor *math.Color
 }
 
-func (t *LineColorTag) FromStyleRecord(record shapes.StyleRecord) StyleTag {
+func (t *LineColorTag) FromStyleRecord(record shapes.StyleRecord, transform math.MatrixTransform) StyleTag {
 	if lineStyleRecord, ok := record.(*shapes.LineStyleRecord); ok {
 		t.Color = &lineStyleRecord.Color
 		t.OriginalColor = &lineStyleRecord.Color
@@ -26,9 +26,9 @@ func (t *LineColorTag) FromStyleRecord(record shapes.StyleRecord) StyleTag {
 	return t
 }
 
-func (t *LineColorTag) TransitionStyleRecord(event Event, record shapes.StyleRecord) StyleTag {
+func (t *LineColorTag) TransitionStyleRecord(event Event, record shapes.StyleRecord, transform math.MatrixTransform) StyleTag {
 	t2 := &LineColorTag{}
-	t2.FromStyleRecord(record)
+	t2.FromStyleRecord(record, transform)
 	return t2
 }
 

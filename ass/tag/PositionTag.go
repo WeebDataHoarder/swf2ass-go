@@ -90,10 +90,10 @@ func (t *PositionTag) Encode(event time.EventTime) string {
 			start = event.GetDurationFromStartOffset(t.Start).Milliseconds() - 1
 			end = event.GetDurationFromStartOffset(t.Start).Milliseconds()
 		}
-		return fmt.Sprintf("\\move(%s,%s,%s,%s,%d,%d)", strconv.FormatFloat(t.From.X, 'f', 0, 64), strconv.FormatFloat(t.From.Y, 'f', 0, 64), strconv.FormatFloat(t.To.X, 'f', 0, 64), strconv.FormatFloat(t.To.Y, 'f', 0, 64), start, end)
+		return fmt.Sprintf("\\move(%s,%s,%s,%s,%d,%d)", strconv.FormatFloat(t.From.X, 'f', -1, 64), strconv.FormatFloat(t.From.Y, 'f', -1, 64), strconv.FormatFloat(t.To.X, 'f', -1, 64), strconv.FormatFloat(t.To.Y, 'f', -1, 64), start, end)
 	}
 
-	return fmt.Sprintf("\\pos(%s,%s)", strconv.FormatFloat(t.From.X, 'f', 0, 64), strconv.FormatFloat(t.From.Y, 'f', 0, 64))
+	return fmt.Sprintf("\\pos(%s,%s)", strconv.FormatFloat(t.From.X, 'f', -1, 64), strconv.FormatFloat(t.From.Y, 'f', -1, 64))
 }
 
 func (t *PositionTag) Equals(tag Tag) bool {

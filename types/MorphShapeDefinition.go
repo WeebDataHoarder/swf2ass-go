@@ -92,6 +92,7 @@ func (d *MorphShapeDefinition) GetShapeList(ratio float64) (list shapes.DrawPath
 			list = append(list, shapes.DrawPathStroke(&shapes.LineStyleRecord{
 				Width: math2.Lerp(c1LineStyle.Width, c2LineStyle.Width, ratio),
 				Color: math2.LerpColor(c1LineStyle.Color, c2LineStyle.Color, ratio),
+				//TODO: blur
 			}, &shape, nil))
 		} else {
 			panic("unsupported")

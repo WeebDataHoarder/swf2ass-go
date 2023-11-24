@@ -6,7 +6,7 @@ import (
 )
 
 type ActivePath struct {
-	Segment PathSegment
+	Segment PathSegment[types.Twip]
 	StyleId int
 }
 
@@ -17,7 +17,7 @@ func NewActivePath(styleId int, start math.Vector2[types.Twip]) *ActivePath {
 	}
 }
 
-func (p *ActivePath) AddPoint(point VisitedPoint) {
+func (p *ActivePath) AddPoint(point VisitedPoint[types.Twip]) {
 	p.Segment.AddPoint(point)
 }
 

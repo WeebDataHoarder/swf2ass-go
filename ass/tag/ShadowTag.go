@@ -3,6 +3,7 @@ package tag
 import (
 	"fmt"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
 )
 
@@ -10,15 +11,15 @@ type ShadowTag struct {
 	Depth float64
 }
 
-func (t *ShadowTag) FromStyleRecord(record shapes.StyleRecord) StyleTag {
+func (t *ShadowTag) FromStyleRecord(record shapes.StyleRecord, transform math.MatrixTransform) StyleTag {
 	//TODO?
 	t.Depth = 0
 	return t
 }
 
-func (t *ShadowTag) TransitionStyleRecord(event Event, record shapes.StyleRecord) StyleTag {
+func (t *ShadowTag) TransitionStyleRecord(event Event, record shapes.StyleRecord, transform math.MatrixTransform) StyleTag {
 	t2 := &ShadowTag{}
-	t2.FromStyleRecord(record)
+	t2.FromStyleRecord(record, transform)
 	return t2
 }
 

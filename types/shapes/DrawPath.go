@@ -22,6 +22,20 @@ func (p DrawPath) ApplyMatrixTransform(transform math.MatrixTransform, applyTran
 	}
 }
 
+func (p DrawPath) ApplyColorTransform(transform math.ColorTransform) (r DrawPath) {
+	if p.Clip == nil {
+		return DrawPath{
+			Style:    p.Style.ApplyColorTransform(transform),
+			Commands: p.Commands,
+		}
+	}
+	return DrawPath{
+		Style:    p.Style.ApplyColorTransform(transform),
+		Commands: p.Commands,
+		Clip:     p.Clip,
+	}
+}
+
 func DrawPathFill(record *FillStyleRecord, shape *Shape, clip *ClipPath) DrawPath {
 	return DrawPath{
 		Style:    record,

@@ -120,6 +120,16 @@ func (m MatrixTransform) GetMatrix() mat.Matrix {
 	return m.matrix
 }
 
+// MinimumStrokeWidth
+// Given a matrix, calculates the scale for stroke widths.
+// TODO: Verify the actual behavior; I think it's more like the average between scaleX and scaleY.
+// Does not yet support vertical/horizontal stroke scaling flags.
+func (m MatrixTransform) MinimumStrokeWidth() float64 {
+	sx := math.Sqrt(m.GetA()*m.GetA() + m.GetB()*m.GetB())
+	sy := math.Sqrt(m.GetC()*m.GetC() + m.GetD()*m.GetD())
+	return max(sx, sy)
+}
+
 func (m MatrixTransform) GetMatrixWithoutTranslation() mat.Matrix {
 	return m.matrix.Slice(0, 2, 0, 2)
 }

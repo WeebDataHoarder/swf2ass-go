@@ -1,17 +1,16 @@
 package shapes
 
 import (
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/records"
 	"slices"
 )
 
-type PathSegment []VisitedPoint
+type PathSegment[T ~float64 | ~int64] []VisitedPoint[T]
 
-func NewPathSegment(start math.Vector2[types.Twip]) PathSegment {
-	return PathSegment{
-		VisitedPoint{
+func NewPathSegment[T ~float64 | ~int64](start math.Vector2[T]) PathSegment[T] {
+	return PathSegment[T]{
+		VisitedPoint[T]{
 			Pos:             start,
 			IsBezierControl: false,
 		},
@@ -23,39 +22,39 @@ func NewPathSegment(start math.Vector2[types.Twip]) PathSegment {
 // Flash fill paths are dual-sided, with fill style 1 indicating the positive side
 // and fill style 0 indicating the negative. We have to flip fill style 0 paths
 // in order to link them to fill style 1 paths.
-func (s *PathSegment) Flip() {
+func (s *PathSegment[T]) Flip() {
 	slices.Reverse(*s)
 }
 
-func (s *PathSegment) AddPoint(p VisitedPoint) {
+func (s *PathSegment[T]) AddPoint(p VisitedPoint[T]) {
 	*s = append(*s, p)
 }
 
-func (s *PathSegment) Start() math.Vector2[types.Twip] {
+func (s *PathSegment[T]) Start() math.Vector2[T] {
 	return (*s)[0].Pos
 }
 
-func (s *PathSegment) End() math.Vector2[types.Twip] {
+func (s *PathSegment[T]) End() math.Vector2[T] {
 	return (*s)[len(*s)-1].Pos
 }
 
-func (s *PathSegment) IsEmpty() bool {
+func (s *PathSegment[T]) IsEmpty() bool {
 	return len(*s) <= 1
 }
 
-func (s *PathSegment) IsClosed() bool {
+func (s *PathSegment[T]) IsClosed() bool {
 	return s.Start().Equals(s.End())
 }
 
-func (s *PathSegment) Swap(o *PathSegment) {
+func (s *PathSegment[T]) Swap(o *PathSegment[T]) {
 	*s, *o = *o, *s
 }
 
-func (s *PathSegment) Merge(o PathSegment) {
+func (s *PathSegment[T]) Merge(o PathSegment[T]) {
 	*s = append(*s, o[1:]...)
 }
 
-func (s *PathSegment) TryMerge(o *PathSegment, isDirected bool) bool {
+func (s *PathSegment[T]) TryMerge(o *PathSegment[T], isDirected bool) bool {
 	if o.End().Equals(s.Start()) {
 		s.Swap(o)
 		s.Merge(*o)
@@ -77,7 +76,7 @@ func (s *PathSegment) TryMerge(o *PathSegment, isDirected bool) bool {
 	return false
 }
 
-func (s *PathSegment) GetShape() *Shape {
+func (s *PathSegment[T]) GetShape() *Shape {
 	if s.IsEmpty() {
 		panic("not possible")
 	}
@@ -88,7 +87,7 @@ func (s *PathSegment) GetShape() *Shape {
 
 	points := *s
 
-	next := func() VisitedPoint {
+	next := func() VisitedPoint[T] {
 		point := points[0]
 		points = points[1:]
 		return point

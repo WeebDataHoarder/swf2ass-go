@@ -42,11 +42,8 @@ func (l DrawPathList) Fill(shape *Shape) (r DrawPathList) {
 
 func (l DrawPathList) ApplyColorTransform(transform math.ColorTransform) Fillable {
 	r := make(DrawPathList, 0, len(l))
-	for _, e := range l {
-		r = append(r, DrawPath{
-			Style:    e.Style.ApplyColorTransform(transform),
-			Commands: e.Commands,
-		})
+	for i := range l {
+		r = append(r, l[i].ApplyColorTransform(transform))
 	}
 	return r
 }

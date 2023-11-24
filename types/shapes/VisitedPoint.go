@@ -1,12 +1,11 @@
 package shapes
 
 import (
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 )
 
-type VisitedPoint struct {
-	Pos math.Vector2[types.Twip]
+type VisitedPoint[T ~float64 | ~int64] struct {
+	Pos math.Vector2[T]
 
 	IsBezierControl bool
 }

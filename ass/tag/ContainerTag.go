@@ -69,14 +69,14 @@ func (t *ContainerTag) TransitionMatrixTransform(event Event, transform math.Mat
 	return container
 }
 
-func (t *ContainerTag) TransitionStyleRecord(event Event, record shapes.StyleRecord) StyleTag {
+func (t *ContainerTag) TransitionStyleRecord(event Event, record shapes.StyleRecord, transform math.MatrixTransform) StyleTag {
 	container := t.Clone(false)
 
 	index := event.GetEnd() - event.GetStart()
 
 	for _, tag := range container.Tags {
 		if colorTag, ok := tag.(StyleTag); ok {
-			newTag := colorTag.TransitionStyleRecord(event, record)
+			newTag := colorTag.TransitionStyleRecord(event, record, transform)
 			if newTag == nil {
 				return nil
 			}
@@ -134,7 +134,7 @@ func (t *ContainerTag) FromMatrixTransform(transform math.MatrixTransform) Posit
 	panic("not supported")
 }
 
-func (t *ContainerTag) FromStyleRecord(record shapes.StyleRecord) StyleTag {
+func (t *ContainerTag) FromStyleRecord(record shapes.StyleRecord, transform math.MatrixTransform) StyleTag {
 	panic("not supported")
 }
 
@@ -293,36 +293,31 @@ func ContainerTagFromPathEntry(path shapes.DrawPath, clip *shapes.ClipPath, colo
 		return nil
 	}
 
-	container.TryAppend((&BorderTag{}).FromStyleRecord(path.Style))
+	if bakeMatrixTransforms {
+		container.BakeTransforms = &matrixTransform
+		container.TryAppend((&PositionTag{}).FromMatrixTransform(matrixTransform))
+	} else {
+		container.TryAppend((&PositionTag{}).FromMatrixTransform(matrixTransform))
+		container.TryAppend((&MatrixTransformTag{}).FromMatrixTransform(matrixTransform))
+	}
 
-	container.TryAppend((&BlurGaussianTag{}).FromStyleRecord(path.Style))
+	container.TryAppend((&BorderTag{}).FromStyleRecord(path.Style, matrixTransform))
+
+	container.TryAppend((&BlurGaussianTag{}).FromStyleRecord(path.Style, matrixTransform))
 
 	{
 		lineColorTag := &LineColorTag{}
-		lineColorTag.FromStyleRecord(path.Style)
+		lineColorTag.FromStyleRecord(path.Style, matrixTransform)
 		container.TryAppend(lineColorTag.ApplyColorTransform(colorTransform))
 	}
 
 	{
 		fillColorTag := &FillColorTag{}
-		fillColorTag.FromStyleRecord(path.Style)
+		fillColorTag.FromStyleRecord(path.Style, matrixTransform)
 		container.TryAppend(fillColorTag.ApplyColorTransform(colorTransform))
 	}
 
-	if bakeMatrixTransforms {
-		container.BakeTransforms = &matrixTransform
-
-		container.TryAppend((&PositionTag{}).FromMatrixTransform(matrixTransform))
-
-		drawTag := DrawingTag(NewDrawTag(path.Commands, settings.GlobalSettings.ASSDrawingScale))
-
-		container.TryAppend(drawTag)
-	} else {
-		container.TryAppend((&PositionTag{}).FromMatrixTransform(matrixTransform))
-		container.TryAppend((&MatrixTransformTag{}).FromMatrixTransform(matrixTransform))
-
-		container.TryAppend(NewDrawTag(path.Commands, settings.GlobalSettings.ASSDrawingScale))
-	}
+	container.TryAppend(NewDrawTag(path.Commands, settings.GlobalSettings.ASSDrawingScale))
 
 	return container
 }
