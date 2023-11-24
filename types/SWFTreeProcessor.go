@@ -266,6 +266,21 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 			colorTransform = &t
 		}
 
+		if node.Flag.HasBlendMode {
+			fmt.Printf("Unsupported blends!!!\n")
+			switch node.BlendMode {
+			case swftag.BlendOverlay:
+				//fake it somewhat with half transparency for now, TODO: split underlying image in intersections and hardcode-apply this
+				i := math.IdentityColorTransform()
+				i.Multiply.Alpha = 128
+
+				if colorTransform != nil {
+					i = i.Combine(*colorTransform)
+				}
+				colorTransform = &i
+			}
+		}
+
 		p.placeObject(object, node.Depth, node.ClipDepth, node.Flag.Move, node.Flag.HasRatio, node.Flag.HasClipDepth, float64(node.Ratio)/math2.MaxUint16, transform, colorTransform)
 
 	case *swftag.ShowFrame:

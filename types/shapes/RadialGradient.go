@@ -72,7 +72,7 @@ func (g RadialGradient) Fill(shape *Shape) DrawPathList {
 	return g.GetInterpolatedDrawPaths(settings.GlobalSettings.GradientOverlap, settings.GlobalSettings.GradientBlur, settings.GlobalSettings.GradientSlices).Fill(shape)
 }
 
-func RadialGradientFromSWF(records []swfsubtypes.GRADRECORD, transform types.MATRIX, spreadMode swfsubtypes.GradientSpreadMode, interpolationMode swfsubtypes.GradientInterpolationMode) DrawPathListFill {
+func RadialGradientFromSWF(records []swfsubtypes.GRADRECORD, transform types.MATRIX, spreadMode swfsubtypes.GradientSpreadMode, interpolationMode swfsubtypes.GradientInterpolationMode) DrawPathList {
 	items := make([]GradientItem, 0, len(records))
 	for _, r := range records {
 		items = append(items, GradientItemFromSWF(r.Ratio, r.Color))
@@ -80,11 +80,11 @@ func RadialGradientFromSWF(records []swfsubtypes.GRADRECORD, transform types.MAT
 
 	//TODO: interpolationMode, spreadMode
 
-	return DrawPathListFill(RadialGradient{
+	return RadialGradient{
 		Colors: items,
 		//TODO: do we need to scale this to pixel world from twips?
 		Transform:         math.MatrixTransformFromSWF(transform),
 		SpreadMode:        spreadMode,
 		InterpolationMode: interpolationMode,
-	}.GetInterpolatedDrawPaths(settings.GlobalSettings.GradientOverlap, settings.GlobalSettings.GradientBlur, settings.GlobalSettings.GradientSlices))
+	}.GetInterpolatedDrawPaths(settings.GlobalSettings.GradientOverlap, settings.GlobalSettings.GradientBlur, settings.GlobalSettings.GradientSlices)
 }

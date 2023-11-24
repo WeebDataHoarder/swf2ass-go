@@ -2,6 +2,7 @@ package shapes
 
 import (
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/tag/subtypes"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 )
 
@@ -24,6 +25,22 @@ func (l DrawPathList) ApplyFunction(f func(p DrawPath) DrawPath) (r DrawPathList
 
 func (l DrawPathList) Fill(shape *Shape) (r DrawPathList) {
 	clipShape := NewClipPath(shape)
+	//Convert paths to many tags using intersections
+	for _, innerPath := range l {
+		newPath := DrawPath{
+			Style:    innerPath.Style,
+			Commands: clipShape.ClipShape(innerPath.Commands),
+		}
+		if len(newPath.Commands.Edges) == 0 {
+			continue
+		}
+
+		r = append(r, newPath)
+	}
+	return r
+
+	//TODO: fix this below
+	clipShape = NewClipPath(shape)
 	//Convert paths to many tags using intersections
 	for _, innerPath := range l {
 		newPath := DrawPath{
@@ -54,6 +71,13 @@ func (l DrawPathList) ApplyMatrixTransform(transform math.MatrixTransform, apply
 		r = append(r, l[i].ApplyMatrixTransform(transform, applyTranslation))
 	}
 	return r
+}
+
+func DrawPathListFillFromSWF(l DrawPathList, transform types.MATRIX) DrawPathList {
+	// shape is already in pixel world, but matrix comes as twip
+	baseScale := math.ScaleTransform(math.NewVector2[float64](1./types.TwipFactor, 1./types.TwipFactor))
+	t := math.MatrixTransformFromSWF(transform).Multiply(baseScale)
+	return l.ApplyMatrixTransform(t, true)
 }
 
 func DrawPathListFromSWF(collection ObjectCollection, records subtypes.SHAPERECORDS, styles StyleList) DrawPathList {

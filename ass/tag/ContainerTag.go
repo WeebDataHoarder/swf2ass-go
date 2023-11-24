@@ -255,9 +255,10 @@ func ContainerTagFromPathEntry(path shapes.DrawPath, clip *shapes.ClipPath, colo
 		if bakeMatrixTransforms {
 			path = path.ApplyMatrixTransform(matrixTransform, false)
 		} else {
-			/*if path.Clip != nil {
+			if path.Clip != nil {
+				//Clip is given in relative coordinates. path is relative to translation
 				path.Clip = path.Clip.ApplyMatrixTransform(matrixTransform, true)
-			}*/
+			}
 		}
 	}
 
@@ -272,6 +273,8 @@ func ContainerTagFromPathEntry(path shapes.DrawPath, clip *shapes.ClipPath, colo
 	if settings.GlobalSettings.BakeClips {
 		if clip != nil {
 			//Clip is given in absolute coordinates. path is relative to translation
+			//TODO: is this true for ClipPath???
+			//TODO: this is broken
 			translationTransform := math.TranslateTransform(matrixTransform.GetTranslation().Multiply(-1))
 			path = shapes.DrawPath{
 				Style:    path.Style,

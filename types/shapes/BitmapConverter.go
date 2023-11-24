@@ -114,7 +114,7 @@ func QuantizeBitmap(i image.Image) image.Image {
 					R: uint8(r >> 8),
 					G: uint8(g >> 8),
 					B: uint8(b >> 8),
-					A: uint8((a >> 12) << 4),
+					A: uint8((a >> 9) << 1),
 				})
 			}
 		}

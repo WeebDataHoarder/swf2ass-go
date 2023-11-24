@@ -5,6 +5,26 @@ import (
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 )
 
+type BlendMode uint8
+
+const (
+	BlendNormal0 = BlendMode(iota)
+	BlendNormal1
+	BlendLayer
+	BlendMultiply
+	BlendScreen
+	BlendLighten
+	BlendDarken
+	BlendDifference
+	BlendAdd
+	BlendSubtract
+	BlendInvert
+	BlendAlpha
+	BlendErase
+	BlendOverlay
+	BlenHardlight
+)
+
 type PlaceObject3 struct {
 	_    struct{} `swfFlags:"root,align"`
 	Flag struct {
@@ -34,7 +54,7 @@ type PlaceObject3 struct {
 	Name              string                `swfCondition:"Flag.HasName"`
 	ClipDepth         uint16                `swfCondition:"Flag.HasClipDepth"`
 	SurfaceFilterList subtypes.FILTERLIST   `swfCondition:"Flag.HasFilterList"`
-	BlendMode         uint8                 `swfCondition:"Flag.HasBlendMode"`
+	BlendMode         BlendMode             `swfCondition:"Flag.HasBlendMode"`
 	BitmapCache       uint8                 `swfCondition:"Flag.HasCacheAsBitmap"`
 	Visible           uint8                 `swfCondition:"Flag.HasVisible"`
 	BackgroundColor   types.RGBA            `swfCondition:"Flag.OpaqueBackground"`
