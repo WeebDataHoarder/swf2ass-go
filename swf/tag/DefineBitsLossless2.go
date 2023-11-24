@@ -47,8 +47,8 @@ func (t *DefineBitsLossless2) GetImage() image.Image {
 			Min: image.Point{},
 			Max: image.Point{X: int(t.Width), Y: int(t.Height)},
 		}, palette)
-		for x := 0; x < int(t.Width); x++ {
-			for y := 0; y < int(t.Height); y++ {
+		for y := 0; y < int(t.Height); y++ {
+			for x := 0; x < int(t.Width); x++ {
 				_, err = io.ReadFull(r, buf[:1])
 				if err != nil {
 					return nil
@@ -63,8 +63,8 @@ func (t *DefineBitsLossless2) GetImage() image.Image {
 			Max: image.Point{X: int(t.Width), Y: int(t.Height)},
 		})
 
-		for x := 0; x < int(t.Width); x++ {
-			for y := 0; y < int(t.Height); y++ {
+		for y := 0; y < int(t.Height); y++ {
+			for x := 0; x < int(t.Width); x++ {
 				_, err = io.ReadFull(r, buf[:])
 				if err != nil {
 					return nil
