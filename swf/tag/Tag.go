@@ -118,6 +118,10 @@ func (r *Record) Decode() (readTag Tag, err error) {
 
 	}
 
+	if readTag == nil {
+		return nil, errors.New("could not decode tag")
+	}
+
 	err = types.ReadType(bitReader, types.ReaderContext{
 		Version: r.ctx.Version,
 	}, readTag)

@@ -37,7 +37,7 @@ type PlaceObject3 struct {
 	BlendMode         uint8                 `swfCondition:"Flag.HasBlendMode"`
 	BitmapCache       uint8                 `swfCondition:"Flag.HasCacheAsBitmap"`
 	Visible           uint8                 `swfCondition:"Flag.HasVisible"`
-	BackgroundColor   types.RGBA            `swfCondition:"Flag.HasBackgroundColor"`
+	BackgroundColor   types.RGBA            `swfCondition:"Flag.OpaqueBackground"`
 	ClipActions       subtypes.CLIPACTIONS  `swfCondition:"Flag.HasClipActions"`
 }
 

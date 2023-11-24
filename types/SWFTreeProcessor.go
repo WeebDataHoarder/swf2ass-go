@@ -146,6 +146,16 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 			break
 		}
 		fmt.Printf("Unsupported image: DefineBits\n")
+	case *swftag.DefineBitsLossless:
+		if p.Loops > 0 {
+			break
+		}
+		bitDef := BitmapDefinitionFromSWFLossless(node.CharacterId, node.GetImage())
+		if bitDef == nil {
+			fmt.Printf("Unsupported lossless bitmap\n")
+			break
+		}
+		p.Objects.Add(bitDef)
 	case *swftag.DefineBitsLossless2:
 		if p.Loops > 0 {
 			break
@@ -271,7 +281,8 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 			case subtypes.ActionNextFrame:
 				actions = append(actions, &NextFrameAction{})
 				//TODO ActionPreviousFrame
-
+			default:
+				//fmt.Printf("unhandled action %d\n", action.ActionCode)
 			}
 		}
 		//TODO DoInitAction
