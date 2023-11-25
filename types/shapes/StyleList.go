@@ -27,7 +27,7 @@ func (l *StyleList) GetLineStyle(i int) *LineStyleRecord {
 
 func StyleListFromSWFItems(collection ObjectCollection, fillStyles subtypes.FILLSTYLEARRAY, lineStyles subtypes.LINESTYLEARRAY) (r StyleList) {
 	for _, s := range fillStyles.FillStyles {
-		r.FillStyles = append(r.FillStyles, FillStyleRecordFromSWF(collection, s.FillStyleType, s.Color, s.Gradient, s.GradientMatrix, s.BitmapMatrix, s.BitmapId))
+		r.FillStyles = append(r.FillStyles, FillStyleRecordFromSWF(collection, s.FillStyleType, s.Color, s.Gradient, s.FocalGradient, s.GradientMatrix, s.BitmapMatrix, s.BitmapId))
 	}
 
 	if len(lineStyles.LineStyles) > 0 {
@@ -57,7 +57,7 @@ func StyleListFromSWFItems(collection ObjectCollection, fillStyles subtypes.FILL
 					},
 				})
 			} else {
-				fill := FillStyleRecordFromSWF(collection, s.FillType.FillStyleType, s.FillType.Color, s.FillType.Gradient, s.FillType.GradientMatrix, s.FillType.BitmapMatrix, s.FillType.BitmapId)
+				fill := FillStyleRecordFromSWF(collection, s.FillType.FillStyleType, s.FillType.Color, s.FillType.Gradient, s.FillType.FocalGradient, s.FillType.GradientMatrix, s.FillType.BitmapMatrix, s.FillType.BitmapId)
 				switch fillEntry := fill.Fill.(type) {
 				case types.Color:
 					r.LineStyles = append(r.LineStyles, &LineStyleRecord{

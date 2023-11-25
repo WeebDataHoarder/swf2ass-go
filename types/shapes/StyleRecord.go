@@ -88,7 +88,7 @@ func (r *FillStyleRecord) ApplyColorTransform(transform math.ColorTransform) Sty
 	}
 }
 
-func FillStyleRecordFromSWF(collection ObjectCollection, fillType swfsubtypes.FillStyleType, color swftypes.Color, gradient swfsubtypes.GRADIENT, gradientMatrix, bitmapMatrix swftypes.MATRIX, bitmapId uint16) (r *FillStyleRecord) {
+func FillStyleRecordFromSWF(collection ObjectCollection, fillType swfsubtypes.FillStyleType, color swftypes.Color, gradient swfsubtypes.GRADIENT, focalGradient swfsubtypes.FOCALGRADIENT, gradientMatrix, bitmapMatrix swftypes.MATRIX, bitmapId uint16) (r *FillStyleRecord) {
 	switch fillType {
 	case swfsubtypes.FillStyleSolid:
 		return &FillStyleRecord{
@@ -110,12 +110,7 @@ func FillStyleRecordFromSWF(collection ObjectCollection, fillType swfsubtypes.Fi
 	case swfsubtypes.FillStyleFocalRadialGradient:
 		//TODO: do it properly
 		return &FillStyleRecord{
-			Fill: math.Color{
-				R:     gradient.Records[0].Color.R(),
-				G:     gradient.Records[0].Color.G(),
-				B:     gradient.Records[0].Color.B(),
-				Alpha: gradient.Records[0].Color.A(),
-			},
+			Fill: RadialGradientFromSWF(focalGradient.Records, gradientMatrix, gradient.SpreadMode, gradient.InterpolationMode),
 		}
 	case swfsubtypes.FillStyleClippedBitmap, swfsubtypes.FillStyleRepeatingBitmap:
 		if bitmapId == math2.MaxUint16 { //Special case, TODO:???
@@ -197,9 +192,9 @@ func FillStyleRecordFromSWF(collection ObjectCollection, fillType swfsubtypes.Fi
 }
 
 func FillStyleRecordFromSWFMORPHFILLSTYLEStart(collection ObjectCollection, fillStyle swfsubtypes.MORPHFILLSTYLE) (r *FillStyleRecord) {
-	return FillStyleRecordFromSWF(collection, fillStyle.FillStyleType, fillStyle.StartColor, fillStyle.Gradient.StartGradient(), fillStyle.StartGradientMatrix, fillStyle.StartBitmapMatrix, fillStyle.BitmapId)
+	return FillStyleRecordFromSWF(collection, fillStyle.FillStyleType, fillStyle.StartColor, fillStyle.Gradient.StartGradient(), swfsubtypes.FOCALGRADIENT{}, fillStyle.StartGradientMatrix, fillStyle.StartBitmapMatrix, fillStyle.BitmapId)
 }
 
 func FillStyleRecordFromSWFMORPHFILLSTYLEEnd(collection ObjectCollection, fillStyle swfsubtypes.MORPHFILLSTYLE) (r *FillStyleRecord) {
-	return FillStyleRecordFromSWF(collection, fillStyle.FillStyleType, fillStyle.EndColor, fillStyle.Gradient.EndGradient(), fillStyle.EndGradientMatrix, fillStyle.EndBitmapMatrix, fillStyle.BitmapId)
+	return FillStyleRecordFromSWF(collection, fillStyle.FillStyleType, fillStyle.EndColor, fillStyle.Gradient.EndGradient(), swfsubtypes.FOCALGRADIENT{}, fillStyle.EndGradientMatrix, fillStyle.EndBitmapMatrix, fillStyle.BitmapId)
 }

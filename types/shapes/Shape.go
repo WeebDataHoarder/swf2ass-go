@@ -57,6 +57,17 @@ func (s *Shape) IsClosed() bool {
 	return s.Start().Equals(s.End())
 }
 
+func (s *Shape) Reverse() *Shape {
+	r := &Shape{
+		Edges:  make([]records.Record, len(s.Edges)),
+		IsFlat: s.IsFlat,
+	}
+	for i, e := range s.Edges {
+		r.Edges[len(s.Edges)-1-i] = e.Reverse()
+	}
+	return r
+}
+
 func (s *Shape) Merge(o *Shape) *Shape {
 	r := &Shape{
 		Edges: make([]records.Record, 0, len(s.Edges)+len(o.Edges)),

@@ -38,18 +38,25 @@ func (g RadialGradient) GetInterpolatedDrawPaths(overlap, blur float64, gradient
 	for _, item := range LerpGradient(g, gradientSlices) {
 		//Create concentric circles to cut out a shape
 		var shape Shape
-		shape.Edges = append(shape.Edges, NewCircle(math.NewVector2[float64](0, 0), (item.End*size)/2+overlap/4).Draw()...)
-		shape.Edges = append(shape.Edges, NewCircle(math.NewVector2[float64](0, 0), (item.Start*size)/2-overlap/4).Draw()...)
+		radiusStart := (item.Start*size)/2 - overlap/4
+		radiusEnd := (item.End*size)/2 + overlap/4
+		start := NewCircle(math.NewVector2[float64](0, 0), radiusStart).Draw()
+		if radiusStart <= 0 {
+			start = nil
+		}
+		end := NewCircle(math.NewVector2[float64](0, 0), radiusEnd).Draw()
+		shape.Edges = append(shape.Edges, end...)
+		shape.Edges = append(shape.Edges, NewShape(start).Reverse().Edges...)
 		paths = append(paths, DrawPathFill(
 			&FillStyleRecord{
 				Fill: item.Color,
 				Blur: blur,
 			},
-			shape.ApplyMatrixTransform(g.Transform, true),
+			&shape,
 			nil, //TODO: clip here instead of outside
-		).ApplyMatrixTransform(g.Transform, true))
+		))
 	}
-	return paths
+	return paths.ApplyMatrixTransform(g.Transform, true)
 }
 
 func (g RadialGradient) GetMatrixTransform() math.MatrixTransform {
