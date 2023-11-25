@@ -6,7 +6,7 @@ import (
 
 type JPEGTables struct {
 	_    struct{} `swfFlags:"root"`
-	Data types.Bytes
+	Data types.UntilEndBytes
 }
 
 func (t *JPEGTables) Code() Code {

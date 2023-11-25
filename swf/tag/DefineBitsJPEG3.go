@@ -12,7 +12,7 @@ type DefineBitsJPEG3 struct {
 	CharacterId     uint16
 	AlphaDataOffset uint32
 	ImageData       []byte `swfCount:"AlphaDataOffset"`
-	BitmapAlphaData types.Bytes
+	BitmapAlphaData types.UntilEndBytes
 }
 
 func (t *DefineBitsJPEG3) GetAlphaData() []byte {

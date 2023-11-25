@@ -13,10 +13,10 @@ const (
 	_
 	RecordJPEGTables
 	RecordSetBackgroundColor
-	_
-	_
+	RecordDefineFont
+	RecordDefineText
 	RecordDoAction
-	_
+	RecordDefineFontInfo
 	RecordDefineSound
 	RecordStartSound
 	_
@@ -36,7 +36,7 @@ const (
 	_
 	_
 	RecordDefineShape3
-	_
+	RecordDefineText2
 	_
 	RecordDefineBitsJPEG3
 	RecordDefineBitsLossless2
@@ -51,7 +51,7 @@ const (
 	RecordSoundStreamHead2
 	RecordDefineMorphShape
 	_
-	_
+	RecordDefineFont2
 	_
 	_
 	_
@@ -65,7 +65,7 @@ const (
 	RecordDoInitAction
 	_
 	_
-	_
+	RecordDefineFontInfo2
 	_
 	_
 	_
@@ -76,9 +76,9 @@ const (
 	RecordPlaceObject3
 	RecordImportAssets2
 	_
+	RecordDefineFontAlignZones
 	_
-	_
-	_
+	RecordDefineFont3
 	RecordSymbolClass
 	RecordMetadata
 	RecordDefineScalingGrid
@@ -91,7 +91,8 @@ const (
 	_
 	RecordDefineSceneAndFrameLabelData
 	_
-	_
+	RecordDefineFontName
 	RecordStartSound2
 	RecordDefineBitsJPEG4
+	RecordDefineFont4
 )

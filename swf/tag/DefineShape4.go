@@ -8,8 +8,8 @@ import (
 type DefineShape4 struct {
 	_                     struct{} `swfFlags:"root,align"`
 	ShapeId               uint16
-	ShapeBounds           types.Rectangle
-	EdgeBounds            types.Rectangle
+	ShapeBounds           types.RECT
+	EdgeBounds            types.RECT
 	Reserved              uint8 `swfBits:",5"`
 	UsesFillWindingRule   bool
 	UsesNonScalingStrokes bool

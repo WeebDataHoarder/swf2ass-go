@@ -7,7 +7,7 @@ import (
 type DefineBits struct {
 	_           struct{} `swfFlags:"root"`
 	CharacterId uint16
-	Data        types.Bytes
+	Data        types.UntilEndBytes
 }
 
 func (t *DefineBits) Code() Code {

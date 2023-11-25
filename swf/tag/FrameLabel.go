@@ -12,7 +12,7 @@ type FrameLabel struct {
 }
 
 func (t *FrameLabel) SWFRead(r types.DataReader, ctx types.ReaderContext) (err error) {
-	t.Name, err = types.ReadString(r, ctx.Version)
+	t.Name, err = types.ReadNullTerminatedString(r, ctx.Version)
 	if err != nil {
 		return err
 	}

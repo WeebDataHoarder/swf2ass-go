@@ -8,5 +8,9 @@ import (
 type Float16 float16.Float16
 
 func (f *Float16) SWFRead(r DataReader, ctx ReaderContext) (err error) {
-	panic("todo")
+	err = ReadU16(r, f)
+	if err != nil {
+		return err
+	}
+	return nil
 }

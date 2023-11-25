@@ -29,6 +29,28 @@ type ReaderContext struct {
 	FieldType reflect.StructField
 }
 
+func (ctx ReaderContext) GetNestedType(fields ...string) reflect.Value {
+	if len(fields) == 2 && fields[0] == "context" {
+		return reflect.ValueOf(slices.Contains(ctx.Flags, fields[1]))
+	}
+
+	el := ctx.Root
+	for len(fields) > 0 && fields[0] != "" {
+		if strings.HasSuffix(fields[0], "()") {
+			n := strings.TrimSuffix(fields[0], "()")
+			m := el.Addr().MethodByName(n)
+			if !m.IsValid() {
+				m = el.MethodByName(n)
+			}
+			el = m
+		} else {
+			el = el.FieldByName(fields[0])
+		}
+		fields = fields[1:]
+	}
+	return el
+}
+
 type TypeReader interface {
 	SWFRead(reader DataReader, ctx ReaderContext) error
 }
@@ -260,7 +282,7 @@ func ReadEncodedU32[T ~uint32](r DataReader) (d T, err error) {
 	return T(v), nil
 }
 
-func ReadString(r DataReader, swfVersion uint8) (d string, err error) {
+func ReadNullTerminatedString(r DataReader, swfVersion uint8) (d string, err error) {
 	var v uint8
 	for {
 		err = ReadU8[uint8](r, &v)
@@ -297,28 +319,6 @@ var typeDefaultReflect = reflect.TypeOf((*TypeDefault)(nil)).Elem()
 var typeFuncConditionalReflect = reflect.TypeOf((*TypeFuncConditional)(nil)).Elem()
 
 var typeFuncNumberReflect = reflect.TypeOf((*TypeFuncNumber)(nil)).Elem()
-
-func getNestedType(ctx ReaderContext, fields ...string) reflect.Value {
-	if len(fields) == 2 && fields[0] == "context" {
-		return reflect.ValueOf(slices.Contains(ctx.Flags, fields[1]))
-	}
-
-	el := ctx.Root
-	for len(fields) > 0 && fields[0] != "" {
-		if strings.HasSuffix(fields[0], "()") {
-			n := strings.TrimSuffix(fields[0], "()")
-			m := el.Addr().MethodByName(n)
-			if !m.IsValid() {
-				m = el.MethodByName(n)
-			}
-			el = m
-		} else {
-			el = el.FieldByName(fields[0])
-		}
-		fields = fields[1:]
-	}
-	return el
-}
 
 func ReadType(r DataReader, ctx ReaderContext, data any) (err error) {
 	if tr, ok := data.(TypeDefault); ok {
@@ -419,12 +419,20 @@ func ReadTypeInner(r DataReader, ctx ReaderContext, data any) (err error) {
 					}
 				} else {
 					splits := strings.Split(swfTag, ".")
-					el := getNestedType(fieldCtx, splits...)
+					negate := false
+					if len(splits) > 0 && strings.HasPrefix(splits[0], "!") {
+						negate = true
+						splits[0] = splits[0][1:]
+					}
+					el := fieldCtx.GetNestedType(splits...)
 
 					switch el.Kind() {
 					case reflect.Bool:
 						lastConditionCachedPath = swfTag
 						lastConditionCachedValue = el.Bool()
+						if negate {
+							lastConditionCachedValue = !lastConditionCachedValue
+						}
 						if !lastConditionCachedValue {
 							continue
 						}
@@ -432,6 +440,9 @@ func ReadTypeInner(r DataReader, ctx ReaderContext, data any) (err error) {
 						if el.Type().AssignableTo(typeFuncConditionalReflect) {
 							lastConditionCachedPath = swfTag
 							lastConditionCachedValue = el.Interface().(func(ctx ReaderContext) bool)(fieldCtx)
+							if negate {
+								lastConditionCachedValue = !lastConditionCachedValue
+							}
 							if !lastConditionCachedValue {
 								continue
 							}
@@ -468,7 +479,7 @@ func ReadTypeInner(r DataReader, ctx ReaderContext, data any) (err error) {
 						}
 					}
 
-					el := getNestedType(fieldCtx, splits...)
+					el := fieldCtx.GetNestedType(splits...)
 
 					if len(splits) == 1 && len(splits[0]) == 0 && len(bitFlags) > 0 {
 						//numerical fixed
@@ -546,7 +557,7 @@ func ReadTypeInner(r DataReader, ctx ReaderContext, data any) (err error) {
 
 		if swfTag := ctx.FieldType.Tag.Get("swfCount"); swfTag != "" {
 			splits := strings.Split(swfTag, ".")
-			el := getNestedType(ctx, splits...)
+			el := ctx.GetNestedType(splits...)
 
 			switch el.Kind() {
 			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
@@ -564,7 +575,7 @@ func ReadTypeInner(r DataReader, ctx ReaderContext, data any) (err error) {
 			}
 		} else if swfTag := ctx.FieldType.Tag.Get("swfMore"); swfTag != "" {
 			splits := strings.Split(swfTag, ".")
-			el := getNestedType(ctx, splits...)
+			el := ctx.GetNestedType(splits...)
 
 			switch el.Kind() {
 			case reflect.Func:
@@ -687,7 +698,7 @@ func ReadTypeInner(r DataReader, ctx ReaderContext, data any) (err error) {
 		}
 		dataElement.SetInt(value)
 	case reflect.String:
-		value, err := ReadString(r, ctx.Version)
+		value, err := ReadNullTerminatedString(r, ctx.Version)
 		if err != nil {
 			return err
 		}

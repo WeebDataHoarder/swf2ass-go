@@ -13,7 +13,7 @@ type DefineBitsJPEG4 struct {
 	AlphaDataOffset uint32
 	DeblockParam    types.Fixed8
 	ImageData       []byte `swfCount:"AlphaDataOffset"`
-	BitmapAlphaData types.Bytes
+	BitmapAlphaData types.UntilEndBytes
 }
 
 func (t *DefineBitsJPEG4) GetAlphaData() []byte {

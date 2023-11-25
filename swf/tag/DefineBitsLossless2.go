@@ -15,7 +15,7 @@ type DefineBitsLossless2 struct {
 	Format         uint8
 	Width, Height  uint16
 	ColorTableSize uint8 `swfCondition:"HasColorTableSize()"`
-	ZlibData       types.Bytes
+	ZlibData       types.UntilEndBytes
 }
 
 func (t *DefineBitsLossless2) HasColorTableSize(ctx types.ReaderContext) bool {

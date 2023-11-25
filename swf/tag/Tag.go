@@ -110,6 +110,26 @@ func (r *Record) Decode() (readTag Tag, err error) {
 		readTag = &StartSound{}
 	case RecordStartSound2:
 		readTag = &StartSound2{}
+	case RecordDefineFont:
+		readTag = &DefineFont{}
+	case RecordDefineFontInfo:
+		readTag = &DefineFontInfo{}
+	case RecordDefineFont2:
+		readTag = &DefineFont2{}
+	case RecordDefineFontInfo2:
+		readTag = &DefineFontInfo2{}
+	case RecordDefineText:
+		readTag = &DefineText{}
+	case RecordDefineText2:
+		readTag = &DefineText2{}
+	case RecordDefineFontAlignZones:
+		readTag = &DefineFontAlignZones{}
+	case RecordDefineFont3:
+		readTag = &DefineFont3{}
+	case RecordDefineFontName:
+		readTag = &DefineFontName{}
+	case RecordDefineFont4:
+		readTag = &DefineFont4{}
 
 	case RecordExportAssets:
 	case RecordImportAssets:

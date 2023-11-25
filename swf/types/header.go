@@ -10,7 +10,7 @@ type Header struct {
 	Signature  HeaderSignature
 	Version    uint8
 	FileLength uint32
-	FrameSize  Rectangle
+	FrameSize  RECT
 	FrameRate  Fixed8
 	FrameCount uint16
 }

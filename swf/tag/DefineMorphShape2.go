@@ -8,8 +8,8 @@ import (
 type DefineMorphShape2 struct {
 	_                              struct{} `swfFlags:"root"`
 	CharacterId                    uint16
-	StartBounds, EndBounds         types.Rectangle
-	StartEdgeBounds, EndEdgeBounds types.Rectangle
+	StartBounds, EndBounds         types.RECT
+	StartEdgeBounds, EndEdgeBounds types.RECT
 	Reserved                       uint8 `swfBits:",6"`
 	UsesNonScalingStrokes          bool
 	UsesScalingStrokes             bool

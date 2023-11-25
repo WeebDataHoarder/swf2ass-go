@@ -24,8 +24,8 @@ type SHAPEWITHSTYLE struct {
 type SHAPERECORDS []SHAPERECORD
 
 func (records *SHAPERECORDS) SWFRead(r types.DataReader, ctx types.ReaderContext) (err error) {
-	fillBits := uint8(ctx.Root.FieldByName("FillBits").Uint())
-	lineBits := uint8(ctx.Root.FieldByName("LineBits").Uint())
+	fillBits := uint8(ctx.GetNestedType("FillBits").Uint())
+	lineBits := uint8(ctx.GetNestedType("LineBits").Uint())
 	*records = make(SHAPERECORDS, 0, 512)
 	for {
 		isEdge, err := types.ReadBool(r)

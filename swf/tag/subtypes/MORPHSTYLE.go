@@ -69,16 +69,12 @@ type MORPHLINESTYLEARRAY struct {
 	_                      struct{} `swfFlags:"root"`
 	LineStyleCount         uint8
 	LineStyleCountExtended uint16            `swfCondition:"HasLineStyleCountExtended()"`
-	LineStyles             []MORPHLINESTYLE  `swfCondition:"HasLineStyles()" swfCount:"LineStylesLength()"`
+	LineStyles             []MORPHLINESTYLE  `swfCondition:"!HasLineStyles2()" swfCount:"LineStylesLength()"`
 	LineStyles2            []MORPHLINESTYLE2 `swfCondition:"HasLineStyles2()" swfCount:"LineStylesLength()"`
 }
 
 func (t *MORPHLINESTYLEARRAY) HasLineStyleCountExtended(ctx types.ReaderContext) bool {
 	return t.LineStyleCount == 0xff
-}
-
-func (t *MORPHLINESTYLEARRAY) HasLineStyles(ctx types.ReaderContext) bool {
-	return !t.HasLineStyles2(ctx)
 }
 
 func (t *MORPHLINESTYLEARRAY) HasLineStyles2(ctx types.ReaderContext) bool {
@@ -113,14 +109,10 @@ type MORPHLINESTYLE2 struct {
 		EndCapStyle        uint8 `swfBits:",2"`
 	}
 	MitterLimitFactor    uint16         `swfCondition:"HasMitterLimitFactor()"`
-	StartColor, EndColor types.RGBA     `swfCondition:"HasColor()"`
+	StartColor, EndColor types.RGBA     `swfCondition:"!Flag.HasFill"`
 	FillType             MORPHFILLSTYLE `swfCondition:"Flag.HasFill"`
 }
 
 func (t *MORPHLINESTYLE2) HasMitterLimitFactor(ctx types.ReaderContext) bool {
 	return t.Flag.JoinStyle == 2
-}
-
-func (t *MORPHLINESTYLE2) HasColor(ctx types.ReaderContext) bool {
-	return !t.Flag.HasFill
 }

@@ -83,7 +83,7 @@ type DefineSound struct {
 	SoundSize        uint8       `swfBits:",1"`
 	IsStereo         bool
 	SoundSampleCount uint32
-	SoundData        types.Bytes
+	SoundData        types.UntilEndBytes
 }
 
 func (t *DefineSound) Code() Code {
@@ -144,7 +144,7 @@ func (t *SoundStreamHead2) Code() Code {
 
 type SoundStreamBlock struct {
 	_    struct{} `swfFlags:"root"`
-	Data types.Bytes
+	Data types.UntilEndBytes
 }
 
 func (t *SoundStreamBlock) Code() Code {

@@ -8,7 +8,7 @@ import (
 type DefineShape struct {
 	_           struct{} `swfFlags:"root"`
 	ShapeId     uint16
-	ShapeBounds types.Rectangle
+	ShapeBounds types.RECT
 	Shapes      subtypes.SHAPEWITHSTYLE
 }
 

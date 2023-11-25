@@ -8,7 +8,7 @@ import (
 type DefineMorphShape struct {
 	_                      struct{} `swfFlags:"root"`
 	CharacterId            uint16
-	StartBounds, EndBounds types.Rectangle
+	StartBounds, EndBounds types.RECT
 	Offset                 uint32
 	MorphFillStyles        subtypes.MORPHFILLSTYLEARRAY
 	MorphLineStyles        subtypes.MORPHLINESTYLEARRAY

@@ -1,6 +1,6 @@
 package types
 
-type Rectangle struct {
+type RECT struct {
 	_     struct{} `swfFlags:"root,alignend"`
 	NBits uint8    `swfBits:",5"`
 	Xmin  Twip     `swfBits:"NBits,signed"`

@@ -81,7 +81,7 @@ func (r Rectangle[T]) DrawOpen() []records.Record {
 	return r.Draw()[:3]
 }
 
-func RectangleFromSWF(rect types.Rectangle) Rectangle[float64] {
+func RectangleFromSWF(rect types.RECT) Rectangle[float64] {
 	return Rectangle[float64]{
 		TopLeft:     math.NewVector2(rect.Xmin.Float64(), rect.Ymin.Float64()),
 		BottomRight: math.NewVector2(rect.Xmax.Float64(), rect.Ymax.Float64()),

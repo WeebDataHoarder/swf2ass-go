@@ -116,16 +116,12 @@ type LINESTYLEARRAY struct {
 	_                      struct{} `swfFlags:"root"`
 	LineStyleCount         uint8
 	LineStyleCountExtended uint16       `swfCondition:"HasLineStyleCountExtended()"`
-	LineStyles             []LINESTYLE  `swfCondition:"HasLineStyles()" swfCount:"LineStylesLength()"`
+	LineStyles             []LINESTYLE  `swfCondition:"!HasLineStyles2()" swfCount:"LineStylesLength()"`
 	LineStyles2            []LINESTYLE2 `swfCondition:"HasLineStyles2()" swfCount:"LineStylesLength()"`
 }
 
 func (t *LINESTYLEARRAY) HasLineStyleCountExtended(ctx types.ReaderContext) bool {
 	return t.LineStyleCount == 0xff
-}
-
-func (t *LINESTYLEARRAY) HasLineStyles(ctx types.ReaderContext) bool {
-	return !t.HasLineStyles2(ctx)
 }
 
 func (t *LINESTYLEARRAY) HasLineStyles2(ctx types.ReaderContext) bool {
