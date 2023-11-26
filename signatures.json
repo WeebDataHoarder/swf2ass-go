@@ -3,7 +3,7 @@
     "name": "IJSW.swf",
     "description": "removes playback menus",
     "remove": [
-      {"objectId": null, "_objectId": 2, "depth": [0, 31]},
+      {"objectId": 2, "depth": null},
       {"objectId": null, "_objectId": 3, "depth": [0, 145]},
       {"objectId": null, "_objectId": 69, "depth": [0, 146]}
     ]
