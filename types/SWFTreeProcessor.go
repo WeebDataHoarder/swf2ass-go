@@ -417,9 +417,7 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 
 	case *swftag.PlaceObject:
 		var object shapes.ObjectDefinition
-		if vl := p.Layout.Get(node.Depth); vl != nil {
-			object = vl.Object
-		}
+		p.Objects.Get(node.CharacterId)
 
 		var transform *math.MatrixTransform
 		if t := math.MatrixTransformFromSWF(node.Matrix); !t.IsIdentity() {
@@ -436,7 +434,7 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 	case *swftag.PlaceObject2:
 		var object shapes.ObjectDefinition
 		if node.Flag.HasCharacter {
-			object = p.Objects[node.CharacterId]
+			object = p.Objects.Get(node.CharacterId)
 		} else if vl := p.Layout.Get(node.Depth); vl != nil {
 			object = vl.Object
 		}
@@ -458,7 +456,7 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 		//TODO: handle extra properties
 		var object shapes.ObjectDefinition
 		if node.Flag.HasCharacter {
-			object = p.Objects[node.CharacterId]
+			object = p.Objects.Get(node.CharacterId)
 		} else {
 			object = p.Layout.Get(node.Depth).Object
 		}

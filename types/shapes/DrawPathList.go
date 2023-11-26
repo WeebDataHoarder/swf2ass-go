@@ -2,7 +2,6 @@ package shapes
 
 import (
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/tag/subtypes"
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 )
 
@@ -76,23 +75,13 @@ func (l DrawPathList) ApplyMatrixTransform(transform math.MatrixTransform, apply
 	return r
 }
 
-func DrawPathListFillFromSWF(l DrawPathList, transform types.MATRIX) DrawPathList {
-	// shape is already in pixel world, but matrix comes as twip
-	baseScale := math.ScaleTransform(math.NewVector2[float64](1./types.TwipFactor, 1./types.TwipFactor))
-	t := math.MatrixTransformFromSWF(transform).Multiply(baseScale)
-	return l.ApplyMatrixTransform(t, true)
-}
-
 func DrawPathListFromSWF(collection ObjectCollection, records subtypes.SHAPERECORDS, styles StyleList) DrawPathList {
-	converter := NewShapeConverter(collection, records, styles)
-	converter.Convert(false)
-
-	return converter.Commands
+	return NewShapeConverter(collection, styles).Convert(records)
 }
 
-func DrawPathListFromSWFMorph(collection ObjectCollection, startRecords, endRecords subtypes.SHAPERECORDS, styles StyleList, flip bool) DrawPathList {
-	converter := NewMorphShapeConverter(collection, startRecords, endRecords, styles)
-	converter.Convert(flip)
+func DrawPathListFromSWFMorph(collection ObjectCollection, startRecords, endRecords subtypes.SHAPERECORDS, startStyles, endStyles StyleList) (DrawPathList, DrawPathList) {
+	converter := NewMorphShapeConverter(collection, startStyles)
+	startRecords, endRecords = converter.ConvertMorph(startRecords, endRecords)
 
-	return converter.Commands
+	return converter.Convert(startRecords), NewMorphShapeConverter(collection, endStyles).Convert(endRecords)
 }

@@ -23,159 +23,139 @@ type ShapeConverter struct {
 	Commands DrawPathList
 
 	Finished bool
-
-	FirstElement, SecondElement subtypes.SHAPERECORDS
 }
 
-func NewShapeConverter(collection ObjectCollection, element subtypes.SHAPERECORDS, styles StyleList) *ShapeConverter {
+func NewShapeConverter(collection ObjectCollection, styles StyleList) *ShapeConverter {
 	return &ShapeConverter{
-		Collection:   collection,
-		Styles:       styles,
-		Position:     math.NewVector2[types.Twip](0, 0),
-		Fills:        make(PendingPathMap),
-		Strokes:      make(PendingPathMap),
-		FirstElement: element,
+		Collection: collection,
+		Styles:     styles,
+		Position:   math.NewVector2[types.Twip](0, 0),
+		Fills:      make(PendingPathMap),
+		Strokes:    make(PendingPathMap),
 	}
 }
 
-func NewMorphShapeConverter(collection ObjectCollection, firstElement, secondElement subtypes.SHAPERECORDS, styles StyleList) *ShapeConverter {
+func NewMorphShapeConverter(collection ObjectCollection, styles StyleList) *ShapeConverter {
 	return &ShapeConverter{
-		Collection:    collection,
-		Styles:        styles,
-		Position:      math.NewVector2[types.Twip](0, 0),
-		Fills:         make(PendingPathMap),
-		Strokes:       make(PendingPathMap),
-		FirstElement:  firstElement,
-		SecondElement: secondElement,
+		Collection: collection,
+		Styles:     styles,
+		Position:   math.NewVector2[types.Twip](0, 0),
+		Fills:      make(PendingPathMap),
+		Strokes:    make(PendingPathMap),
 	}
 }
 
-func (c *ShapeConverter) Convert(flipElements bool) {
+func (c *ShapeConverter) Convert(elements subtypes.SHAPERECORDS) DrawPathList {
 	if c.Finished {
-		return
+		return nil
 	}
 
-	firstElement := c.FirstElement
-	secondElement := c.SecondElement
-
-	for {
-		var a, b subtypes.SHAPERECORD
-		if len(secondElement) > 0 {
-			b = secondElement[0]
-		}
-
-		if len(firstElement) > 0 {
-			a = firstElement[0]
-		} else {
-			if b != nil {
-				panic("a finished, b did not")
-			}
-			break
-		}
-
-		if b == nil {
-			if flipElements {
-				panic("b finished, a did not")
-			}
-			c.HandleNode(a)
-			firstElement = firstElement[1:]
-			continue
-		}
-
-		if c.Finished {
-			panic("more paths after end")
-		}
-
-		if a.RecordType() == b.RecordType() {
-			switch a := a.(type) {
-			case *subtypes.StyleChangeRecord:
-				bCopy := *b.(*subtypes.StyleChangeRecord)
-				aCopy := *a
-
-				if aCopy.Flag.NewStyles {
-					bCopy.Flag.NewStyles = aCopy.Flag.NewStyles
-					bCopy.FillStyles = aCopy.FillStyles
-					bCopy.LineStyles = aCopy.LineStyles
-				}
-				if aCopy.Flag.LineStyle {
-					bCopy.Flag.LineStyle = aCopy.Flag.LineStyle
-					bCopy.LineStyle = aCopy.LineStyle
-				}
-				if aCopy.Flag.FillStyle0 {
-					bCopy.Flag.FillStyle0 = aCopy.Flag.FillStyle0
-					bCopy.FillStyle0 = aCopy.FillStyle0
-				}
-				if aCopy.Flag.FillStyle1 {
-					bCopy.Flag.FillStyle1 = aCopy.Flag.FillStyle1
-					bCopy.FillStyle1 = aCopy.FillStyle1
-				}
-
-				if !flipElements && !aCopy.Flag.MoveTo && bCopy.Flag.MoveTo {
-					aCopy.Flag.MoveTo = bCopy.Flag.MoveTo
-					aCopy.MoveDeltaX = c.Position.X
-					aCopy.MoveDeltaY = c.Position.Y
-				}
-
-				if flipElements && aCopy.Flag.MoveTo && !bCopy.Flag.MoveTo {
-					bCopy.Flag.MoveTo = aCopy.Flag.MoveTo
-					bCopy.MoveDeltaX = c.Position.X
-					bCopy.MoveDeltaY = c.Position.Y
-				}
-
-				if flipElements {
-					c.HandleNode(&bCopy)
-				} else {
-					c.HandleNode(&aCopy)
-				}
-			}
-
-			firstElement = firstElement[1:]
-			secondElement = secondElement[1:]
-		} else if aStyleChange, ok := a.(*subtypes.StyleChangeRecord); ok {
-			bCopy := *aStyleChange
-
-			if bCopy.Flag.MoveTo {
-				bCopy.MoveDeltaX = c.Position.X
-				bCopy.MoveDeltaY = c.Position.Y
-			}
-
-			if flipElements {
-				c.HandleNode(&bCopy)
-			} else {
-				c.HandleNode(aStyleChange)
-			}
-
-			firstElement = firstElement[1:]
-		} else if bStyleChange, ok := b.(*subtypes.StyleChangeRecord); ok {
-			aCopy := *bStyleChange
-
-			if aCopy.Flag.MoveTo {
-				aCopy.MoveDeltaX = c.Position.X
-				aCopy.MoveDeltaY = c.Position.Y
-			}
-
-			if flipElements {
-				c.HandleNode(bStyleChange)
-			} else {
-				c.HandleNode(&aCopy)
-			}
-
-			secondElement = secondElement[1:]
-		} else {
-			//Curve/line records can differ
-
-			if flipElements {
-				c.HandleNode(b)
-			} else {
-				c.HandleNode(a)
-			}
-
-			firstElement = firstElement[1:]
-			secondElement = secondElement[1:]
-		}
+	for _, e := range elements {
+		c.HandleNode(e)
 	}
 
 	c.FlushLayer()
+
+	return c.Commands
+}
+
+// ConvertMorph
+// We step through both the start records and end records, interpolating edges pairwise.
+// Fill style/line style changes should only appear in the start records.
+// However, StyleChangeRecord move_to can appear it both start and end records,
+// and not necessarily in matching pairs; therefore, we have to keep track of the pen position
+// in case one side is missing a move_to; it will implicitly use the last pen position.
+func (c *ShapeConverter) ConvertMorph(start, end subtypes.SHAPERECORDS) (startList, endList subtypes.SHAPERECORDS) {
+	if c.Finished {
+		return nil, nil
+	}
+
+	var startPos, endPos math.Vector2[types.Twip]
+
+	updatePos := func(v math.Vector2[types.Twip], s subtypes.SHAPERECORD) math.Vector2[types.Twip] {
+		switch s := s.(type) {
+		case *subtypes.StraightEdgeRecord:
+			v = v.AddVector(math.NewVector2(s.DeltaX, s.DeltaY))
+		case *subtypes.CurvedEdgeRecord:
+			v = v.AddVector(math.NewVector2(s.ControlDeltaX+s.AnchorDeltaX, s.ControlDeltaY+s.AnchorDeltaY))
+		case *subtypes.StyleChangeRecord:
+			if s.Flag.MoveTo {
+				v = math.NewVector2(s.MoveDeltaX, s.MoveDeltaY)
+			}
+		}
+		return v
+	}
+
+	for len(start) > 0 {
+		startPtr := start[0]
+		endPtr := end[0]
+
+		if startPtr.RecordType() == endPtr.RecordType() {
+			switch s := startPtr.(type) {
+			case *subtypes.StyleChangeRecord:
+				if s.Flag.MoveTo {
+					startPos = math.NewVector2(s.MoveDeltaX, s.MoveDeltaY)
+				}
+				e := endPtr.(*subtypes.StyleChangeRecord)
+				endRecord := *s
+				endRecord.Flag.MoveTo = e.Flag.MoveTo
+				endRecord.MoveDeltaX = e.MoveDeltaX
+				endRecord.MoveDeltaY = e.MoveDeltaY
+				if e.Flag.MoveTo {
+					endPos = math.NewVector2(e.MoveDeltaX, e.MoveDeltaY)
+				}
+				startList = append(startList, s)
+				endList = append(endList, &endRecord)
+
+				start = start[1:]
+				end = end[1:]
+			default:
+				startList = append(startList, startPtr)
+				endList = append(endList, endPtr)
+
+				start = start[1:]
+				end = end[1:]
+			}
+		} else {
+			if s, ok := startPtr.(*subtypes.StyleChangeRecord); ok {
+				endRecord := *s
+				if s.Flag.MoveTo {
+					startPos = math.NewVector2(s.MoveDeltaX, s.MoveDeltaY)
+					endRecord.MoveDeltaX = endPos.X
+					endRecord.MoveDeltaY = endPos.Y
+				}
+				startList = append(startList, startPtr)
+				endList = append(endList, &endRecord)
+				startPos = updatePos(startPos, startPtr)
+				start = start[1:]
+			} else if e, ok := endPtr.(*subtypes.StyleChangeRecord); ok {
+				startRecord := *e
+				if e.Flag.MoveTo {
+					endPos = math.NewVector2(e.MoveDeltaX, e.MoveDeltaY)
+					startRecord.MoveDeltaX = startPos.X
+					startRecord.MoveDeltaY = startPos.Y
+				}
+				startList = append(startList, &startRecord)
+				endList = append(endList, endPtr)
+				endPos = updatePos(endPos, startPtr)
+				end = end[1:]
+			} else {
+				startList = append(startList, startPtr)
+				endList = append(endList, endPtr)
+				startPos = updatePos(startPos, startPtr)
+				endPos = updatePos(endPos, endPtr)
+
+				start = start[1:]
+				end = end[1:]
+			}
+		}
+	}
+
+	if len(end) > 0 {
+		panic("did not complete")
+	}
+
+	return
 }
 
 func (c *ShapeConverter) HandleNode(node subtypes.SHAPERECORD) {

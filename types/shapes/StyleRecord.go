@@ -140,7 +140,7 @@ func FillStyleRecordFromSWF(collection ObjectCollection, fillType swfsubtypes.Fi
 		blurFactor := 1.0
 		//TODO: extend color
 		return &FillStyleRecord{
-			Fill: DrawPathListFillFromSWF(bitmap.GetShapeList(ObjectProperties{}).ApplyFunction(func(p DrawPath) DrawPath {
+			Fill: BitmapFillFromSWF(bitmap.GetShapeList(ObjectProperties{}).ApplyFunction(func(p DrawPath) DrawPath {
 				if fillStyle, ok := p.Style.(*FillStyleRecord); ok {
 					return DrawPathFill(&FillStyleRecord{
 						Fill:   fillStyle.Fill,
@@ -176,7 +176,7 @@ func FillStyleRecordFromSWF(collection ObjectCollection, fillType swfsubtypes.Fi
 		}
 		//TODO: extend color
 		return &FillStyleRecord{
-			Fill: DrawPathListFillFromSWF(bitmap.GetShapeList(ObjectProperties{}), bitmapMatrix),
+			Fill: BitmapFillFromSWF(bitmap.GetShapeList(ObjectProperties{}), bitmapMatrix),
 		}
 		//TODO other styles
 	}

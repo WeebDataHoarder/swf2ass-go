@@ -6,10 +6,10 @@ import (
 )
 
 type KERNINGRECORD struct {
-	KerningCodeLeft8   uint8  `swfCond:"!Flag.WideCodes"`
-	KerningCodeLeft16  uint16 `swfCond:"Flag.WideCodes"`
-	KerningCodeRight8  uint8  `swfCond:"!Flag.WideCodes"`
-	KerningCodeRight16 uint16 `swfCond:"Flag.WideCodes"`
+	KerningCodeLeft8   uint8  `swfCondition:"!Flag.WideCodes"`
+	KerningCodeLeft16  uint16 `swfCondition:"Flag.WideCodes"`
+	KerningCodeRight8  uint8  `swfCondition:"!Flag.WideCodes"`
+	KerningCodeRight16 uint16 `swfCondition:"Flag.WideCodes"`
 	KerningAdjustment  int16
 }
 

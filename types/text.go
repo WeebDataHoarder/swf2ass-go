@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/tag/subtypes"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
@@ -23,7 +24,7 @@ func (d *FontDefinition) GetObjectId() uint16 {
 }
 
 func (d *FontDefinition) GetShapeList(p shapes.ObjectProperties) (list shapes.DrawPathList) {
-	panic("todo")
+	fmt.Printf("something is trying to place a Font as a character!!!!!!")
 	return nil
 }
 

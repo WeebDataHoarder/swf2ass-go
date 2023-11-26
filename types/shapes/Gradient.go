@@ -9,14 +9,50 @@ import (
 	"slices"
 )
 
-type Gradient interface {
-	Fillable
-	GetSpreadMode() swfsubtypes.GradientSpreadMode
-	GetInterpolationMode() swfsubtypes.GradientInterpolationMode
-	GetItems() []GradientItem
-	GetInterpolatedDrawPaths(overlap, blur float64, gradientSlices int) DrawPathList
-	GetMatrixTransform() math2.MatrixTransform
-	ApplyColorTransform(transform math2.ColorTransform) Fillable
+type Gradient struct {
+	Records []GradientItem
+
+	Transform         math2.MatrixTransform
+	SpreadMode        swfsubtypes.GradientSpreadMode
+	InterpolationMode swfsubtypes.GradientInterpolationMode
+
+	Interpolation func(self Gradient, overlap, blur float64, gradientSlices int) DrawPathList
+}
+
+func (g Gradient) GetSpreadMode() swfsubtypes.GradientSpreadMode {
+	return g.SpreadMode
+}
+
+func (g Gradient) GetInterpolationMode() swfsubtypes.GradientInterpolationMode {
+	return g.InterpolationMode
+}
+
+func (g Gradient) GetItems() []GradientItem {
+	return g.Records
+}
+
+func (g Gradient) GetInterpolatedDrawPaths(overlap, blur float64, gradientSlices int) DrawPathList {
+	return g.Interpolation(g, overlap, blur, gradientSlices)
+}
+
+func (g Gradient) GetMatrixTransform() math2.MatrixTransform {
+	return g.Transform
+}
+
+func (g Gradient) ApplyColorTransform(transform math2.ColorTransform) Fillable {
+	g2 := g
+	g2.Records = slices.Clone(g2.Records)
+	for i, g := range g2.Records {
+		g2.Records[i] = GradientItem{
+			Ratio: g.Ratio,
+			Color: transform.ApplyToColor(g.Color),
+		}
+	}
+	return &g2
+}
+
+func (g Gradient) Fill(shape *Shape) DrawPathList {
+	return g.GetInterpolatedDrawPaths(settings.GlobalSettings.GradientOverlap, settings.GlobalSettings.GradientBlur, settings.GlobalSettings.GradientSlices).Fill(shape)
 }
 
 type GradientItem struct {
@@ -39,7 +75,7 @@ var GradientBounds = Rectangle[float64]{
 
 const GradientRatioDivisor = math.MaxUint8
 
-func LerpGradient(gradient Gradient, gradientSlices int) (result []GradientSlice) {
+func InterpolateGradient(gradient Gradient, gradientSlices int) (result []GradientSlice) {
 	items := gradient.GetItems()
 	//TODO: spread modes
 
