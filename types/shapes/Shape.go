@@ -71,6 +71,31 @@ func (s Shape) Flatten() (r Shape) {
 	return r
 }
 
+type RecordCorrespondence struct {
+	Original  records.Record
+	Flattened []records.Record
+}
+
+func (s Shape) FlattenWithCorrespondence() (r Shape, ix []RecordCorrespondence) {
+	if s.IsFlat() {
+		return s, nil
+	}
+	r = make(Shape, 0, len(s)*4)
+
+	for _, e := range s {
+		flattened := records.FlattenRecord(e, 1)
+		if len(flattened) > 1 {
+			ix = append(ix, RecordCorrespondence{
+				Original:  e,
+				Flattened: flattened,
+			})
+		}
+		r = append(r, flattened...)
+	}
+
+	return r, ix
+}
+
 func (s Shape) Equals(o Shape) bool {
 	if len(s) != len(o) {
 		return false

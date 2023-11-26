@@ -108,7 +108,7 @@ func (f *ViewFrame) Render(baseDepth uint16, depthChain Depth, parentColor *math
 					for _, p := range clipObject.DrawPathList {
 						if _, ok := p.Style.(*shapes.FillStyleRecord); ok { //Only clip with fills TODO: is this correct?
 							if p.Clip != nil {
-								clipShape.AddShape(p.Clip.ClipShape(p.Commands))
+								clipShape.AddShape(p.Clip.ClipShape(p.Commands, false))
 							} else {
 								clipShape.AddShape(p.Commands)
 							}

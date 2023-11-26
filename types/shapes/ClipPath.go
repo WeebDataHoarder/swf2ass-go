@@ -3,6 +3,7 @@ package shapes
 import (
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"github.com/ctessum/geom"
+	"slices"
 )
 
 type ClipPath struct {
@@ -50,10 +51,51 @@ func (c *ClipPath) Merge(o *ClipPath) *ClipPath {
 	}
 }
 
-func (c *ClipPath) ClipShape(o Shape) Shape {
-	return c.Clip.Intersect(ComplexPolygon{
-		Pol: NewPolygonFromShape(o),
+// ClipShape Clips a shape, but attempts to recover original curved records
+func (c *ClipPath) ClipShape(o Shape, recover bool) (r Shape) {
+	if !recover {
+		return c.Clip.Intersect(ComplexPolygon{
+			Pol: NewPolygonFromShape(o),
+		}).GetShape()
+	}
+	flatShape, correspondence := o.FlattenWithCorrespondence()
+	outShape := c.Clip.Intersect(ComplexPolygon{
+		Pol: NewPolygonFromShape(flatShape),
 	}).GetShape()
+
+	for i := 0; i < len(outShape); i++ {
+		var found bool
+		for j, e := range correspondence {
+			if func() bool {
+				k, l := i, 0
+				for {
+					if l >= len(e.Flattened) {
+						return true
+					}
+					if k >= len(outShape) {
+						return false
+					}
+					if !e.Flattened[l].Equals(outShape[k]) {
+						return false
+					}
+					k++
+					l++
+				}
+			}() {
+				//They are the same! Append entry back
+				i += len(e.Flattened) - 1
+				r = append(r, e.Original)
+				slices.Delete(correspondence, j, j+1)
+				found = true
+				break
+			}
+		}
+		if !found {
+			r = append(r, outShape[i])
+		}
+	}
+
+	return r
 }
 
 func (c *ClipPath) Intersect(o *ClipPath) *ClipPath {

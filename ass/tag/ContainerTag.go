@@ -278,7 +278,7 @@ func ContainerTagFromPathEntry(path shapes.DrawPath, clip *shapes.ClipPath, colo
 			translationTransform := math.TranslateTransform(matrixTransform.GetTranslation().Multiply(-1))
 			path = shapes.DrawPath{
 				Style:    path.Style,
-				Commands: clip.ApplyMatrixTransform(translationTransform, true).ClipShape(path.Commands),
+				Commands: clip.ApplyMatrixTransform(translationTransform, true).ClipShape(path.Commands, true),
 			}
 		}
 	} else {

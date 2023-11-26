@@ -30,7 +30,7 @@ func (l DrawPathList) Fill(shape Shape) (r DrawPathList) {
 		for _, innerPath := range l {
 			newPath := DrawPath{
 				Style:    innerPath.Style,
-				Commands: clipShape.ClipShape(innerPath.Commands),
+				Commands: clipShape.ClipShape(innerPath.Commands, true),
 			}
 			if len(newPath.Commands) == 0 {
 				continue
