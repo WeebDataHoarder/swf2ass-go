@@ -7,6 +7,10 @@ type DefineFont3 struct {
 	DefineFont2
 }
 
+func (t *DefineFont3) Scale() float64 {
+	return 1024 * 20
+}
+
 func (t *DefineFont3) Code() Code {
 	return RecordDefineFont3
 }

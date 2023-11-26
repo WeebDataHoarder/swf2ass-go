@@ -74,7 +74,7 @@ func (p *SWFTreeProcessor) placeObject(object shapes.ObjectDefinition, depth, cl
 			currentLayout.ColorTransform = colorTransform
 		}
 		if hasRatio {
-			currentLayout.Ratio = ratio
+			currentLayout.Properties.Ratio = ratio
 		}
 		return
 	}
@@ -87,7 +87,7 @@ func (p *SWFTreeProcessor) placeObject(object shapes.ObjectDefinition, depth, cl
 	}
 	view.MatrixTransform = transform
 	view.ColorTransform = colorTransform
-	view.Ratio = ratio
+	view.Properties.Ratio = ratio
 	if isMove {
 		p.Layout.Replace(depth, view)
 	} else {
@@ -141,6 +141,197 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 			ObjectId:  node.SpriteId,
 			Processor: NewSWFTreeProcessor(node.SpriteId, node.ControlTags, p.Objects),
 		})
+	case *swftag.DefineText:
+		ob := TextDefinitionFromSWF(p.Objects, node.CharacterId, node.Bounds, node.TextRecords, node.Matrix)
+		if ob == nil {
+			fmt.Printf("invalid text definition")
+		} else {
+			p.Objects.Add(ob)
+		}
+	case *swftag.DefineText2:
+		ob := TextDefinitionFromSWF(p.Objects, node.CharacterId, node.Bounds, node.TextRecords, node.Matrix)
+		if ob == nil {
+			fmt.Printf("invalid text definition")
+		} else {
+			p.Objects.Add(ob)
+		}
+	case *swftag.DefineFont:
+		if p.Loops > 0 {
+			break
+		}
+		p.Objects.Add(FontDefinitionFromSWF(
+			node.FontId,
+			nil,
+			false,
+			false,
+			false,
+			false,
+			nil,
+			node.ShapeTable,
+			node.OffsetTable,
+			[]uint8{},
+			node.Scale(),
+		))
+	case *swftag.DefineFontInfo:
+		if p.Loops > 0 {
+			break
+		}
+
+		ob := p.Objects.Get(node.FontId)
+		if ob == nil {
+			panic("font not found!")
+		}
+		if ob, ok := ob.(*FontDefinition); ok {
+			ob.Name = node.FontName
+			ob.Italic = node.Flag.Italic
+			ob.Bold = node.Flag.Bold
+			if node.Flag.WideCodes {
+				if len(node.CodeTable16) != len(ob.Entries) {
+					panic("wrong code count")
+				}
+				for i := range ob.Entries {
+					ob.Entries[i].Code = uint32(node.CodeTable16[i])
+				}
+			} else {
+				if len(node.CodeTable8) != len(ob.Entries) {
+					panic("wrong code count")
+				}
+				for i := range ob.Entries {
+					ob.Entries[i].Code = uint32(node.CodeTable8[i])
+				}
+			}
+		} else {
+			panic("object is not font definition!")
+		}
+	case *swftag.DefineFont2:
+		if p.Loops > 0 {
+			break
+		}
+		if node.Flag.WideOffsets {
+			if node.Flag.WideCodes {
+				p.Objects.Add(FontDefinitionFromSWF(
+					node.FontId,
+					node.FontName,
+					node.Flag.HasLayout,
+					true,
+					node.Flag.Italic,
+					node.Flag.Bold,
+					node.FontBoundsTable,
+					node.ShapeTable,
+					node.OffsetTable32,
+					node.CodeTable16,
+					node.Scale(),
+				))
+			} else {
+				p.Objects.Add(FontDefinitionFromSWF(
+					node.FontId,
+					node.FontName,
+					node.Flag.HasLayout,
+					true,
+					node.Flag.Italic,
+					node.Flag.Bold,
+					node.FontBoundsTable,
+					node.ShapeTable,
+					node.OffsetTable32,
+					node.CodeTable8,
+					node.Scale(),
+				))
+			}
+		} else {
+			if node.Flag.WideCodes {
+				p.Objects.Add(FontDefinitionFromSWF(
+					node.FontId,
+					node.FontName,
+					node.Flag.HasLayout,
+					true,
+					node.Flag.Italic,
+					node.Flag.Bold,
+					node.FontBoundsTable,
+					node.ShapeTable,
+					node.OffsetTable16,
+					node.CodeTable16,
+					node.Scale(),
+				))
+			} else {
+				p.Objects.Add(FontDefinitionFromSWF(
+					node.FontId,
+					node.FontName,
+					node.Flag.HasLayout,
+					true,
+					node.Flag.Italic,
+					node.Flag.Bold,
+					node.FontBoundsTable,
+					node.ShapeTable,
+					node.OffsetTable16,
+					node.CodeTable8,
+					node.Scale(),
+				))
+			}
+		}
+	case *swftag.DefineFont3:
+		if node.Flag.WideOffsets {
+			if node.Flag.WideCodes {
+				p.Objects.Add(FontDefinitionFromSWF(
+					node.FontId,
+					node.FontName,
+					node.Flag.HasLayout,
+					true,
+					node.Flag.Italic,
+					node.Flag.Bold,
+					node.FontBoundsTable,
+					node.ShapeTable,
+					node.OffsetTable32,
+					node.CodeTable16,
+					node.Scale(),
+				))
+			} else {
+				p.Objects.Add(FontDefinitionFromSWF(
+					node.FontId,
+					node.FontName,
+					node.Flag.HasLayout,
+					true,
+					node.Flag.Italic,
+					node.Flag.Bold,
+					node.FontBoundsTable,
+					node.ShapeTable,
+					node.OffsetTable32,
+					node.CodeTable8,
+					node.Scale(),
+				))
+			}
+		} else {
+			if node.Flag.WideCodes {
+				p.Objects.Add(FontDefinitionFromSWF(
+					node.FontId,
+					node.FontName,
+					node.Flag.HasLayout,
+					true,
+					node.Flag.Italic,
+					node.Flag.Bold,
+					node.FontBoundsTable,
+					node.ShapeTable,
+					node.OffsetTable16,
+					node.CodeTable16,
+					node.Scale(),
+				))
+			} else {
+				p.Objects.Add(FontDefinitionFromSWF(
+					node.FontId,
+					node.FontName,
+					node.Flag.HasLayout,
+					true,
+					node.Flag.Italic,
+					node.Flag.Bold,
+					node.FontBoundsTable,
+					node.ShapeTable,
+					node.OffsetTable16,
+					node.CodeTable8,
+					node.Scale(),
+				))
+			}
+		}
+	case *swftag.DefineFont4:
+		print(node)
 	case *swftag.DefineBits:
 		if p.Loops > 0 {
 			break
@@ -282,7 +473,6 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 		}
 
 		p.placeObject(object, node.Depth, node.ClipDepth, node.Flag.Move, node.Flag.HasRatio, node.Flag.HasClipDepth, float64(node.Ratio)/math2.MaxUint16, transform, colorTransform)
-
 	case *swftag.ShowFrame:
 	case *swftag.End:
 	case *swftag.DoAction:

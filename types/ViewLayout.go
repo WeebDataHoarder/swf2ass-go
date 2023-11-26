@@ -19,7 +19,7 @@ type ViewLayout struct {
 	ColorTransform  *math2.ColorTransform
 	MatrixTransform *math2.MatrixTransform
 
-	Ratio float64
+	Properties shapes.ObjectProperties
 
 	IsClipping bool
 	ClipDepth  uint16
@@ -101,7 +101,7 @@ func (v *ViewLayout) nextFrame(actions ActionList) (frame *ViewFrame) {
 		if mfod, ok := v.Object.(MultiFrameObjectDefinition); ok {
 			frame = mfod.NextFrame()
 		} else {
-			list := v.Object.GetShapeList(v.Ratio)
+			list := v.Object.GetShapeList(v.Properties)
 			frame = NewViewFrame(v.GetObjectId(), &list)
 		}
 	} else {

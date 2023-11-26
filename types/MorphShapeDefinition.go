@@ -18,14 +18,14 @@ func (d *MorphShapeDefinition) GetObjectId() uint16 {
 	return d.ObjectId
 }
 
-func (d *MorphShapeDefinition) GetShapeList(ratio float64) (list shapes.DrawPathList) {
+func (d *MorphShapeDefinition) GetShapeList(p shapes.ObjectProperties) (list shapes.DrawPathList) {
 	//TODO: cache shapes by ratio
 	//TODO: refactor this to use color transforms (and if able) matrix transforms
 
-	if math.Abs(ratio) < math.SmallestNonzeroFloat64 {
+	if math.Abs(p.Ratio) < math.SmallestNonzeroFloat64 {
 		return d.StartShapeList
 	}
-	if math.Abs(ratio-1.0) < math.SmallestNonzeroFloat64 {
+	if math.Abs(p.Ratio-1.0) < math.SmallestNonzeroFloat64 {
 		return d.EndShapeList
 	}
 
@@ -48,19 +48,19 @@ func (d *MorphShapeDefinition) GetShapeList(ratio float64) (list shapes.DrawPath
 
 			if aIsLineRecord && bIsLineRecord {
 				shape.AddRecord(&records.LineRecord{
-					To:    math2.LerpVector2(aLineRecord.To, bLineRecord.To, ratio),
-					Start: math2.LerpVector2(aLineRecord.Start, bLineRecord.Start, ratio),
+					To:    math2.LerpVector2(aLineRecord.To, bLineRecord.To, p.Ratio),
+					Start: math2.LerpVector2(aLineRecord.Start, bLineRecord.Start, p.Ratio),
 				})
 			} else if aIsQuadraticCurveRecord && bIsQuadraticCurveRecord {
 				shape.AddRecord(&records.QuadraticCurveRecord{
-					Control: math2.LerpVector2(aQuadraticCurveRecord.Control, bQuadraticCurveRecord.Control, ratio),
-					Anchor:  math2.LerpVector2(aQuadraticCurveRecord.Anchor, bQuadraticCurveRecord.Anchor, ratio),
-					Start:   math2.LerpVector2(aQuadraticCurveRecord.Start, bQuadraticCurveRecord.Start, ratio),
+					Control: math2.LerpVector2(aQuadraticCurveRecord.Control, bQuadraticCurveRecord.Control, p.Ratio),
+					Anchor:  math2.LerpVector2(aQuadraticCurveRecord.Anchor, bQuadraticCurveRecord.Anchor, p.Ratio),
+					Start:   math2.LerpVector2(aQuadraticCurveRecord.Start, bQuadraticCurveRecord.Start, p.Ratio),
 				})
 			} else if aIsMoveRecord && bIsMoveRecord {
 				shape.AddRecord(&records.MoveRecord{
-					To:    math2.LerpVector2(aMoveRecord.To, bMoveRecord.To, ratio),
-					Start: math2.LerpVector2(aMoveRecord.Start, bMoveRecord.Start, ratio),
+					To:    math2.LerpVector2(aMoveRecord.To, bMoveRecord.To, p.Ratio),
+					Start: math2.LerpVector2(aMoveRecord.Start, bMoveRecord.Start, p.Ratio),
 				})
 			} else {
 				panic("unsupported")
@@ -76,13 +76,13 @@ func (d *MorphShapeDefinition) GetShapeList(ratio float64) (list shapes.DrawPath
 		if c1IsFillStyle && c2IsFillStyle {
 			if c1Color, ok := c1FillStyle.Fill.(math2.Color); ok {
 				list = append(list, shapes.DrawPathFill(&shapes.FillStyleRecord{
-					Fill:   math2.LerpColor(c1Color, c2FillStyle.Fill.(math2.Color), ratio),
+					Fill:   math2.LerpColor(c1Color, c2FillStyle.Fill.(math2.Color), p.Ratio),
 					Border: c1FillStyle.Border,
 				}, &shape, nil))
 			} else if c1Gradient, ok := c1FillStyle.Fill.(shapes.Gradient); ok {
 				//TODO: proper gradients
 				list = append(list, shapes.DrawPathFill(&shapes.FillStyleRecord{
-					Fill:   math2.LerpColor(c1Gradient.GetItems()[0].Color, c2FillStyle.Fill.(shapes.Gradient).GetItems()[0].Color, ratio),
+					Fill:   math2.LerpColor(c1Gradient.GetItems()[0].Color, c2FillStyle.Fill.(shapes.Gradient).GetItems()[0].Color, p.Ratio),
 					Border: c1FillStyle.Border,
 				}, &shape, nil))
 			} else {
@@ -90,8 +90,8 @@ func (d *MorphShapeDefinition) GetShapeList(ratio float64) (list shapes.DrawPath
 			}
 		} else if c1IsLineStyle && c2IsLineStyle {
 			list = append(list, shapes.DrawPathStroke(&shapes.LineStyleRecord{
-				Width: math2.Lerp(c1LineStyle.Width, c2LineStyle.Width, ratio),
-				Color: math2.LerpColor(c1LineStyle.Color, c2LineStyle.Color, ratio),
+				Width: math2.Lerp(c1LineStyle.Width, c2LineStyle.Width, p.Ratio),
+				Color: math2.LerpColor(c1LineStyle.Color, c2LineStyle.Color, p.Ratio),
 				//TODO: blur
 			}, &shape, nil))
 		} else {

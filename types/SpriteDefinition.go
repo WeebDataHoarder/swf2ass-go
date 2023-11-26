@@ -14,7 +14,7 @@ func (d *SpriteDefinition) GetObjectId() uint16 {
 	return d.ObjectId
 }
 
-func (d *SpriteDefinition) GetShapeList(ratio float64) (list shapes.DrawPathList) {
+func (d *SpriteDefinition) GetShapeList(p shapes.ObjectProperties) (list shapes.DrawPathList) {
 	if d.CurrentFrame != nil {
 		for _, object := range d.CurrentFrame.Render(0, nil, nil, nil) {
 			list = append(list, object.DrawPathList...)

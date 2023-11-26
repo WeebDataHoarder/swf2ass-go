@@ -14,7 +14,7 @@ func (d *BitmapDefinition) GetObjectId() uint16 {
 	return d.ObjectId
 }
 
-func (d *BitmapDefinition) GetShapeList(ratio float64) (list shapes.DrawPathList) {
+func (d *BitmapDefinition) GetShapeList(p shapes.ObjectProperties) (list shapes.DrawPathList) {
 	return d.ShapeList
 }
 

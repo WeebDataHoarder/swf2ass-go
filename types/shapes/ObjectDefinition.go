@@ -3,5 +3,11 @@ package shapes
 type ObjectDefinition interface {
 	GetObjectId() uint16
 	GetSafeObject() ObjectDefinition
-	GetShapeList(ratio float64) DrawPathList
+	GetShapeList(p ObjectProperties) DrawPathList
+}
+
+type ObjectProperties struct {
+	Ratio float64
+	// Data can be any value internal to the object itself
+	Data any
 }

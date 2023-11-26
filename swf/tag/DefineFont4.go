@@ -17,6 +17,10 @@ type DefineFont4 struct {
 	FontData types.UntilEndBytes `swfCondition:"Flag.HasFontData"`
 }
 
+func (t *DefineFont4) Scale() float64 {
+	return 1024 * 20
+}
+
 func (t *DefineFont4) Code() Code {
 	return RecordDefineFont4
 }

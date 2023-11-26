@@ -50,12 +50,13 @@ func (records *TEXTRECORDS) SWFRead(r types.DataReader, ctx types.ReaderContext)
 			return err
 		}
 		*records = append(*records, record)
+		r.Align()
 	}
 	return nil
 }
 
 type TEXTRECORD struct {
-	_    struct{} `swfFlags:"root"`
+	_    struct{} `swfFlags:"root,alignend"`
 	Flag struct {
 		Type       bool  `swfFlags:"skip"`
 		Reserved   uint8 `swfBits:",3"`

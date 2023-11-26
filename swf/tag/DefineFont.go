@@ -13,6 +13,10 @@ type DefineFont struct {
 	ShapeTable       []subtypes.SHAPE `swfCount:"TableLength()"`
 }
 
+func (t *DefineFont) Scale() float64 {
+	return 1024
+}
+
 func (t *DefineFont) TableLength(ctx types.ReaderContext) uint64 {
 	return uint64(t.NumGlyphsEntries / 2)
 }

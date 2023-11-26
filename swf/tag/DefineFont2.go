@@ -43,6 +43,10 @@ type DefineFont2 struct {
 	KerningTable     []subtypes.KERNINGRECORD `swfCount:"KerningCount" swfCondition:"Flag.HasLayout"`
 }
 
+func (t *DefineFont2) Scale() float64 {
+	return 1024
+}
+
 func (t *DefineFont2) Code() Code {
 	return RecordDefineFont2
 }

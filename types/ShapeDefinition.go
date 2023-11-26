@@ -15,7 +15,7 @@ func (d *ShapeDefinition) GetObjectId() uint16 {
 	return d.ObjectId
 }
 
-func (d *ShapeDefinition) GetShapeList(ratio float64) (list shapes.DrawPathList) {
+func (d *ShapeDefinition) GetShapeList(p shapes.ObjectProperties) (list shapes.DrawPathList) {
 	return d.ShapeList
 }
 
