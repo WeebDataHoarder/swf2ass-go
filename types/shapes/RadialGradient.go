@@ -37,14 +37,14 @@ func RadialGradientFromSWF(records []swfsubtypes.GRADRECORD, transform types.MAT
 					start = nil
 				}
 				end := NewCircle(math.NewVector2[float64](0, 0), radiusEnd).Draw()
-				shape.Edges = append(shape.Edges, end...)
-				shape.Edges = append(shape.Edges, NewShape(start).Reverse().Edges...)
+				shape = append(shape, end...)
+				shape = append(shape, start.Reverse()...)
 				paths = append(paths, DrawPathFill(
 					&FillStyleRecord{
 						Fill: item.Color,
 						Blur: blur,
 					},
-					&shape,
+					shape,
 					nil, //TODO: clip here instead of outside
 				))
 			}

@@ -15,7 +15,7 @@ type StyleRecord interface {
 }
 
 type Fillable interface {
-	Fill(shape *Shape) DrawPathList
+	Fill(shape Shape) DrawPathList
 	ApplyColorTransform(transform math.ColorTransform) Fillable
 }
 
@@ -36,7 +36,7 @@ func (r *FillStyleRecord) IsFlat() bool {
 }
 
 // Flatten Creates a fill that is only composed of FillStyleRecord with Fill being math.Color
-func (r *FillStyleRecord) Flatten(s *Shape) DrawPathList {
+func (r *FillStyleRecord) Flatten(s Shape) DrawPathList {
 	if _, ok := r.Fill.(math.Color); ok {
 		return DrawPathList{
 			{
@@ -51,10 +51,8 @@ func (r *FillStyleRecord) Flatten(s *Shape) DrawPathList {
 		}
 		fill := fillable.Fill(s)
 		r.fillCache.List = fill
-		r.fillCache.Shape = &Shape{
-			Edges:  slices.Clone(s.Edges),
-			IsFlat: s.IsFlat,
-		}
+		s2 := slices.Clone(s)
+		r.fillCache.Shape = &s2
 		return fill
 	} else {
 		panic("not supported")

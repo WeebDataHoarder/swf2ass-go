@@ -178,7 +178,7 @@ func ConvertBitmapToDrawPathList(i image.Image) (r DrawPathList) {
 						{float64(iX + 1), float64(y)},
 					}}
 					if existingColor, ok := myResults[p]; ok {
-						u := existingColor.Union(poly).Simplify(0.01).(geom.Polygonal)
+						u := existingColor.Union(poly).Simplify(PolygonSimplifyTolerance).(geom.Polygonal)
 						myResults[p] = u
 					} else {
 						myResults[p] = poly
@@ -204,10 +204,10 @@ func ConvertBitmapToDrawPathList(i image.Image) (r DrawPathList) {
 				continue
 			}
 			if existingColor, ok := colors[k]; ok {
-				u := existingColor.Union(c).Simplify(0.01).(geom.Polygonal)
+				u := existingColor.Union(c).Simplify(PolygonSimplifyTolerance).(geom.Polygonal)
 				colors[k] = u
 			} else {
-				colors[k] = c.Simplify(0.01).(geom.Polygonal)
+				colors[k] = c.Simplify(PolygonSimplifyTolerance).(geom.Polygonal)
 			}
 		}
 	}
@@ -246,17 +246,17 @@ func ConvertBitmapToDrawPathList(i image.Image) (r DrawPathList) {
 				r = append(r, DrawPathFill(&FillStyleRecord{
 					Fill: k.Color(),
 				}, ComplexPolygon{
-					Pol: pol.Simplify(0.01).(geom.Polygonal),
+					Pol: pol.Simplify(PolygonSimplifyTolerance).(geom.Polygonal),
 				}.GetShape(), nil))
 			}*/
 
 		//make a rectangle covering the whole first area to optimize this case
 		r = append(r, DrawPathFill(&FillStyleRecord{
 			Fill: keys[0].Color(),
-		}, NewShape(Rectangle[float64]{
+		}, Rectangle[float64]{
 			TopLeft:     math.NewVector2[float64](0, 0),
 			BottomRight: math.NewVector2(float64(size.X+1), float64(size.Y+1)),
-		}.Draw()), nil))
+		}.Draw(), nil))
 
 		for _, k := range keys[1:] {
 			pol := colors[k]

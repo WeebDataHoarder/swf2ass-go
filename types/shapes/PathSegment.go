@@ -76,14 +76,12 @@ func (s *PathSegment[T]) TryMerge(o *PathSegment[T], isDirected bool) bool {
 	return false
 }
 
-func (s *PathSegment[T]) GetShape() *Shape {
+func (s *PathSegment[T]) GetShape() (shape Shape) {
 	if s.IsEmpty() {
 		panic("not possible")
 	}
 
-	shape := &Shape{
-		Edges: make([]records.Record, 0, len(*s)-1),
-	}
+	shape = make(Shape, 0, len(*s)-1)
 
 	points := *s
 
@@ -100,7 +98,7 @@ func (s *PathSegment[T]) GetShape() *Shape {
 		point := next()
 
 		if !point.IsBezierControl {
-			shape.AddRecord(&records.LineRecord{
+			shape = append(shape, &records.LineRecord{
 				To:    point.Pos.Float64(),
 				Start: lastPos,
 			})
@@ -111,7 +109,7 @@ func (s *PathSegment[T]) GetShape() *Shape {
 			}
 			end := next()
 
-			shape.AddRecord(&records.QuadraticCurveRecord{
+			shape = append(shape, &records.QuadraticCurveRecord{
 				Control: point.Pos.Float64(),
 				Anchor:  end.Pos.Float64(),
 				Start:   lastPos,

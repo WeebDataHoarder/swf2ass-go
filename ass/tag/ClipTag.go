@@ -24,28 +24,25 @@ func NewClipTag(clip *shapes.ClipPath, scale int) *ClipTag {
 		}
 	} else {
 		shape := clip.GetShape()
-		if len(shape.Edges) == 0 { //full clip
-			shape = &shapes.Shape{
-				Edges: []records.Record{
-					&records.LineRecord{
-						//TODO: ??? why TwipFactor here???
-						To:    math.NewVector2[float64](0, swftypes.Twip(swftypes.TwipFactor).Float64()),
-						Start: math.NewVector2[float64](0, 0),
-					},
+		if len(shape) == 0 { //full clip
+			shape = shapes.Shape{
+				&records.LineRecord{
+					//TODO: ??? why TwipFactor here???
+					To:    math.NewVector2[float64](0, swftypes.Twip(swftypes.TwipFactor).Float64()),
+					Start: math.NewVector2[float64](0, 0),
 				},
-				IsFlat: true,
 			}
 		}
 		return &ClipTag{
 			Scale:          scale,
-			BaseDrawingTag: BaseDrawingTag(*shape),
+			BaseDrawingTag: BaseDrawingTag(shape),
 		}
 	}
 }
 
 func (t *ClipTag) ApplyMatrixTransform(transform math.MatrixTransform, applyTranslation bool) DrawingTag {
 	return &ClipTag{
-		BaseDrawingTag: BaseDrawingTag(*t.AsShape().ApplyMatrixTransform(transform, applyTranslation)),
+		BaseDrawingTag: BaseDrawingTag(t.AsShape().ApplyMatrixTransform(transform, applyTranslation)),
 		Scale:          t.Scale,
 	}
 }

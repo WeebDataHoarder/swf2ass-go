@@ -13,21 +13,21 @@ type DrawTag struct {
 	Scale int
 }
 
-func NewDrawTag(shape *shapes.Shape, scale int) *DrawTag {
+func NewDrawTag(shape shapes.Shape, scale int) *DrawTag {
 	return &DrawTag{
 		Scale:          scale,
-		BaseDrawingTag: BaseDrawingTag(*shape),
+		BaseDrawingTag: BaseDrawingTag(shape),
 	}
 }
 
 func (t *DrawTag) ApplyMatrixTransform(transform math.MatrixTransform, applyTranslation bool) DrawingTag {
 	return &DrawTag{
-		BaseDrawingTag: BaseDrawingTag(*t.AsShape().ApplyMatrixTransform(transform, applyTranslation)),
+		BaseDrawingTag: BaseDrawingTag(t.AsShape().ApplyMatrixTransform(transform, applyTranslation)),
 		Scale:          t.Scale,
 	}
 }
 
-func (t *DrawTag) TransitionShape(event Event, shape *shapes.Shape) PathTag {
+func (t *DrawTag) TransitionShape(event Event, shape shapes.Shape) PathTag {
 	if t.AsShape().Equals(shape) {
 		return t
 	}

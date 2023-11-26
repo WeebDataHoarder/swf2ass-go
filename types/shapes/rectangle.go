@@ -47,10 +47,10 @@ func (r Rectangle[T]) Multiply(size T) Rectangle[T] {
 	}
 }
 
-func (r Rectangle[T]) Draw() []records.Record {
+func (r Rectangle[T]) Draw() Shape {
 	tl := r.TopLeft.Float64()
 	br := r.BottomRight.Float64()
-	return []records.Record{
+	return Shape{
 		&records.LineRecord{
 			To:    math.NewVector2(tl.X, br.Y),
 			Start: tl,

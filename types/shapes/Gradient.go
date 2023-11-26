@@ -51,7 +51,7 @@ func (g Gradient) ApplyColorTransform(transform math2.ColorTransform) Fillable {
 	return &g2
 }
 
-func (g Gradient) Fill(shape *Shape) DrawPathList {
+func (g Gradient) Fill(shape Shape) DrawPathList {
 	return g.GetInterpolatedDrawPaths(settings.GlobalSettings.GradientOverlap, settings.GlobalSettings.GradientBlur, settings.GlobalSettings.GradientSlices).Fill(shape)
 }
 

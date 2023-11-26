@@ -22,7 +22,7 @@ func (l DrawPathList) ApplyFunction(f func(p DrawPath) DrawPath) (r DrawPathList
 	return r
 }
 
-func (l DrawPathList) Fill(shape *Shape) (r DrawPathList) {
+func (l DrawPathList) Fill(shape Shape) (r DrawPathList) {
 	if false { //TODO
 
 		clipShape := NewClipPath(shape)
@@ -32,7 +32,7 @@ func (l DrawPathList) Fill(shape *Shape) (r DrawPathList) {
 				Style:    innerPath.Style,
 				Commands: clipShape.ClipShape(innerPath.Commands),
 			}
-			if len(newPath.Commands.Edges) == 0 {
+			if len(newPath.Commands) == 0 {
 				continue
 			}
 
@@ -50,7 +50,7 @@ func (l DrawPathList) Fill(shape *Shape) (r DrawPathList) {
 			Commands: innerPath.Commands,
 			Clip:     clipShape,
 		}
-		if len(newPath.Commands.Edges) == 0 {
+		if len(newPath.Commands) == 0 {
 			continue
 		}
 

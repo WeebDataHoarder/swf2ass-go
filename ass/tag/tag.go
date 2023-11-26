@@ -30,7 +30,7 @@ type PositioningTag interface {
 
 type PathTag interface {
 	Tag
-	TransitionShape(event Event, shape *shapes.Shape) PathTag
+	TransitionShape(event Event, shape shapes.Shape) PathTag
 }
 
 type ClipPathTag interface {

@@ -115,7 +115,7 @@ func (f *ViewFrame) Render(baseDepth uint16, depthChain Depth, parentColor *math
 						}
 					}
 
-					if len(clipShape.GetShape().Edges) > 0 {
+					if len(clipShape.GetShape()) > 0 {
 						clipShape = clipShape.ApplyMatrixTransform(clipObject.MatrixTransform, true)
 						if clipPath == nil {
 							clipPath = clipShape

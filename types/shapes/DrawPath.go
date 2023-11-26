@@ -5,7 +5,7 @@ import "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 type DrawPath struct {
 	Style    StyleRecord
 	Clip     *ClipPath
-	Commands *Shape
+	Commands Shape
 }
 
 func (p DrawPath) ApplyMatrixTransform(transform math.MatrixTransform, applyTranslation bool) (r DrawPath) {
@@ -36,7 +36,7 @@ func (p DrawPath) ApplyColorTransform(transform math.ColorTransform) (r DrawPath
 	}
 }
 
-func DrawPathFill(record *FillStyleRecord, shape *Shape, clip *ClipPath) DrawPath {
+func DrawPathFill(record *FillStyleRecord, shape Shape, clip *ClipPath) DrawPath {
 	return DrawPath{
 		Style:    record,
 		Commands: shape,
@@ -44,7 +44,7 @@ func DrawPathFill(record *FillStyleRecord, shape *Shape, clip *ClipPath) DrawPat
 	}
 }
 
-func DrawPathStroke(record *LineStyleRecord, shape *Shape, clip *ClipPath) DrawPath {
+func DrawPathStroke(record *LineStyleRecord, shape Shape, clip *ClipPath) DrawPath {
 	return DrawPath{
 		Style:    record,
 		Commands: shape,

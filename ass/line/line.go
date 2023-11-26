@@ -77,8 +77,8 @@ func (l *EventLine) Transition(frameInfo types.FrameInformation, object *types.R
 					return nil
 				}
 			}
-			if colorTag, ok := t.(tag.ClipPathTag); ok {
-				t = colorTag.TransitionClipPath(&line, object.Clip)
+			if clipTag, ok := t.(tag.ClipPathTag); ok {
+				t = clipTag.TransitionClipPath(&line, object.Clip)
 				if t == nil {
 					return nil
 				}

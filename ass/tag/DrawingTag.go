@@ -10,7 +10,7 @@ import (
 type DrawingTag interface {
 	Tag
 	ApplyMatrixTransform(transform math.MatrixTransform, applyTranslation bool) DrawingTag
-	AsShape() *shapes.Shape
+	AsShape() shapes.Shape
 	GetCommands(scale, precision int) string
 }
 
@@ -41,15 +41,15 @@ func vectorToPrecisionAndScale(buf []byte, scale, precision int, v math.Vector2[
 	return buf
 }
 
-func (b *BaseDrawingTag) AsShape() *shapes.Shape {
-	return (*shapes.Shape)(b)
+func (b *BaseDrawingTag) AsShape() shapes.Shape {
+	return *(*shapes.Shape)(b)
 }
 
 func (b *BaseDrawingTag) GetCommands(scale, precision int) string {
 	var lastEdge records.Record
 
-	commands := make([]byte, 0, len(b.Edges)*2*10)
-	for _, edge := range b.Edges {
+	commands := make([]byte, 0, len(*b)*2*10)
+	for _, edge := range *b {
 		moveRecord, isMoveRecord := edge.(*records.MoveRecord)
 		if !isMoveRecord {
 			if lastEdge == nil {

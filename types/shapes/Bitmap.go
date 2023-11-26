@@ -18,7 +18,7 @@ func (b Bitmap) ApplyColorTransform(transform math2.ColorTransform) Fillable {
 	return b2
 }
 
-func (b Bitmap) Fill(shape *Shape) DrawPathList {
+func (b Bitmap) Fill(shape Shape) DrawPathList {
 	return b.List.Fill(shape)
 }
 

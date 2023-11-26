@@ -24,37 +24,33 @@ func (p ComplexPolygon) Intersect(o ComplexPolygon) ComplexPolygon {
 
 const PolygonSimplifyTolerance = 0.01
 
-func (p ComplexPolygon) GetShape() (r *Shape) {
-	var edges []records.Record
+func (p ComplexPolygon) GetShape() (r Shape) {
 	for _, pol := range p.Pol.Polygons() {
-		for _, path := range pol.Simplify(0.01).(geom.Polygon) {
+		for _, path := range pol.Simplify(PolygonSimplifyTolerance).(geom.Polygon) {
 			//pol = pol.Simplify(PolygonSimplifyTolerance).(geom.Polygon)
-			edges = append(edges, &records.LineRecord{
+			r = append(r, &records.LineRecord{
 				To:    math.NewVector2(path[1].X, path[1].Y),
 				Start: math.NewVector2(path[0].X, path[0].Y),
 			})
 			for _, point := range path[2:] {
-				edges = append(edges, &records.LineRecord{
+				r = append(r, &records.LineRecord{
 					To:    math.NewVector2(point.X, point.Y),
-					Start: edges[len(edges)-1].GetEnd(),
+					Start: r[len(r)-1].GetEnd(),
 				})
 			}
 		}
 	}
-	return &Shape{
-		Edges:  edges,
-		IsFlat: true,
-	}
+	return r
 }
 
-func NewPolygonFromShape(shape *Shape) (g geom.Polygon) {
+func NewPolygonFromShape(shape Shape) (g geom.Polygon) {
 	flat := shape.Flatten()
 
 	var edges []*records.LineRecord
 
 	var lastEdge *records.LineRecord
 
-	for _, record := range flat.Edges {
+	for _, record := range flat {
 		if lastEdge != nil && !lastEdge.GetEnd().Equals(record.GetStart()) {
 			g = append(g, NewPathFromEdges(edges))
 			edges = edges[:0]
@@ -102,6 +98,6 @@ func NewPathFromEdges(edges []*records.LineRecord) (p geom.Path) {
 	return p
 }
 
-func (p ComplexPolygon) Draw() []records.Record {
-	return p.GetShape().Edges
+func (p ComplexPolygon) Draw() Shape {
+	return p.GetShape()
 }

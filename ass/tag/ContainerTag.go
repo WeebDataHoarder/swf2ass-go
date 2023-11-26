@@ -88,7 +88,7 @@ func (t *ContainerTag) TransitionStyleRecord(event Event, record shapes.StyleRec
 	return container
 }
 
-func (t *ContainerTag) TransitionShape(event Event, shape *shapes.Shape) PathTag {
+func (t *ContainerTag) TransitionShape(event Event, shape shapes.Shape) PathTag {
 	container := t.Clone(false)
 
 	index := event.GetEnd() - event.GetStart()
@@ -292,7 +292,7 @@ func ContainerTagFromPathEntry(path shapes.DrawPath, clip *shapes.ClipPath, colo
 		}
 	*/
 
-	if len(path.Commands.Edges) == 0 {
+	if len(path.Commands) == 0 {
 		return nil
 	}
 

@@ -34,7 +34,7 @@ func (d *MorphShapeDefinition) GetShapeList(p shapes.ObjectProperties) (list sha
 		var shape shapes.Shape
 
 		for _, recordPair := range shapes.IterateMorphShape(c1.Commands, c2.Commands) {
-			shape.AddRecord(records.LerpRecord(recordPair[0], recordPair[1], p.Ratio))
+			shape = append(shape, records.LerpRecord(recordPair[0], recordPair[1], p.Ratio))
 		}
 
 		//TODO: morph styles properly
@@ -44,9 +44,9 @@ func (d *MorphShapeDefinition) GetShapeList(p shapes.ObjectProperties) (list sha
 		c2LineStyle, c2IsLineStyle := c2.Style.(*shapes.LineStyleRecord)
 
 		if c1IsFillStyle && c2IsFillStyle {
-			list = append(list, shapes.DrawPathFill(shapes.LerpFillStyle(c1FillStyle, c2FillStyle, p.Ratio), &shape, c1.Clip))
+			list = append(list, shapes.DrawPathFill(shapes.LerpFillStyle(c1FillStyle, c2FillStyle, p.Ratio), shape, c1.Clip))
 		} else if c1IsLineStyle && c2IsLineStyle {
-			list = append(list, shapes.DrawPathStroke(shapes.LerpLineStyle(c1LineStyle, c2LineStyle, p.Ratio), &shape, c1.Clip))
+			list = append(list, shapes.DrawPathStroke(shapes.LerpLineStyle(c1LineStyle, c2LineStyle, p.Ratio), shape, c1.Clip))
 		} else {
 			panic("unsupported")
 		}

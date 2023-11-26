@@ -36,8 +36,7 @@ func (p *PendingPath[T]) MergePath(newSegment *PathSegment[T], directed bool) {
 	}
 }
 
-func (p *PendingPath[T]) GetShape() *Shape {
-	shape := &Shape{}
+func (p *PendingPath[T]) GetShape() (shape Shape) {
 	for _, segment := range *p {
 		shape = shape.Merge(segment.GetShape())
 	}

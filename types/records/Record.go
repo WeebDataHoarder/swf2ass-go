@@ -19,4 +19,9 @@ type Record interface {
 	IsFlat() bool
 }
 
+type CurvedRecord interface {
+	Record
+	ToLineRecords(scale int64) []Record
+}
+
 type RecordPair [2]Record

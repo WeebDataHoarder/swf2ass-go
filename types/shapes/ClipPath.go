@@ -9,14 +9,7 @@ type ClipPath struct {
 	Clip ComplexPolygon
 }
 
-func NewClipPath(shape *Shape) *ClipPath {
-	if shape == nil {
-		return &ClipPath{
-			Clip: ComplexPolygon{
-				Pol: NewPolygonFromShape(&Shape{}),
-			},
-		}
-	}
+func NewClipPath(shape Shape) *ClipPath {
 	return &ClipPath{
 		Clip: ComplexPolygon{
 			Pol: NewPolygonFromShape(shape),
@@ -24,11 +17,11 @@ func NewClipPath(shape *Shape) *ClipPath {
 	}
 }
 
-func (c *ClipPath) AddShape(shape *Shape) {
+func (c *ClipPath) AddShape(shape Shape) {
 	c.Clip.Pol = c.Clip.Pol.Union(NewPolygonFromShape(shape))
 }
 
-func (c *ClipPath) GetShape() *Shape {
+func (c *ClipPath) GetShape() Shape {
 	return c.Clip.GetShape()
 }
 
@@ -57,7 +50,7 @@ func (c *ClipPath) Merge(o *ClipPath) *ClipPath {
 	}
 }
 
-func (c *ClipPath) ClipShape(o *Shape) *Shape {
+func (c *ClipPath) ClipShape(o Shape) Shape {
 	return c.Clip.Intersect(ComplexPolygon{
 		Pol: NewPolygonFromShape(o),
 	}).GetShape()

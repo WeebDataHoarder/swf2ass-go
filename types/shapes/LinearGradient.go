@@ -33,10 +33,10 @@ func LinearGradientFromSWF(records []swfsubtypes.GRADRECORD, transform types.MAT
 						Fill: item.Color,
 						Blur: blur,
 					},
-					NewShape(Rectangle[float64]{
+					Rectangle[float64]{
 						TopLeft:     math.NewVector2(GradientBounds.TopLeft.X+item.Start*size-overlap/2, GradientBounds.TopLeft.Y),
 						BottomRight: math.NewVector2(GradientBounds.TopLeft.X+item.End*size+overlap/2, GradientBounds.BottomRight.Y),
-					}.Draw()),
+					}.Draw(),
 					nil, //TODO: clip here instead of outside
 				).ApplyMatrixTransform(self.Transform, true))
 			}

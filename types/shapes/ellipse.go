@@ -29,10 +29,10 @@ func ellipseDrawQuarter(center, size math.Vector2[float64]) *records.CubicCurveR
 	}
 }
 
-func (r Ellipse[T]) Draw() []records.Record {
+func (r Ellipse[T]) Draw() Shape {
 	center := r.Center.Float64()
 	radius := r.Radius.Float64()
-	return []records.Record{
+	return Shape{
 		ellipseDrawQuarter(center, math.NewVector2(-radius.X, radius.Y)),
 		ellipseDrawQuarter(center, radius).Reverse(), //Reverse so paths connect
 		ellipseDrawQuarter(center, math.NewVector2(radius.X, -radius.Y)),
