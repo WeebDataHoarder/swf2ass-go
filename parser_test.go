@@ -98,11 +98,11 @@ func TestParser(t *testing.T) {
 		for _, object := range rendered {
 			if object.Clip != nil {
 				clipCalls++
-				clipItems += len(object.Clip.GetShape().Edges)
+				clipItems += len(object.Clip.GetShape())
 			}
 			for _, p := range object.DrawPathList {
 				drawCalls++
-				drawItems += len(p.Commands.Edges)
+				drawItems += len(p.Commands)
 			}
 			filteredRendered = append(filteredRendered, object)
 		}

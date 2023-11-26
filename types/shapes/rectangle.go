@@ -51,19 +51,19 @@ func (r Rectangle[T]) Draw() Shape {
 	tl := r.TopLeft.Float64()
 	br := r.BottomRight.Float64()
 	return Shape{
-		&records.LineRecord{
+		records.LineRecord{
 			To:    math.NewVector2(tl.X, br.Y),
 			Start: tl,
 		},
-		&records.LineRecord{
+		records.LineRecord{
 			To:    br,
 			Start: math.NewVector2(tl.X, br.Y),
 		},
-		&records.LineRecord{
+		records.LineRecord{
 			To:    math.NewVector2(br.X, tl.Y),
 			Start: br,
 		},
-		&records.LineRecord{
+		records.LineRecord{
 			To:    tl,
 			Start: math.NewVector2(br.X, tl.Y),
 		},

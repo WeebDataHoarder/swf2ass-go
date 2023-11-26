@@ -98,7 +98,7 @@ func (s *PathSegment[T]) GetShape() (shape Shape) {
 		point := next()
 
 		if !point.IsBezierControl {
-			shape = append(shape, &records.LineRecord{
+			shape = append(shape, records.LineRecord{
 				To:    point.Pos.Float64(),
 				Start: lastPos,
 			})
@@ -109,7 +109,7 @@ func (s *PathSegment[T]) GetShape() (shape Shape) {
 			}
 			end := next()
 
-			shape = append(shape, &records.QuadraticCurveRecord{
+			shape = append(shape, records.QuadraticCurveRecord{
 				Control: point.Pos.Float64(),
 				Anchor:  end.Pos.Float64(),
 				Start:   lastPos,

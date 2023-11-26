@@ -97,7 +97,7 @@ func IterateMorphShape(start, end Shape) (r []records.RecordPair) {
 
 		if prevStart != nil && !prevStart.GetEnd().Equals(startEdge.GetStart()) {
 			advanceStart = false
-			startEdge = &records.MoveRecord{
+			startEdge = records.MoveRecord{
 				To:    startEdge.GetStart(),
 				Start: prevStart.GetEnd(),
 			}
@@ -105,7 +105,7 @@ func IterateMorphShape(start, end Shape) (r []records.RecordPair) {
 
 		if prevEnd != nil && !prevEnd.GetEnd().Equals(endEdge.GetStart()) {
 			advanceEnd = false
-			endEdge = &records.MoveRecord{
+			endEdge = records.MoveRecord{
 				To:    endEdge.GetStart(),
 				Start: prevEnd.GetEnd(),
 			}
@@ -114,12 +114,12 @@ func IterateMorphShape(start, end Shape) (r []records.RecordPair) {
 		if startEdge.SameType(endEdge) {
 			r = append(r, records.RecordPair{startEdge, endEdge})
 		} else {
-			aLineRecord, aIsLineRecord := startEdge.(*records.LineRecord)
-			aMoveRecord, aIsMoveRecord := startEdge.(*records.MoveRecord)
-			aQuadraticCurveRecord, aIsQuadraticCurveRecord := startEdge.(*records.QuadraticCurveRecord)
-			bLineRecord, bIsLineRecord := endEdge.(*records.LineRecord)
-			bMoveRecord, bIsMoveRecord := endEdge.(*records.MoveRecord)
-			bQuadraticCurveRecord, bIsQuadraticCurveRecord := endEdge.(*records.QuadraticCurveRecord)
+			aLineRecord, aIsLineRecord := startEdge.(records.LineRecord)
+			aMoveRecord, aIsMoveRecord := startEdge.(records.MoveRecord)
+			aQuadraticCurveRecord, aIsQuadraticCurveRecord := startEdge.(records.QuadraticCurveRecord)
+			bLineRecord, bIsLineRecord := endEdge.(records.LineRecord)
+			bMoveRecord, bIsMoveRecord := endEdge.(records.MoveRecord)
+			bQuadraticCurveRecord, bIsQuadraticCurveRecord := endEdge.(records.QuadraticCurveRecord)
 
 			if aIsLineRecord && bIsQuadraticCurveRecord {
 				startEdge = records.QuadraticCurveFromLineRecord(aLineRecord)
@@ -128,14 +128,14 @@ func IterateMorphShape(start, end Shape) (r []records.RecordPair) {
 				endEdge = records.QuadraticCurveFromLineRecord(bLineRecord)
 				r = append(r, records.RecordPair{aQuadraticCurveRecord, endEdge})
 			} else if aIsMoveRecord && !bIsMoveRecord {
-				endEdge = &records.MoveRecord{
+				endEdge = records.MoveRecord{
 					To:    endEdge.GetStart(),
 					Start: endEdge.GetStart(),
 				}
 				r = append(r, records.RecordPair{aMoveRecord, endEdge})
 				advanceEnd = false
 			} else if !aIsMoveRecord && bIsMoveRecord {
-				startEdge = &records.MoveRecord{
+				startEdge = records.MoveRecord{
 					To:    startEdge.GetStart(),
 					Start: startEdge.GetStart(),
 				}

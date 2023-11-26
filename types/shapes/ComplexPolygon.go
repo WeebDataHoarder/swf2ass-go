@@ -28,12 +28,12 @@ func (p ComplexPolygon) GetShape() (r Shape) {
 	for _, pol := range p.Pol.Polygons() {
 		for _, path := range pol.Simplify(PolygonSimplifyTolerance).(geom.Polygon) {
 			//pol = pol.Simplify(PolygonSimplifyTolerance).(geom.Polygon)
-			r = append(r, &records.LineRecord{
+			r = append(r, records.LineRecord{
 				To:    math.NewVector2(path[1].X, path[1].Y),
 				Start: math.NewVector2(path[0].X, path[0].Y),
 			})
 			for _, point := range path[2:] {
-				r = append(r, &records.LineRecord{
+				r = append(r, records.LineRecord{
 					To:    math.NewVector2(point.X, point.Y),
 					Start: r[len(r)-1].GetEnd(),
 				})
@@ -46,7 +46,7 @@ func (p ComplexPolygon) GetShape() (r Shape) {
 func NewPolygonFromShape(shape Shape) (g geom.Polygon) {
 	flat := shape.Flatten()
 
-	var edges []*records.LineRecord
+	var edges []records.LineRecord
 
 	var lastEdge *records.LineRecord
 
@@ -56,9 +56,9 @@ func NewPolygonFromShape(shape Shape) (g geom.Polygon) {
 			edges = edges[:0]
 		}
 
-		if lineRecord, ok := record.(*records.LineRecord); ok {
+		if lineRecord, ok := record.(records.LineRecord); ok {
 			edges = append(edges, lineRecord)
-			lastEdge = lineRecord
+			lastEdge = &lineRecord
 		} else {
 			panic("invalid record")
 		}
@@ -71,7 +71,7 @@ func NewPolygonFromShape(shape Shape) (g geom.Polygon) {
 	return g
 }
 
-func NewPathFromEdges(edges []*records.LineRecord) (p geom.Path) {
+func NewPathFromEdges(edges []records.LineRecord) (p geom.Path) {
 	p = make(geom.Path, 0, len(edges)+1)
 	start := edges[0].Start
 	to := edges[0].To

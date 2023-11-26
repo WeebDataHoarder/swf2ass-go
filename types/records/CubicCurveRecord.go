@@ -11,16 +11,16 @@ type CubicCurveRecord struct {
 	Start              math2.Vector2[float64]
 }
 
-func (r *CubicCurveRecord) GetStart() math2.Vector2[float64] {
+func (r CubicCurveRecord) GetStart() math2.Vector2[float64] {
 	return r.Start
 }
 
-func (r *CubicCurveRecord) GetEnd() math2.Vector2[float64] {
+func (r CubicCurveRecord) GetEnd() math2.Vector2[float64] {
 	return r.Anchor
 }
 
-func (r *CubicCurveRecord) Reverse() Record {
-	return &CubicCurveRecord{
+func (r CubicCurveRecord) Reverse() Record {
+	return CubicCurveRecord{
 		Control1: r.Control2,
 		Control2: r.Control1,
 		Anchor:   r.Start,
@@ -28,9 +28,9 @@ func (r *CubicCurveRecord) Reverse() Record {
 	}
 }
 
-func (r *CubicCurveRecord) ApplyMatrixTransform(transform math2.MatrixTransform, applyTranslation bool) Record {
+func (r CubicCurveRecord) ApplyMatrixTransform(transform math2.MatrixTransform, applyTranslation bool) Record {
 	//TODO: see how accurate this is
-	return &CubicCurveRecord{
+	return CubicCurveRecord{
 		Control1: math2.MatrixTransformApplyToVector(transform, r.Control1, applyTranslation),
 		Control2: math2.MatrixTransformApplyToVector(transform, r.Control2, applyTranslation),
 		Anchor:   math2.MatrixTransformApplyToVector(transform, r.Anchor, applyTranslation),
@@ -38,24 +38,24 @@ func (r *CubicCurveRecord) ApplyMatrixTransform(transform math2.MatrixTransform,
 	}
 }
 
-func (r *CubicCurveRecord) Equals(other Record) bool {
-	if o, ok := other.(*CubicCurveRecord); ok {
-		return *o == *r
+func (r CubicCurveRecord) Equals(other Record) bool {
+	if o, ok := other.(CubicCurveRecord); ok {
+		return o == r
 	}
 	return false
 }
 
-func (r *CubicCurveRecord) SameType(other Record) bool {
-	_, ok := other.(*CubicCurveRecord)
+func (r CubicCurveRecord) SameType(other Record) bool {
+	_, ok := other.(CubicCurveRecord)
 	return ok
 }
 
-func (r *CubicCurveRecord) IsFlat() bool {
+func (r CubicCurveRecord) IsFlat() bool {
 	return false
 }
 
-func CubicCurveFromQuadraticRecord(q *QuadraticCurveRecord) *CubicCurveRecord {
-	return &CubicCurveRecord{
+func CubicCurveFromQuadraticRecord(q QuadraticCurveRecord) CubicCurveRecord {
+	return CubicCurveRecord{
 		Control1: q.Start.AddVector(q.Control.Multiply(2)).Divide(3),
 		Control2: q.Anchor.AddVector(q.Control.Multiply(2)).Divide(3),
 		Anchor:   q.Anchor,
@@ -64,20 +64,20 @@ func CubicCurveFromQuadraticRecord(q *QuadraticCurveRecord) *CubicCurveRecord {
 }
 
 // ToSingleQuadraticRecord Finds if Cubic curve is a perfect fit of a Quadratic curve (aka, it was upconverted)
-func (r *CubicCurveRecord) ToSingleQuadraticRecord() *QuadraticCurveRecord {
+func (r CubicCurveRecord) ToSingleQuadraticRecord() (QuadraticCurveRecord, bool) {
 	control1 := r.Control1.Multiply(3).SubVector(r.Start).Divide(2)
 	control2 := r.Control2.Multiply(3).SubVector(r.Anchor).Divide(2)
 	if control1.Equals(control2) {
-		return &QuadraticCurveRecord{
+		return QuadraticCurveRecord{
 			Control: control1,
 			Anchor:  r.Anchor,
 			Start:   r.Start,
-		}
+		}, true
 	}
-	return nil
+	return QuadraticCurveRecord{}, false
 }
 
-func (r *CubicCurveRecord) ToLineRecords(scale int64) []Record {
+func (r CubicCurveRecord) ToLineRecords(scale int64) []Record {
 	distanceToleranceSquare := math.Pow(0.5/float64(scale), 2)
 	points := CubicRecursiveBezier(nil, 0.0, BezierCurveAngleTolerance, distanceToleranceSquare, r.Start, r.Control1, r.Control2, r.Anchor, 0)
 
@@ -90,14 +90,14 @@ func (r *CubicCurveRecord) ToLineRecords(scale int64) []Record {
 		if point.Equals(current) {
 			continue
 		}
-		result = append(result, &LineRecord{
+		result = append(result, LineRecord{
 			To:    point,
 			Start: current,
 		})
 		current = point
 	}
 
-	result = append(result, &LineRecord{
+	result = append(result, LineRecord{
 		To:    r.Anchor,
 		Start: current,
 	})

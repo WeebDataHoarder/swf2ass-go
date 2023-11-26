@@ -50,7 +50,7 @@ func (b *BaseDrawingTag) GetCommands(scale, precision int) string {
 
 	commands := make([]byte, 0, len(*b)*2*10)
 	for _, edge := range *b {
-		moveRecord, isMoveRecord := edge.(*records.MoveRecord)
+		moveRecord, isMoveRecord := edge.(records.MoveRecord)
 		if !isMoveRecord {
 			if lastEdge == nil {
 				commands = entryToPrecisionAndScaleTag(commands, "m", scale, precision, edge.GetStart())
@@ -62,23 +62,23 @@ func (b *BaseDrawingTag) GetCommands(scale, precision int) string {
 
 		if isMoveRecord {
 			commands = entryToPrecisionAndScaleTag(commands, "m", scale, precision, moveRecord.To)
-		} else if lineRecord, ok := edge.(*records.LineRecord); ok {
-			if _, ok = lastEdge.(*records.LineRecord); ok {
+		} else if lineRecord, ok := edge.(records.LineRecord); ok {
+			if _, ok = lastEdge.(records.LineRecord); ok {
 				commands = entryToPrecisionAndScaleTag(commands, "", scale, precision, lineRecord.To)
 			} else {
 				commands = entryToPrecisionAndScaleTag(commands, "l", scale, precision, lineRecord.To)
 			}
-		} else if quadraticRecord, ok := edge.(*records.QuadraticCurveRecord); ok {
+		} else if quadraticRecord, ok := edge.(records.QuadraticCurveRecord); ok {
 			edge = records.CubicCurveFromQuadraticRecord(quadraticRecord)
 		}
 
-		if cubicRecord, ok := edge.(*records.CubicCurveRecord); ok {
-			if _, ok = lastEdge.(*records.CubicCurveRecord); ok {
+		if cubicRecord, ok := edge.(records.CubicCurveRecord); ok {
+			if _, ok = lastEdge.(records.CubicCurveRecord); ok {
 				commands = entryToPrecisionAndScaleTag(commands, "", scale, precision, cubicRecord.Control1, cubicRecord.Control2, cubicRecord.Anchor)
 			} else {
 				commands = entryToPrecisionAndScaleTag(commands, "b", scale, precision, cubicRecord.Control1, cubicRecord.Control2, cubicRecord.Anchor)
 			}
-		} else if cubicSplineRecord, ok := edge.(*records.CubicSplineCurveRecord); ok {
+		} else if cubicSplineRecord, ok := edge.(records.CubicSplineCurveRecord); ok {
 			_ = cubicSplineRecord
 			panic("not implemented")
 		}

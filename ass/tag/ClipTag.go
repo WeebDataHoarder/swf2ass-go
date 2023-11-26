@@ -26,7 +26,7 @@ func NewClipTag(clip *shapes.ClipPath, scale int) *ClipTag {
 		shape := clip.GetShape()
 		if len(shape) == 0 { //full clip
 			shape = shapes.Shape{
-				&records.LineRecord{
+				records.LineRecord{
 					//TODO: ??? why TwipFactor here???
 					To:    math.NewVector2[float64](0, swftypes.Twip(swftypes.TwipFactor).Float64()),
 					Start: math.NewVector2[float64](0, 0),

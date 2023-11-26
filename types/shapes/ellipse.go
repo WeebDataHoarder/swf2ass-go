@@ -20,8 +20,8 @@ func NewCircle[T ~float64 | ~int64](center math.Vector2[T], radius T) Ellipse[T]
 // ellipseC 0.5522847498307935
 var ellipseC = (4 / float64(3)) * (stdmath.Sqrt(2) - 1)
 
-func ellipseDrawQuarter(center, size math.Vector2[float64]) *records.CubicCurveRecord {
-	return &records.CubicCurveRecord{
+func ellipseDrawQuarter(center, size math.Vector2[float64]) records.CubicCurveRecord {
+	return records.CubicCurveRecord{
 		Control1: math.NewVector2(center.X-size.X, center.Y-ellipseC*size.Y),
 		Control2: math.NewVector2(center.X-ellipseC*size.X, center.Y-size.Y),
 		Anchor:   math.NewVector2(center.X, center.Y-size.Y),
