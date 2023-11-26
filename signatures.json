@@ -38,5 +38,13 @@
     "remove": [
       {"objectId": null, "_objectId": 11, "depth": [0, 298]}
     ]
+  },
+  "650d3fcb550329389ec5745bd32bf4927038da7cea5008b878177eb971af49c0": {
+    "name": "dagobah_Fragrance_of_Oriental_Sunflower.swf",
+    "description": "remove ActionScript message and playback menu",
+    "remove": [
+      {"objectId": 13, "depth": null},
+      {"objectId": 36, "depth": null}
+    ]
   }
 }
