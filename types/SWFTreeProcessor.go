@@ -8,6 +8,7 @@ import (
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
 	math2 "math"
 	"runtime"
+	"slices"
 )
 
 type SWFTreeProcessor struct {
@@ -24,6 +25,8 @@ type SWFTreeProcessor struct {
 	LastFrame *ViewFrame
 	Playing   bool
 	Loops     int
+
+	JPEGTables []byte
 
 	processFunc func(actions ActionList) (tag swftag.Tag, newActions ActionList)
 }
@@ -332,11 +335,6 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 		}
 	case *swftag.DefineFont4:
 		print(node)
-	case *swftag.DefineBits:
-		if p.Loops > 0 {
-			break
-		}
-		fmt.Printf("Unsupported image: DefineBits\n")
 	case *swftag.DefineBitsLossless:
 		if p.Loops > 0 {
 			break
@@ -357,6 +355,26 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 			break
 		}
 		p.Objects.Add(bitDef)
+	case *swftag.DefineBits:
+		if p.Loops > 0 {
+			break
+		}
+		if p == nil {
+			panic("todo: DefineBits within sprite??")
+		}
+		data := slices.Clone(p.JPEGTables)
+		data = append(data, node.Data...)
+		bitDef, err := BitmapDefinitionFromSWF(node.CharacterId, data, nil)
+		if err != nil {
+			fmt.Printf("Unsupported bitmap: %s\n", err)
+			break
+		}
+		p.Objects.Add(bitDef)
+	case *swftag.JPEGTables:
+		if p.Loops > 0 {
+			break
+		}
+		p.JPEGTables = node.Data
 	case *swftag.DefineBitsJPEG2:
 		if p.Loops > 0 {
 			break
