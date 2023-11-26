@@ -189,10 +189,54 @@ func FillStyleRecordFromSWF(collection ObjectCollection, fillType swfsubtypes.Fi
 	}
 }
 
-func FillStyleRecordFromSWFMORPHFILLSTYLEStart(collection ObjectCollection, fillStyle swfsubtypes.MORPHFILLSTYLE) (r *FillStyleRecord) {
-	return FillStyleRecordFromSWF(collection, fillStyle.FillStyleType, fillStyle.StartColor, fillStyle.Gradient.StartGradient(), swfsubtypes.FOCALGRADIENT{}, fillStyle.StartGradientMatrix, fillStyle.StartBitmapMatrix, fillStyle.BitmapId)
+func FillStyleRecordFromSWFMORPHFILLSTYLE(collection ObjectCollection, fillStyle swfsubtypes.MORPHFILLSTYLE) (start, end *FillStyleRecord) {
+	return FillStyleRecordFromSWF(collection, fillStyle.FillStyleType, fillStyle.StartColor, fillStyle.Gradient.StartGradient(), swfsubtypes.FOCALGRADIENT{}, fillStyle.StartGradientMatrix, fillStyle.StartBitmapMatrix, fillStyle.BitmapId),
+		FillStyleRecordFromSWF(collection, fillStyle.FillStyleType, fillStyle.EndColor, fillStyle.Gradient.EndGradient(), swfsubtypes.FOCALGRADIENT{}, fillStyle.EndGradientMatrix, fillStyle.EndBitmapMatrix, fillStyle.BitmapId)
 }
 
-func FillStyleRecordFromSWFMORPHFILLSTYLEEnd(collection ObjectCollection, fillStyle swfsubtypes.MORPHFILLSTYLE) (r *FillStyleRecord) {
-	return FillStyleRecordFromSWF(collection, fillStyle.FillStyleType, fillStyle.EndColor, fillStyle.Gradient.EndGradient(), swfsubtypes.FOCALGRADIENT{}, fillStyle.EndGradientMatrix, fillStyle.EndBitmapMatrix, fillStyle.BitmapId)
+func LineStyleRecordFromSWF(width uint16, blur float64, hasFill bool, c swftypes.Color, fill *FillStyleRecord) (r *LineStyleRecord) {
+	if hasFill {
+		//TODO: do this properly
+		switch fillType := fill.Fill.(type) {
+		case math.Color:
+			return &LineStyleRecord{
+				Width: swftypes.Twip(width).Float64(),
+				Color: fillType,
+				Blur:  blur,
+			}
+		case Gradient:
+			//TODO: gradient fill of lines
+			return &LineStyleRecord{
+				Width: swftypes.Twip(width).Float64(),
+				Color: fillType.GetItems()[0].Color,
+				Blur:  blur,
+			}
+			//TODO: other types, maybe generalize as a Fillable
+		}
+	}
+	return &LineStyleRecord{
+		Width: swftypes.Twip(width).Float64(),
+		Color: math.Color{
+			R:     c.R(),
+			G:     c.G(),
+			B:     c.B(),
+			Alpha: c.A(),
+		},
+		Blur: blur,
+	}
+}
+
+func LineStyleRecordFromSWFMORPHLINESTYLE(lineStyle swfsubtypes.MORPHLINESTYLE) (start, end *LineStyleRecord) {
+	return LineStyleRecordFromSWF(lineStyle.StartWidth, 0, false, lineStyle.StartColor, nil),
+		LineStyleRecordFromSWF(lineStyle.EndWidth, 0, false, lineStyle.EndColor, nil)
+}
+
+func LineStyleRecordFromSWFMORPHLINESTYLE2(collection ObjectCollection, lineStyle swfsubtypes.MORPHLINESTYLE2) (start, end *LineStyleRecord) {
+	if lineStyle.Flag.HasFill {
+		startFill, endFill := FillStyleRecordFromSWFMORPHFILLSTYLE(collection, lineStyle.FillType)
+		return LineStyleRecordFromSWF(lineStyle.StartWidth, 0, lineStyle.Flag.HasFill, lineStyle.StartColor, startFill),
+			LineStyleRecordFromSWF(lineStyle.EndWidth, 0, lineStyle.Flag.HasFill, lineStyle.EndColor, endFill)
+	}
+	return LineStyleRecordFromSWF(lineStyle.StartWidth, 0, false, lineStyle.StartColor, nil),
+		LineStyleRecordFromSWF(lineStyle.EndWidth, 0, false, lineStyle.EndColor, nil)
 }
