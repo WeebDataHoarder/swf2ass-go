@@ -235,4 +235,10 @@ func main() {
 		_ = os.WriteFile(*outputAudio, processor.Audio.Data, 0664)
 	}
 
+	stats := assRenderer.AggregateStatistics()
+	stats.SortBySize()
+	for _, s := range stats.Strings() {
+		print(s + "\n")
+	}
+
 }
