@@ -256,7 +256,7 @@ func ConvertBitmapToDrawPathList(i image.Image) (r DrawPathList) {
 		}, Rectangle[float64]{
 			TopLeft:     math.NewVector2[float64](0, 0),
 			BottomRight: math.NewVector2(float64(size.X+1), float64(size.Y+1)),
-		}.Draw(), nil))
+		}.Draw()))
 
 		for _, k := range keys[1:] {
 			pol := colors[k]
@@ -265,7 +265,7 @@ func ConvertBitmapToDrawPathList(i image.Image) (r DrawPathList) {
 				Fill: k.Color(),
 			}, ComplexPolygon{
 				Pol: pol,
-			}.GetShape(), nil))
+			}.GetShape()))
 		}
 
 	} else {
@@ -276,7 +276,7 @@ func ConvertBitmapToDrawPathList(i image.Image) (r DrawPathList) {
 				Fill: k.Color(),
 			}, ComplexPolygon{
 				Pol: pol,
-			}.GetShape(), nil))
+			}.GetShape()))
 		}
 	}
 

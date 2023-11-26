@@ -40,8 +40,8 @@ func (r *FillStyleRecord) Flatten(s Shape) DrawPathList {
 	if _, ok := r.Fill.(math.Color); ok {
 		return DrawPathList{
 			{
-				Style:    r,
-				Commands: s,
+				Style: r,
+				Shape: s,
 			},
 		}
 	} else if fillable, ok := r.Fill.(Fillable); ok {
@@ -144,7 +144,7 @@ func FillStyleRecordFromSWF(collection ObjectCollection, fillType swfsubtypes.Fi
 						Fill:   fillStyle.Fill,
 						Border: fillStyle.Border,
 						Blur:   blurFactor,
-					}, p.Commands, p.Clip)
+					}, p.Shape)
 				}
 				return p
 			}), bitmapMatrix),

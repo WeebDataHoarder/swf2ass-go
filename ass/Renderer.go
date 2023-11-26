@@ -274,7 +274,7 @@ func BakeRenderedObjectsFillables(o *types.RenderedObject) *types.RenderedObject
 	for _, command := range o.DrawPathList {
 		if fillStyleRecord, ok := command.Style.(*shapes.FillStyleRecord); ok && !fillStyleRecord.IsFlat() {
 			baked = true
-			flattened := fillStyleRecord.Flatten(command.Commands)
+			flattened := fillStyleRecord.Flatten(command.Shape)
 			drawPathList = append(drawPathList, flattened...)
 		} else {
 			drawPathList = append(drawPathList, command)

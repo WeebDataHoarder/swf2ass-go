@@ -283,7 +283,7 @@ func (c *ShapeConverter) FlushLayer() {
 		if style == nil {
 			panic("should not happen")
 		}
-		c.Commands = append(c.Commands, DrawPathFill(style, path.GetShape(), nil))
+		c.Commands = append(c.Commands, DrawPathFill(style, path.GetShape()))
 	}
 	clear(c.Fills)
 
@@ -316,7 +316,7 @@ func (c *ShapeConverter) FlushLayer() {
 			//TODO: using custom line borders later using fills this can be removed
 			fixedStyle := *style
 			fixedStyle.Width /= 2
-			c.Commands = append(c.Commands, DrawPathStroke(&fixedStyle, newSegments.GetShape(), nil))
+			c.Commands = append(c.Commands, DrawPathStroke(&fixedStyle, newSegments.GetShape()))
 		}
 		//TODO: leave this as-is and create a fill in renderer
 	}

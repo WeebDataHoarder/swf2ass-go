@@ -179,7 +179,7 @@ func main() {
 			}
 			for _, p := range object.DrawPathList {
 				drawCalls++
-				drawItems += len(p.Commands)
+				drawItems += len(p.Shape)
 			}
 			filteredRendered = append(filteredRendered, object)
 		}
@@ -205,7 +205,7 @@ func main() {
 					var count int
 
 					for i, command := range object.DrawPathList {
-						for j, record := range command.Commands.Edges {
+						for j, record := range command.Shape.Edges {
 
 						}
 					}

@@ -23,34 +23,14 @@ func (l DrawPathList) ApplyFunction(f func(p DrawPath) DrawPath) (r DrawPathList
 }
 
 func (l DrawPathList) Fill(shape Shape) (r DrawPathList) {
-	if false { //TODO
-
-		clipShape := NewClipPath(shape)
-		//Convert paths to many tags using intersections
-		for _, innerPath := range l {
-			newPath := DrawPath{
-				Style:    innerPath.Style,
-				Commands: clipShape.ClipShape(innerPath.Commands, true),
-			}
-			if len(newPath.Commands) == 0 {
-				continue
-			}
-
-			r = append(r, newPath)
-		}
-		return r
-	}
-
-	//TODO: fix this below
 	clipShape := NewClipPath(shape)
 	//Convert paths to many tags using intersections
 	for _, innerPath := range l {
 		newPath := DrawPath{
-			Style:    innerPath.Style,
-			Commands: innerPath.Commands,
-			Clip:     clipShape,
+			Style: innerPath.Style,
+			Shape: clipShape.ClipShape(innerPath.Shape, true),
 		}
-		if len(newPath.Commands) == 0 {
+		if len(newPath.Shape) == 0 {
 			continue
 		}
 

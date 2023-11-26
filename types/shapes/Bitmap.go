@@ -19,7 +19,7 @@ func (b Bitmap) ApplyColorTransform(transform math2.ColorTransform) Fillable {
 }
 
 func (b Bitmap) Fill(shape Shape) DrawPathList {
-	return b.List.Fill(shape)
+	return b.List.ApplyMatrixTransform(b.Transform, true).Fill(shape)
 }
 
 func BitmapFillFromSWF(l DrawPathList, transform types.MATRIX) Bitmap {

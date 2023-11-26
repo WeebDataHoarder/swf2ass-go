@@ -24,7 +24,7 @@ func (d *FontDefinition) GetObjectId() uint16 {
 }
 
 func (d *FontDefinition) GetShapeList(p shapes.ObjectProperties) (list shapes.DrawPathList) {
-	fmt.Printf("something is trying to place a Font as a character!!!!!!")
+	fmt.Printf("something is trying to place a Font as a character!!!!!!\n")
 	return nil
 }
 
@@ -39,7 +39,7 @@ func (d *FontDefinition) ComposeTextSWF(entries []subtypes.GLYPHENTRY, height, y
 					Fill:   c,
 					Border: nil,
 					Blur:   0,
-				}, dp.Commands, nil))
+				}, dp.Shape))
 			} else {
 				continue
 				//skip these, TODO: why?
@@ -47,7 +47,7 @@ func (d *FontDefinition) ComposeTextSWF(entries []subtypes.GLYPHENTRY, height, y
 					Fill:   c,
 					Border: nil,
 					Blur:   0,
-				}, dp.Commands, nil))
+				}, dp.Shape))
 			}
 		}
 		xOffset += types.Twip(g.Advance).Float64()

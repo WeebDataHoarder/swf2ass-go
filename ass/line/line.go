@@ -72,7 +72,7 @@ func (l *EventLine) Transition(frameInfo types.FrameInformation, object *types.R
 				}
 			}
 			if colorTag, ok := t.(tag.PathTag); ok {
-				t = colorTag.TransitionShape(&line, command.Commands)
+				t = colorTag.TransitionShape(&line, command.Shape)
 				if t == nil {
 					return nil
 				}

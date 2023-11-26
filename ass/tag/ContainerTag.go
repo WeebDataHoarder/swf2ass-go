@@ -254,19 +254,6 @@ func ContainerTagFromPathEntry(path shapes.DrawPath, clip *shapes.ClipPath, colo
 	if !matrixTransform.EqualsExact(identityMatrixTransform) {
 		if bakeMatrixTransforms {
 			path = path.ApplyMatrixTransform(matrixTransform, false)
-		} else {
-			if path.Clip != nil {
-				//Clip is given in relative coordinates. path is relative to translation
-				path.Clip = path.Clip.ApplyMatrixTransform(matrixTransform, true)
-			}
-		}
-	}
-
-	if path.Clip != nil {
-		if clip != nil {
-			clip = path.Clip.Intersect(clip)
-		} else {
-			clip = path.Clip
 		}
 	}
 
@@ -277,8 +264,8 @@ func ContainerTagFromPathEntry(path shapes.DrawPath, clip *shapes.ClipPath, colo
 			//TODO: this is broken
 			translationTransform := math.TranslateTransform(matrixTransform.GetTranslation().Multiply(-1))
 			path = shapes.DrawPath{
-				Style:    path.Style,
-				Commands: clip.ApplyMatrixTransform(translationTransform, true).ClipShape(path.Commands, true),
+				Style: path.Style,
+				Shape: clip.ApplyMatrixTransform(translationTransform, true).ClipShape(path.Shape, true),
 			}
 		}
 	} else {
@@ -292,7 +279,7 @@ func ContainerTagFromPathEntry(path shapes.DrawPath, clip *shapes.ClipPath, colo
 		}
 	*/
 
-	if len(path.Commands) == 0 {
+	if len(path.Shape) == 0 {
 		return nil
 	}
 
@@ -320,7 +307,7 @@ func ContainerTagFromPathEntry(path shapes.DrawPath, clip *shapes.ClipPath, colo
 		container.TryAppend(fillColorTag.ApplyColorTransform(colorTransform))
 	}
 
-	container.TryAppend(NewDrawTag(path.Commands, settings.GlobalSettings.ASSDrawingScale))
+	container.TryAppend(NewDrawTag(path.Shape, settings.GlobalSettings.ASSDrawingScale))
 
 	return container
 }

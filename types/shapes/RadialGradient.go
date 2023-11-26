@@ -45,7 +45,6 @@ func RadialGradientFromSWF(records []swfsubtypes.GRADRECORD, transform types.MAT
 						Blur: blur,
 					},
 					shape,
-					nil, //TODO: clip here instead of outside
 				))
 			}
 			return paths.ApplyMatrixTransform(self.Transform, true)

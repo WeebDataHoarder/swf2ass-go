@@ -102,7 +102,7 @@ func TestParser(t *testing.T) {
 			}
 			for _, p := range object.DrawPathList {
 				drawCalls++
-				drawItems += len(p.Commands)
+				drawItems += len(p.Shape)
 			}
 			filteredRendered = append(filteredRendered, object)
 		}
