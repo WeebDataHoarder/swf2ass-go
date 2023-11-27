@@ -176,6 +176,9 @@ func (r *Renderer) RenderFrame(frameInfo types.FrameInformation, frame types.Ren
 		}
 
 		object.MatrixTransform = scale.Multiply(object.MatrixTransform) //TODO: order?
+		if object.Clip != nil {
+			object.Clip = object.Clip.ApplyMatrixTransform(scale, true)
+		}
 
 		depth := object.GetDepth()
 
