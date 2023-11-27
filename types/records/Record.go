@@ -17,6 +17,8 @@ type Record interface {
 	ApplyMatrixTransform(transform math.MatrixTransform, applyTranslation bool) Record
 
 	IsFlat() bool
+
+	String() string
 }
 
 type CurvedRecord interface {

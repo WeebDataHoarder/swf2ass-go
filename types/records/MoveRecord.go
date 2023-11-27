@@ -1,6 +1,7 @@
 package records
 
 import (
+	"fmt"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 )
 
@@ -45,4 +46,8 @@ func (r MoveRecord) SameType(other Record) bool {
 
 func (r MoveRecord) IsFlat() bool {
 	return true
+}
+
+func (r MoveRecord) String() string {
+	return fmt.Sprintf("m %s", r.To)
 }

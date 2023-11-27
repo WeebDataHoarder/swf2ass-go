@@ -2,7 +2,7 @@ package shapes
 
 import (
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
-	"github.com/ctessum/geom"
+	"github.com/ctessum/polyclip-go"
 	"slices"
 )
 
@@ -19,7 +19,7 @@ func NewClipPath(shape Shape) *ClipPath {
 }
 
 func (c *ClipPath) AddShape(shape Shape) {
-	c.Clip.Pol = c.Clip.Pol.Union(NewPolygonFromShape(shape))
+	c.Clip = c.Clip.Merge(ComplexPolygon{Pol: NewPolygonFromShape(shape)})
 }
 
 func (c *ClipPath) GetShape() Shape {
@@ -27,21 +27,21 @@ func (c *ClipPath) GetShape() Shape {
 }
 
 func (c *ClipPath) ApplyMatrixTransform(transform math.MatrixTransform, applyTranslation bool) *ClipPath {
-	pol, err := c.Clip.Pol.Transform(func(X, Y float64) (x, y float64, err error) {
-		out := transform.ApplyToVector(math.NewVector2(X, Y), applyTranslation)
-		return out.X, out.Y, nil
-	})
-	if err != nil {
-		panic(err)
-	}
-	if newPol, ok := pol.(geom.Polygonal); !ok {
-		panic("invalid result")
-	} else {
-		return &ClipPath{
-			Clip: ComplexPolygon{
-				Pol: newPol,
-			},
+	pol := make(polyclip.Polygon, len(c.Clip.Pol))
+	for i, contour := range c.Clip.Pol {
+		pol[i] = make(polyclip.Contour, len(contour))
+		for j, p := range contour {
+			out := transform.ApplyToVector(math.NewVector2(p.X, p.Y), applyTranslation)
+			pol[i][j] = polyclip.Point{
+				X: out.X,
+				Y: out.Y,
+			}
 		}
+	}
+	return &ClipPath{
+		Clip: ComplexPolygon{
+			Pol: pol,
+		},
 	}
 }
 
@@ -59,9 +59,9 @@ func (c *ClipPath) ClipShape(o Shape, recover bool) (r Shape) {
 		}).GetShape()
 	}
 	flatShape, correspondence := o.FlattenWithCorrespondence()
-	outShape := c.Clip.Intersect(ComplexPolygon{
+	outShape := ComplexPolygon{
 		Pol: NewPolygonFromShape(flatShape),
-	}).GetShape()
+	}.Intersect(c.Clip).GetShape()
 
 	for i := 0; i < len(outShape); i++ {
 		var found bool

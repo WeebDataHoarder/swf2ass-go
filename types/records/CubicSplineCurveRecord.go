@@ -58,3 +58,7 @@ func (r CubicSplineCurveRecord) SameType(other Record) bool {
 func (r CubicSplineCurveRecord) IsFlat() bool {
 	return false
 }
+
+func (r CubicSplineCurveRecord) String() string {
+	return "todo"
+}

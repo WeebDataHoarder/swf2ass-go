@@ -1,6 +1,7 @@
 package records
 
 import (
+	"fmt"
 	math2 "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"math"
 )
@@ -52,6 +53,10 @@ func (r CubicCurveRecord) SameType(other Record) bool {
 
 func (r CubicCurveRecord) IsFlat() bool {
 	return false
+}
+
+func (r CubicCurveRecord) String() string {
+	return fmt.Sprintf("c %s %s %s", r.Control1, r.Control2, r.Anchor)
 }
 
 func CubicCurveFromQuadraticRecord(q QuadraticCurveRecord) CubicCurveRecord {

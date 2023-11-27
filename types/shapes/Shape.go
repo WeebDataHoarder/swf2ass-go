@@ -1,6 +1,7 @@
 package shapes
 
 import (
+	"fmt"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/records"
 )
@@ -107,6 +108,21 @@ func (s Shape) Equals(o Shape) bool {
 		}
 	}
 	return true
+}
+
+func (s Shape) String() (r string) {
+	if len(s) == 0 {
+		return ""
+	}
+	var pos math.Vector2[float64]
+	for _, rec := range s {
+		if !rec.GetStart().Equals(pos) {
+			r += fmt.Sprintf("m %s\n", rec.GetStart())
+		}
+		r += rec.String() + "\n"
+		pos = rec.GetEnd()
+	}
+	return r
 }
 
 func IterateMorphShape(start, end Shape) (r []records.RecordPair) {

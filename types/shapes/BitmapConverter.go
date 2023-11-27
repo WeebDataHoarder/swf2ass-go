@@ -5,7 +5,7 @@ import (
 	"encoding/binary"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/settings"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
-	"github.com/ctessum/geom"
+	"github.com/ctessum/polyclip-go"
 	"github.com/nfnt/resize"
 	"golang.org/x/exp/maps"
 	"image"
@@ -155,12 +155,12 @@ func ConvertBitmapToDrawPathList(i image.Image) (r DrawPathList) {
 	var wg sync.WaitGroup
 	var x atomic.Uint64
 
-	results := make([]map[math.PackedColor]geom.Polygonal, runtime.NumCPU())
+	results := make([]map[math.PackedColor]polyclip.Polygon, runtime.NumCPU())
 	for n := 0; n < runtime.NumCPU(); n++ {
 		wg.Add(1)
 		go func(n int) {
 			defer wg.Done()
-			myResults := make(map[math.PackedColor]geom.Polygonal)
+			myResults := make(map[math.PackedColor]polyclip.Polygon)
 			for {
 				iX := x.Add(1) - 1
 				if iX >= uint64(size.X) {
@@ -171,14 +171,14 @@ func ConvertBitmapToDrawPathList(i image.Image) (r DrawPathList) {
 					r, g, b, a := i.At(int(iX), y).RGBA()
 
 					p := math.NewPackedColor(uint8(r>>8), uint8(g>>8), uint8(b>>8), uint8(a>>8))
-					poly := geom.Polygon{{
+					poly := polyclip.Polygon{{
 						{float64(iX), float64(y)},
 						{float64(iX), float64(y + 1)},
 						{float64(iX + 1), float64(y + 1)},
 						{float64(iX + 1), float64(y)},
 					}}
 					if existingColor, ok := myResults[p]; ok {
-						u := existingColor.Union(poly).Simplify(PolygonSimplifyTolerance).(geom.Polygonal)
+						u := existingColor.Construct(polyclip.UNION, poly).Simplify()
 						myResults[p] = u
 					} else {
 						myResults[p] = poly
@@ -192,7 +192,7 @@ func ConvertBitmapToDrawPathList(i image.Image) (r DrawPathList) {
 
 	var hasAlpha bool
 
-	colors := make(map[math.PackedColor]geom.Polygonal)
+	colors := make(map[math.PackedColor]polyclip.Polygon)
 
 	for _, r := range results {
 		for k, c := range r {
@@ -204,22 +204,28 @@ func ConvertBitmapToDrawPathList(i image.Image) (r DrawPathList) {
 				continue
 			}
 			if existingColor, ok := colors[k]; ok {
-				u := existingColor.Union(c).Simplify(PolygonSimplifyTolerance).(geom.Polygonal)
+				u := existingColor.Construct(polyclip.UNION, c).Simplify()
 				colors[k] = u
 			} else {
-				colors[k] = c.Simplify(PolygonSimplifyTolerance).(geom.Polygonal)
+				colors[k] = c.Simplify()
 			}
 		}
 	}
 
-	//Sort from the highest area to lowest
+	//Sort from the highest size to lowest
 	keys := maps.Keys(colors)
+	getSize := func(p polyclip.Polygon) (r int) {
+		for _, c := range p {
+			r += c.Len()
+		}
+		return r
+	}
 	slices.SortFunc(keys, func(a, b math.PackedColor) int {
-		areaA := colors[a].Area()
-		areaB := colors[b].Area()
-		if areaA > areaB {
+		sizeA := getSize(colors[a])
+		sizeB := getSize(colors[b])
+		if sizeA > sizeB {
 			return -1
-		} else if areaB > areaA {
+		} else if sizeB > sizeA {
 			return 1
 		} else {
 			return 0

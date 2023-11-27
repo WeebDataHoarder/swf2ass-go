@@ -79,11 +79,10 @@ func InterpolateGradient(gradient Gradient, gradientSlices int) (result []Gradie
 	items := gradient.GetItems()
 	//TODO: spread modes
 
-	first := items[0]
-	last := items[len(items)-1]
-
 	interpolationMode := gradient.GetInterpolationMode()
 
+	first := items[0]
+	last := items[len(items)-1]
 	if first.Ratio != 0 {
 		first = GradientItem{
 			Ratio: 0,
