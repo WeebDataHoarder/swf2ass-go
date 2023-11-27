@@ -65,14 +65,22 @@ func (l *EventLine) Transition(frameInfo types.FrameInformation, object *types.R
 					return nil
 				}
 			}
+
 			if colorTag, ok := t.(tag.ColorTag); ok {
-				t = colorTag.TransitionColor(&line, object.ColorTransform)
+				t = colorTag.TransitionStyleRecord(&line, command.Style.ApplyColorTransform(object.ColorTransform), object.MatrixTransform)
+				//t = colorTag.TransitionColor(&line, object.ColorTransform)
+				if t == nil {
+					return nil
+				}
+			} else if styleTag, ok := t.(tag.StyleTag); ok {
+				t = styleTag.TransitionStyleRecord(&line, command.Style, object.MatrixTransform)
 				if t == nil {
 					return nil
 				}
 			}
-			if colorTag, ok := t.(tag.PathTag); ok {
-				t = colorTag.TransitionShape(&line, command.Shape)
+
+			if pathTag, ok := t.(tag.PathTag); ok {
+				t = pathTag.TransitionShape(&line, command.Shape)
 				if t == nil {
 					return nil
 				}

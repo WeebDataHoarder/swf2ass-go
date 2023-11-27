@@ -39,7 +39,7 @@ type ClipPathTag interface {
 }
 
 type ColorTag interface {
-	Tag
+	StyleTag
 	ApplyColorTransform(transform math.ColorTransform) ColorTag
 	TransitionColor(event Event, transform math.ColorTransform) ColorTag
 }
