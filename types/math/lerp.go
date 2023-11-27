@@ -26,7 +26,7 @@ func LerpMatrix(start, end MatrixTransform, ratio float64) MatrixTransform {
 	// but I doubt Flash is decomposing the matrix into scale-rotate-translate?
 
 	return NewMatrixTransform(
-		LerpVector2(NewVector2(start.GetA(), start.GetD()), NewVector2(end.GetD(), end.GetC()), ratio),
+		LerpVector2(NewVector2(start.GetA(), start.GetD()), NewVector2(end.GetA(), end.GetD()), ratio),
 		LerpVector2(NewVector2(start.GetB(), start.GetC()), NewVector2(end.GetB(), end.GetC()), ratio),
 		LerpVector2(NewVector2(start.GetTX(), start.GetTY()), NewVector2(end.GetTX(), end.GetTY()), ratio),
 	)
