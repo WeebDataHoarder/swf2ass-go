@@ -7,7 +7,9 @@ type ObjectDefinition interface {
 }
 
 type ObjectProperties struct {
-	Ratio float64
+	Ratio      float64
+	Visible    bool
+	PlaceFrame int64
 	// Data can be any value internal to the object itself
 	Data any
 }

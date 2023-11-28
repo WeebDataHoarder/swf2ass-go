@@ -16,19 +16,17 @@ type ViewLayout struct {
 
 	Object shapes.ObjectDefinition
 
-	ColorTransform  *math2.ColorTransform
-	MatrixTransform *math2.MatrixTransform
+	ColorTransform  Option[math2.ColorTransform]
+	MatrixTransform Option[math2.MatrixTransform]
 
 	Properties shapes.ObjectProperties
 
-	IsClipping bool
-	ClipDepth  uint16
+	ClipDepth Option[uint16]
 }
 
 func NewClippingViewLayout(objectId, clipDepth uint16, object shapes.ObjectDefinition, parent *ViewLayout) *ViewLayout {
 	l := NewViewLayout(objectId, object, parent)
-	l.IsClipping = true
-	l.ClipDepth = clipDepth
+	l.ClipDepth = Some(clipDepth)
 	return l
 }
 
@@ -40,6 +38,9 @@ func NewViewLayout(objectId uint16, object shapes.ObjectDefinition, parent *View
 		Parent:   parent,
 		Object:   object,
 		DepthMap: make(map[uint16]*ViewLayout),
+		Properties: shapes.ObjectProperties{
+			Visible: true,
+		},
 	}
 }
 
@@ -58,10 +59,10 @@ func (v *ViewLayout) Replace(depth uint16, ob *ViewLayout) {
 	if v.Object != nil {
 		panic("Cannot have ObjectDefinition and children at the same time")
 	} else if oldObject, ok := v.DepthMap[depth]; ok && oldObject != nil {
-		if ob.MatrixTransform == nil {
+		if _, ok := ob.MatrixTransform.Some(); !ok {
 			ob.MatrixTransform = oldObject.MatrixTransform
 		}
-		if ob.ColorTransform == nil {
+		if _, ok := ob.ColorTransform.Some(); !ok {
 			ob.ColorTransform = oldObject.ColorTransform
 		}
 	}
@@ -81,11 +82,11 @@ func (v *ViewLayout) Remove(depth uint16) {
 	delete(v.DepthMap, depth)
 }
 
-func (v *ViewLayout) NextFrame(actions ActionList) (frame *ViewFrame) {
-	frame = v.nextFrame(actions)
+func (v *ViewLayout) NextFrame(frameNumber int64, actions ActionList) (frame *ViewFrame) {
+	frame = v.nextFrame(frameNumber, actions)
 
-	if v.IsClipping {
-		clip := NewClippingFrame(frame.ObjectId, v.ClipDepth, frame.DrawPathList)
+	if clipDepth, isClipping := v.ClipDepth.Some(); isClipping {
+		clip := NewClippingFrame(frame.ObjectId, clipDepth, frame.DrawPathList)
 		for depth, f := range frame.DepthMap {
 			clip.AddChild(depth, f)
 		}
@@ -96,10 +97,10 @@ func (v *ViewLayout) NextFrame(actions ActionList) (frame *ViewFrame) {
 	return frame
 }
 
-func (v *ViewLayout) nextFrame(actions ActionList) (frame *ViewFrame) {
+func (v *ViewLayout) nextFrame(frameNumber int64, actions ActionList) (frame *ViewFrame) {
 	if v.Object != nil {
 		if mfod, ok := v.Object.(MultiFrameObjectDefinition); ok {
-			frame = mfod.NextFrame()
+			frame = mfod.NextFrame(frameNumber, v.Properties)
 		} else {
 			list := v.Object.GetShapeList(v.Properties)
 			frame = NewViewFrame(v.GetObjectId(), &list)
@@ -112,7 +113,7 @@ func (v *ViewLayout) nextFrame(actions ActionList) (frame *ViewFrame) {
 
 		for _, depth := range keys {
 			child := v.DepthMap[depth]
-			f := child.NextFrame(actions)
+			f := child.NextFrame(frameNumber, actions)
 			frame.AddChild(depth, f)
 		}
 	}

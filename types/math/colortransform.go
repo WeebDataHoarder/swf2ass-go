@@ -1,6 +1,7 @@
 package math
 
 import (
+	"fmt"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	"math"
 )
@@ -42,6 +43,19 @@ func IdentityColorTransform() ColorTransform {
 			Alpha int16
 		}{},
 	}
+}
+
+func (t ColorTransform) String() string {
+	return fmt.Sprintf("ColorTransform{MULT(%d,%d,%d,%d),ADD(%d,%d,%d,%d)}",
+		t.Multiply.Red,
+		t.Multiply.Green,
+		t.Multiply.Blue,
+		t.Multiply.Alpha,
+		t.Add.Red,
+		t.Add.Green,
+		t.Add.Blue,
+		t.Add.Alpha,
+	)
 }
 
 func (t ColorTransform) IsIdentity() bool {

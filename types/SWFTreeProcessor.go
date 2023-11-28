@@ -26,18 +26,21 @@ type SWFTreeProcessor struct {
 	Playing   bool
 	Loops     int
 
+	Version uint8
+
 	JPEGTables []byte
 
 	processFunc func(actions ActionList) (tag swftag.Tag, newActions ActionList)
 }
 
-func NewSWFTreeProcessor(objectId uint16, tags []swftag.Tag, objects shapes.ObjectCollection) *SWFTreeProcessor {
+func NewSWFTreeProcessor(objectId uint16, tags []swftag.Tag, objects shapes.ObjectCollection, version uint8) *SWFTreeProcessor {
 	return &SWFTreeProcessor{
 		Objects: objects,
 		Frame:   0,
 		Tags:    tags,
 		Layout:  NewViewLayout(objectId, nil, nil),
 		Playing: true,
+		Version: version,
 	}
 }
 
@@ -59,42 +62,108 @@ func (p *SWFTreeProcessor) Process(actions ActionList) (tag swftag.Tag, newActio
 	return p.process(actions)
 }
 
-func (p *SWFTreeProcessor) placeObject(object shapes.ObjectDefinition, depth, clipDepth uint16, isMove, hasRatio, hasClipDepth bool, ratio float64, transform *math.MatrixTransform, colorTransform *math.ColorTransform) {
+type PlaceAction uint8
+
+func PlaceActionFromFlags(hasCharacter, isMove bool) PlaceAction {
+	var action PlaceAction
+	if hasCharacter && !isMove {
+		action = ActionPlace
+	} else if hasCharacter && isMove {
+		action = ActionReplace
+	} else if !hasCharacter && isMove {
+		action = ActionModify
+	} else {
+		panic("invalid action")
+	}
+	return action
+}
+
+const (
+	ActionPlace = PlaceAction(iota)
+	ActionReplace
+	ActionModify
+)
+
+type placeObjectData struct {
+	Action         PlaceAction
+	Depth          uint16
+	ClipDepth      Option[uint16]
+	Ratio          Option[float64]
+	Transform      Option[math.MatrixTransform]
+	ColorTransform Option[math.ColorTransform]
+	Visible        Option[bool]
+	BlendMode      Option[swftag.BlendMode]
+}
+
+func (p *SWFTreeProcessor) applyPlaceObject(layout *ViewLayout, data placeObjectData) {
+	data.Transform.With(func(transform math.MatrixTransform) {
+		layout.MatrixTransform = Some(transform)
+	})
+	data.ColorTransform.With(func(colorTransform math.ColorTransform) {
+		layout.ColorTransform = Some(colorTransform)
+	})
+	data.Ratio.With(func(ratio float64) {
+		layout.Properties.Ratio = ratio
+	})
+
+	if p.Version >= 11 {
+		data.Visible.With(func(b bool) {
+			layout.Properties.Visible = b
+		})
+		//todo: background color
+	}
+	//todo: filters
+}
+
+func (p *SWFTreeProcessor) placeObject(object shapes.ObjectDefinition, data placeObjectData) {
 	if object == nil {
 		//TODO: place bogus element
-		fmt.Printf("Object at depth:%d not found\n", depth)
-		p.Layout.Remove(depth)
+		fmt.Printf("Object at depth:%d not found\n", data.Depth)
+		p.Layout.Remove(data.Depth)
 		return
 	}
 
-	currentLayout := p.Layout.Get(depth)
+	data.BlendMode.With(func(mode swftag.BlendMode) {
+		fmt.Printf("Unsupported blends!!!\n")
+		switch mode {
+		case swftag.BlendOverlay:
+			//fake it somewhat with half transparency for now, TODO: split underlying image in intersections and hardcode-apply this
+			i := math.IdentityColorTransform()
+			i.Multiply.Alpha = 128
 
-	if isMove && currentLayout != nil && currentLayout.GetObjectId() == object.GetObjectId() {
-		if transform != nil {
-			currentLayout.MatrixTransform = transform
-		}
-		if colorTransform != nil {
-			currentLayout.ColorTransform = colorTransform
-		}
-		if hasRatio {
-			currentLayout.Properties.Ratio = ratio
-		}
-		return
-	}
+			data.ColorTransform.With(func(transform math.ColorTransform) {
+				i = i.Combine(transform)
+			})
 
-	var view *ViewLayout
-	if hasClipDepth {
-		view = NewClippingViewLayout(object.GetObjectId(), clipDepth, object.GetSafeObject(), p.Layout)
-	} else {
-		view = NewViewLayout(object.GetObjectId(), object.GetSafeObject(), p.Layout)
-	}
-	view.MatrixTransform = transform
-	view.ColorTransform = colorTransform
-	view.Properties.Ratio = ratio
-	if isMove {
-		p.Layout.Replace(depth, view)
-	} else {
-		p.Layout.Place(depth, view)
+			data.ColorTransform = Some(i)
+		}
+	})
+
+	switch data.Action {
+	case ActionPlace:
+		var view *ViewLayout
+		if clipDepth, ok := data.ClipDepth.Some(); ok {
+			view = NewClippingViewLayout(object.GetObjectId(), clipDepth, object.GetSafeObject(), p.Layout)
+		} else {
+			view = NewViewLayout(object.GetObjectId(), object.GetSafeObject(), p.Layout)
+		}
+		view.Properties.PlaceFrame = p.Frame
+		p.applyPlaceObject(view, data)
+		p.Layout.Place(data.Depth, view)
+	case ActionReplace:
+		var view *ViewLayout
+		if clipDepth, ok := data.ClipDepth.Some(); ok {
+			view = NewClippingViewLayout(object.GetObjectId(), clipDepth, object.GetSafeObject(), p.Layout)
+		} else {
+			view = NewViewLayout(object.GetObjectId(), object.GetSafeObject(), p.Layout)
+		}
+		view.Properties.PlaceFrame = p.Frame
+		p.applyPlaceObject(view, data)
+		p.Layout.Replace(data.Depth, view)
+	case ActionModify:
+		if currentLayout := p.Layout.Get(data.Depth); currentLayout != nil && currentLayout.GetObjectId() == object.GetObjectId() {
+			p.applyPlaceObject(currentLayout, data)
+		}
 	}
 }
 
@@ -140,10 +209,7 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 		if p.Loops > 0 {
 			break
 		}
-		p.Objects.Add(&SpriteDefinition{
-			ObjectId:  node.SpriteId,
-			Processor: NewSWFTreeProcessor(node.SpriteId, node.ControlTags, p.Objects),
-		})
+		p.Objects.Add(SpriteDefinitionFromSWF(node.SpriteId, int(node.FrameCount), NewSWFTreeProcessor(node.SpriteId, node.ControlTags, p.Objects, p.Version)))
 	case *swftag.DefineText:
 		ob := TextDefinitionFromSWF(p.Objects, node.CharacterId, node.Bounds, node.TextRecords, node.Matrix)
 		if ob == nil {
@@ -416,21 +482,25 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 		p.Layout.Remove(node.Depth)
 
 	case *swftag.PlaceObject:
-		var object shapes.ObjectDefinition
-		p.Objects.Get(node.CharacterId)
+		object := p.Objects.Get(node.CharacterId)
 
-		var transform *math.MatrixTransform
-		if t := math.MatrixTransformFromSWF(node.Matrix); !t.IsIdentity() {
-			transform = &t
-		}
-
-		var colorTransform *math.ColorTransform
+		var colorTransform math.ColorTransform
 		if node.Flag.HasColorTransform && node.ColorTransform != nil {
 			t := math.ColorTransformFromSWF(*node.ColorTransform)
-			colorTransform = &t
+			colorTransform = t
 		}
 
-		p.placeObject(object, node.Depth, 0, false, false, false, 0, transform, colorTransform)
+		transform := math.MatrixTransformFromSWF(node.Matrix)
+
+		p.placeObject(object, placeObjectData{
+			Action:         ActionPlace,
+			Depth:          node.Depth,
+			ClipDepth:      None[uint16](),
+			Ratio:          None[float64](),
+			Transform:      SomeWith(transform, !transform.IsIdentity()),
+			ColorTransform: SomeWith(colorTransform, node.Flag.HasColorTransform),
+			Visible:        None[bool](),
+		})
 	case *swftag.PlaceObject2:
 		var object shapes.ObjectDefinition
 		if node.Flag.HasCharacter {
@@ -439,19 +509,15 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 			object = vl.Object
 		}
 
-		var transform *math.MatrixTransform
-		if node.Flag.HasMatrix {
-			t := math.MatrixTransformFromSWF(node.Matrix)
-			transform = &t
-		}
-
-		var colorTransform *math.ColorTransform
-		if node.Flag.HasColorTransform {
-			t := math.ColorTransformFromSWFAlpha(node.ColorTransform)
-			colorTransform = &t
-		}
-
-		p.placeObject(object, node.Depth, node.ClipDepth, node.Flag.Move, node.Flag.HasRatio, node.Flag.HasClipDepth, float64(node.Ratio)/math2.MaxUint16, transform, colorTransform)
+		p.placeObject(object, placeObjectData{
+			Action:         PlaceActionFromFlags(node.Flag.HasCharacter, node.Flag.Move),
+			Depth:          node.Depth,
+			ClipDepth:      SomeWith(node.ClipDepth, node.Flag.HasClipDepth),
+			Ratio:          SomeWith(float64(node.Ratio)/math2.MaxUint16, node.Flag.HasRatio),
+			Transform:      SomeWith(math.MatrixTransformFromSWF(node.Matrix), node.Flag.HasMatrix),
+			ColorTransform: SomeWith(math.ColorTransformFromSWFAlpha(node.ColorTransform), node.Flag.HasColorTransform),
+			Visible:        None[bool](),
+		})
 	case *swftag.PlaceObject3:
 		//TODO: handle extra properties
 		var object shapes.ObjectDefinition
@@ -461,34 +527,16 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 			object = p.Layout.Get(node.Depth).Object
 		}
 
-		var transform *math.MatrixTransform
-		if node.Flag.HasMatrix {
-			t := math.MatrixTransformFromSWF(node.Matrix)
-			transform = &t
-		}
-
-		var colorTransform *math.ColorTransform
-		if node.Flag.HasColorTransform {
-			t := math.ColorTransformFromSWFAlpha(node.ColorTransform)
-			colorTransform = &t
-		}
-
-		if node.Flag.HasBlendMode {
-			fmt.Printf("Unsupported blends!!!\n")
-			switch node.BlendMode {
-			case swftag.BlendOverlay:
-				//fake it somewhat with half transparency for now, TODO: split underlying image in intersections and hardcode-apply this
-				i := math.IdentityColorTransform()
-				i.Multiply.Alpha = 128
-
-				if colorTransform != nil {
-					i = i.Combine(*colorTransform)
-				}
-				colorTransform = &i
-			}
-		}
-
-		p.placeObject(object, node.Depth, node.ClipDepth, node.Flag.Move, node.Flag.HasRatio, node.Flag.HasClipDepth, float64(node.Ratio)/math2.MaxUint16, transform, colorTransform)
+		p.placeObject(object, placeObjectData{
+			Action:         PlaceActionFromFlags(node.Flag.HasCharacter, node.Flag.Move),
+			Depth:          node.Depth,
+			ClipDepth:      SomeWith(node.ClipDepth, node.Flag.HasClipDepth),
+			Ratio:          SomeWith(float64(node.Ratio)/math2.MaxUint16, node.Flag.HasRatio),
+			Transform:      SomeWith(math.MatrixTransformFromSWF(node.Matrix), node.Flag.HasMatrix),
+			ColorTransform: SomeWith(math.ColorTransformFromSWFAlpha(node.ColorTransform), node.Flag.HasColorTransform),
+			Visible:        SomeWith(node.Visible > 0, node.Flag.HasVisible),
+			BlendMode:      SomeWith(node.BlendMode, node.Flag.HasBlendMode),
+		})
 	case *swftag.ShowFrame:
 	case *swftag.End:
 	case *swftag.DoAction:
@@ -534,20 +582,21 @@ func (p *SWFTreeProcessor) NextFrame() *ViewFrame {
 		}
 	}
 
-	if node == nil { //Loop again
+	if node == nil {
+		// We are done looping, check if we still need to keep playback
 		p.Loops++
-		p.Frame = 0
+		//p.Frame = 0
 		p.Index = 0
-		p.Layout = NewViewLayout(p.Layout.GetObjectId(), nil, nil)
+		//p.Layout = NewViewLayout(p.Layout.GetObjectId(), nil, nil)
 		if p.LastFrame != nil {
 			return p.NextFrame()
 		}
 		return nil
 	}
 
-	p.Frame++
+	frame := p.Layout.NextFrame(p.Frame, actions)
 
-	frame := p.Layout.NextFrame(actions)
+	p.Frame++
 
 	p.LastFrame = frame
 

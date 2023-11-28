@@ -14,20 +14,18 @@ type ViewFrame struct {
 
 	DrawPathList *shapes.DrawPathList
 
-	ColorTransform  *math.ColorTransform
-	MatrixTransform *math.MatrixTransform
+	ColorTransform  Option[math.ColorTransform]
+	MatrixTransform Option[math.MatrixTransform]
 
-	IsClipping bool
-	ClipDepth  uint16
+	ClipDepth Option[uint16]
 }
 
 func NewClippingFrame(objectId, clipDepth uint16, list *shapes.DrawPathList) *ViewFrame {
 	return &ViewFrame{
 		ObjectId:     objectId,
-		ClipDepth:    clipDepth,
+		ClipDepth:    Some(clipDepth),
 		DrawPathList: list,
 		DepthMap:     make(map[uint16]*ViewFrame),
-		IsClipping:   true,
 	}
 }
 
@@ -46,31 +44,12 @@ func (f *ViewFrame) AddChild(depth uint16, frame *ViewFrame) {
 	f.DepthMap[depth] = frame
 }
 
-func (f *ViewFrame) Render(baseDepth uint16, depthChain Depth, parentColor *math.ColorTransform, parentMatrix *math.MatrixTransform) RenderedFrame {
-	depthChain = slices.Clone(depthChain)
-	depthChain = append(depthChain, baseDepth)
+func (f *ViewFrame) Render(baseDepth uint16, depthChain Depth, parentColor Option[math.ColorTransform], parentMatrix Option[math.MatrixTransform]) RenderedFrame {
+	depthChain = append(slices.Clone(depthChain), baseDepth)
 
-	matrixTransform := math.IdentityTransform()
-	if f.MatrixTransform != nil {
-		if parentMatrix != nil {
-			matrixTransform = parentMatrix.Multiply(*f.MatrixTransform)
-		} else {
-			matrixTransform = *f.MatrixTransform
-		}
-	} else if parentMatrix != nil {
-		matrixTransform = *parentMatrix
-	}
+	matrixTransform := parentMatrix.Combine(f.MatrixTransform, nil)
 
-	colorTransform := math.IdentityColorTransform()
-	if f.ColorTransform != nil {
-		if parentColor != nil {
-			colorTransform = parentColor.Combine(*f.ColorTransform)
-		} else {
-			colorTransform = *f.ColorTransform
-		}
-	} else if parentColor != nil {
-		colorTransform = *parentColor
-	}
+	colorTransform := parentColor.Combine(f.ColorTransform, nil)
 
 	var renderedFrame RenderedFrame
 
@@ -80,27 +59,18 @@ func (f *ViewFrame) Render(baseDepth uint16, depthChain Depth, parentColor *math
 			ObjectId:        f.ObjectId,
 			DrawPathList:    *f.DrawPathList,
 			Clip:            nil,
-			ColorTransform:  colorTransform,
-			MatrixTransform: matrixTransform,
+			ColorTransform:  SomeDefault(colorTransform, math.IdentityColorTransform()).Unwrap(),
+			MatrixTransform: SomeDefault(matrixTransform, math.IdentityTransform()).Unwrap(),
 		})
 	} else {
 		clipMap := make(map[uint16]*ViewFrame)
 		clipPaths := make(map[uint16]*shapes.ClipPath)
 
-		matrixTransform := &matrixTransform
-		if matrixTransform.IsIdentity() {
-			matrixTransform = nil
-		}
-		colorTransform := &colorTransform
-		if colorTransform.IsIdentity() {
-			colorTransform = nil
-		}
-
 		keys := maps.Keys(f.DepthMap)
 		slices.Sort(keys)
 		for _, depth := range keys {
 			frame := f.DepthMap[depth]
-			if frame.IsClipping { //Process clips as they come
+			if _, isClipping := frame.ClipDepth.Some(); isClipping { //Process clips as they come
 				clipMap[depth] = frame
 				var clipPath *shapes.ClipPath
 				for _, clipObject := range frame.Render(depth, depthChain, colorTransform, matrixTransform) {
@@ -135,14 +105,14 @@ func (f *ViewFrame) Render(baseDepth uint16, depthChain Depth, parentColor *math
 
 		for _, depth := range keys {
 			frame := f.DepthMap[depth]
-			if frame.IsClipping { //Already processed
+			if _, isClipping := frame.ClipDepth.Some(); isClipping { //Already processed
 				continue
 			}
 			var clipPath *shapes.ClipPath
 
 			for _, clipDepth := range clipMapKeys {
 				clip := clipMap[clipDepth]
-				if clip.ClipDepth > depth && clipDepth < depth {
+				if clip.ClipDepth.Unwrap() > depth && clipDepth < depth {
 					if clipPath == nil {
 						clipPath = clipPaths[clipDepth]
 					} else {

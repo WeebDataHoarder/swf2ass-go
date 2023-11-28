@@ -4,5 +4,5 @@ import "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
 
 type MultiFrameObjectDefinition interface {
 	shapes.ObjectDefinition
-	NextFrame() *ViewFrame
+	NextFrame(frameNumber int64, p shapes.ObjectProperties) *ViewFrame
 }

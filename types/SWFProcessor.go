@@ -21,9 +21,9 @@ type SWFProcessor struct {
 	Audio *AudioStream
 }
 
-func NewSWFProcessor(tags []swftag.Tag, viewPort shapes.Rectangle[float64], frameRate float64, frameCount int64) *SWFProcessor {
+func NewSWFProcessor(tags []swftag.Tag, viewPort shapes.Rectangle[float64], frameRate float64, frameCount int64, version uint8) *SWFProcessor {
 	p := &SWFProcessor{
-		SWFTreeProcessor: *NewSWFTreeProcessor(0, tags, make(shapes.ObjectCollection)),
+		SWFTreeProcessor: *NewSWFTreeProcessor(0, tags, make(shapes.ObjectCollection), version),
 		Background: &shapes.FillStyleRecord{
 			Fill: math.Color{
 				R:     255,
@@ -85,6 +85,10 @@ func (p *SWFProcessor) subProcess(actions ActionList) (tag swftag.Tag, newAction
 func (p *SWFProcessor) NextFrameOutput() *FrameInformation {
 	frame := p.NextFrame()
 	if frame == nil {
+		return nil
+	}
+	// Stop looping main video
+	if p.Loops > 0 {
 		return nil
 	}
 

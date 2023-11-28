@@ -9,6 +9,7 @@ import (
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf"
 	swftag "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/tag"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
 	"io"
 	math2 "math"
@@ -100,7 +101,7 @@ func main() {
 
 	var frameOffset int64
 
-	processor := types.NewSWFProcessor(tags, shapes.RectangleFromSWF(swfReader.Header().FrameSize), swfReader.Header().FrameRate.Float64(), int64(swfReader.Header().FrameCount))
+	processor := types.NewSWFProcessor(tags, shapes.RectangleFromSWF(swfReader.Header().FrameSize), swfReader.Header().FrameRate.Float64(), int64(swfReader.Header().FrameCount), swfReader.Header().Version)
 
 	assRenderer := ass.NewRenderer(processor.FrameRate, processor.ViewPort)
 
@@ -156,7 +157,7 @@ func main() {
 
 		frame.FrameOffset = frameOffset
 
-		rendered := frame.Frame.Render(0, nil, nil, nil)
+		rendered := frame.Frame.Render(0, nil, types.None[math.ColorTransform](), types.None[math.MatrixTransform]())
 
 		if frame.GetFrameNumber() == 0 {
 			for _, object := range rendered {

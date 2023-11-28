@@ -74,6 +74,10 @@ func SkewYTransform(angle float64) MatrixTransform {
 	return NewMatrixTransform(DefaultScale, NewVector2(0, math.Tan(angle)), DefaultTranslation)
 }
 
+func (m MatrixTransform) Combine(o MatrixTransform) MatrixTransform {
+	return m.Multiply(o)
+}
+
 func (m MatrixTransform) Multiply(o MatrixTransform) MatrixTransform {
 	var r mat.Dense
 	r.Mul(m.matrix, o.matrix)
