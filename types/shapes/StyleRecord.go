@@ -148,6 +148,8 @@ func FillStyleRecordFromSWF(collection ObjectCollection, fillType swfsubtypes.Fi
 			}
 		}
 
+		//TODO: repeating
+
 		//TODO: what blur factor should it pick
 		blurFactor := 1.0
 		//TODO: extend color
@@ -174,6 +176,9 @@ func FillStyleRecordFromSWF(collection ObjectCollection, fillType swfsubtypes.Fi
 				},
 			}
 		}
+
+		//TODO: repeating
+
 		bitmap := collection.Get(bitmapId)
 		if bitmap == nil {
 			fmt.Printf("bitmap %d not found!\n", bitmapId)

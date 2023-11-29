@@ -13,7 +13,7 @@ type Bitmap struct {
 
 func (b Bitmap) ApplyColorTransform(transform math2.ColorTransform) Fillable {
 	b2 := b
-	b2.Transform = b.Transform
+	b2.List = b2.List.ApplyColorTransform(transform).(DrawPathList)
 	return b2
 }
 
@@ -34,6 +34,6 @@ func BitmapFillFromSWF(l DrawPathList, transform types.MATRIX) Bitmap {
 	return Bitmap{
 		List: l,
 		// shape is already in pixel world, but matrix comes as twip
-		Transform: math2.MatrixTransformFromSWF(transform, 1/types.TwipFactor),
+		Transform: math2.MatrixTransformFromSWF(transform, 1./types.TwipFactor),
 	}
 }
