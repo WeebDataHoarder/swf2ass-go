@@ -490,7 +490,7 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 			colorTransform = t
 		}
 
-		transform := math.MatrixTransformFromSWF(node.Matrix)
+		transform := math.MatrixTransformFromSWF(node.Matrix, 1)
 
 		p.placeObject(object, placeObjectData{
 			Action:         ActionPlace,
@@ -514,7 +514,7 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 			Depth:          node.Depth,
 			ClipDepth:      SomeWith(node.ClipDepth, node.Flag.HasClipDepth),
 			Ratio:          SomeWith(float64(node.Ratio)/math2.MaxUint16, node.Flag.HasRatio),
-			Transform:      SomeWith(math.MatrixTransformFromSWF(node.Matrix), node.Flag.HasMatrix),
+			Transform:      SomeWith(math.MatrixTransformFromSWF(node.Matrix, 1), node.Flag.HasMatrix),
 			ColorTransform: SomeWith(math.ColorTransformFromSWFAlpha(node.ColorTransform), node.Flag.HasColorTransform),
 			Visible:        None[bool](),
 		})
@@ -532,7 +532,7 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 			Depth:          node.Depth,
 			ClipDepth:      SomeWith(node.ClipDepth, node.Flag.HasClipDepth),
 			Ratio:          SomeWith(float64(node.Ratio)/math2.MaxUint16, node.Flag.HasRatio),
-			Transform:      SomeWith(math.MatrixTransformFromSWF(node.Matrix), node.Flag.HasMatrix),
+			Transform:      SomeWith(math.MatrixTransformFromSWF(node.Matrix, 1), node.Flag.HasMatrix),
 			ColorTransform: SomeWith(math.ColorTransformFromSWFAlpha(node.ColorTransform), node.Flag.HasColorTransform),
 			Visible:        SomeWith(node.Visible > 0, node.Flag.HasVisible),
 			BlendMode:      SomeWith(node.BlendMode, node.Flag.HasBlendMode),

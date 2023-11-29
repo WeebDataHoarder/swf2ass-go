@@ -288,7 +288,7 @@ func ConvertBitmapToDrawPathList(i image.Image) (r DrawPathList) {
 
 	scale := math.ScaleTransform(math.NewVector2(ratioX, ratioY))
 	r2 := r.ApplyMatrixTransform(scale, true)
-	return r2
+	return r2.(DrawPathList)
 }
 
 var bitmapHeaderJPEG = []byte{0xff, 0xd8}

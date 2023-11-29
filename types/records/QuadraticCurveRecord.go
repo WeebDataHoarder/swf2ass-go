@@ -31,9 +31,9 @@ func (r QuadraticCurveRecord) Reverse() Record {
 func (r QuadraticCurveRecord) ApplyMatrixTransform(transform math2.MatrixTransform, applyTranslation bool) Record {
 	//TODO: see how accurate this is
 	return QuadraticCurveRecord{
-		Control: math2.MatrixTransformApplyToVector(transform, r.Control, applyTranslation),
-		Anchor:  math2.MatrixTransformApplyToVector(transform, r.Anchor, applyTranslation),
-		Start:   math2.MatrixTransformApplyToVector(transform, r.Start, applyTranslation),
+		Control: transform.ApplyToVector(r.Control, applyTranslation),
+		Anchor:  transform.ApplyToVector(r.Anchor, applyTranslation),
+		Start:   transform.ApplyToVector(r.Start, applyTranslation),
 	}
 }
 
@@ -64,6 +64,10 @@ func QuadraticCurveFromLineRecord(l LineRecord) QuadraticCurveRecord {
 		Anchor:  l.Start.AddVector(delta),
 		Start:   l.Start,
 	}
+}
+
+func (r QuadraticCurveRecord) BoundingBox() (topLeft, bottomRight math2.Vector2[float64]) {
+	return r.Start.Min(r.Control).Min(r.Anchor), r.Start.Max(r.Control).Max(r.Anchor)
 }
 
 func (r QuadraticCurveRecord) ToLineRecords(scale int64) []Record {

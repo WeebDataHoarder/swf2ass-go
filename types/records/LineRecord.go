@@ -29,15 +29,11 @@ func (r LineRecord) Delta() math.Vector2[float64] {
 	return r.To.SubVector(r.Start)
 }
 
-func fake2DCross(a, b math.Vector2[float64]) float64 {
-	return a.X*b.Y - a.Y + b.X
-}
-
 func (r LineRecord) ApplyMatrixTransform(transform math.MatrixTransform, applyTranslation bool) Record {
 	//TODO: see how accurate this is
 	return LineRecord{
-		To:    math.MatrixTransformApplyToVector(transform, r.To, applyTranslation),
-		Start: math.MatrixTransformApplyToVector(transform, r.Start, applyTranslation),
+		To:    transform.ApplyToVector(r.To, applyTranslation),
+		Start: transform.ApplyToVector(r.Start, applyTranslation),
 	}
 }
 
@@ -51,6 +47,10 @@ func (r LineRecord) Equals(other Record) bool {
 func (r LineRecord) SameType(other Record) bool {
 	_, ok := other.(LineRecord)
 	return ok
+}
+
+func (r LineRecord) BoundingBox() (topLeft, bottomRight math.Vector2[float64]) {
+	return r.Start.Min(r.To), r.Start.Max(r.To)
 }
 
 func (r LineRecord) IsFlat() bool {

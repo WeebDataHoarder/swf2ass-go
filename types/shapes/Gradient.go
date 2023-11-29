@@ -16,27 +16,27 @@ type Gradient struct {
 	SpreadMode        swfsubtypes.GradientSpreadMode
 	InterpolationMode swfsubtypes.GradientInterpolationMode
 
-	Interpolation func(self Gradient, overlap, blur float64, gradientSlices int) DrawPathList
-}
-
-func (g Gradient) GetSpreadMode() swfsubtypes.GradientSpreadMode {
-	return g.SpreadMode
-}
-
-func (g Gradient) GetInterpolationMode() swfsubtypes.GradientInterpolationMode {
-	return g.InterpolationMode
+	Interpolation func(self Gradient, overlap, blur float64, gradientSlices int, bb Rectangle[float64]) DrawPathList
 }
 
 func (g Gradient) GetItems() []GradientItem {
 	return g.Records
 }
 
-func (g Gradient) GetInterpolatedDrawPaths(overlap, blur float64, gradientSlices int) DrawPathList {
-	return g.Interpolation(g, overlap, blur, gradientSlices)
+func (g Gradient) GetInterpolatedDrawPaths(overlap, blur float64, gradientSlices int, bb Rectangle[float64]) DrawPathList {
+	return g.Interpolation(g, overlap, blur, gradientSlices, bb).ApplyMatrixTransform(g.Transform, true).(DrawPathList)
 }
 
-func (g Gradient) GetMatrixTransform() math2.MatrixTransform {
-	return g.Transform
+func (g Gradient) ApplyMatrixTransform(transform math2.MatrixTransform, applyTranslation bool) Fillable {
+	if transform.IsIdentity() {
+		return g
+	}
+	g2 := g
+	if !applyTranslation {
+		panic("not supported")
+	}
+	g2.Transform = transform.Combine(g2.Transform)
+	return g2
 }
 
 func (g Gradient) ApplyColorTransform(transform math2.ColorTransform) Fillable {
@@ -48,11 +48,15 @@ func (g Gradient) ApplyColorTransform(transform math2.ColorTransform) Fillable {
 			Color: transform.ApplyToColor(g.Color),
 		}
 	}
-	return &g2
+	return g2
 }
 
 func (g Gradient) Fill(shape Shape) DrawPathList {
-	return g.GetInterpolatedDrawPaths(settings.GlobalSettings.GradientOverlap, settings.GlobalSettings.GradientBlur, settings.GlobalSettings.GradientSlices).Fill(shape)
+	bb := Rectangle[float64]{}
+	if inverse := g.Transform.Inverse(); inverse != nil {
+		bb = shape.ApplyMatrixTransform(*inverse, true).BoundingBox()
+	}
+	return g.GetInterpolatedDrawPaths(settings.GlobalSettings.GradientOverlap, settings.GlobalSettings.GradientBlur, settings.GlobalSettings.GradientSlices, bb).Fill(shape)
 }
 
 type GradientItem struct {
@@ -79,7 +83,7 @@ func InterpolateGradient(gradient Gradient, gradientSlices int) (result []Gradie
 	items := gradient.GetItems()
 	//TODO: spread modes
 
-	interpolationMode := gradient.GetInterpolationMode()
+	interpolationMode := gradient.InterpolationMode
 
 	first := items[0]
 	last := items[len(items)-1]

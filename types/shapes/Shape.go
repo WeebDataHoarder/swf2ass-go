@@ -58,6 +58,20 @@ func (s Shape) Merge(o Shape) (r Shape) {
 	return r
 }
 
+func (s Shape) BoundingBox() Rectangle[float64] {
+	rect := Rectangle[float64]{}
+	if len(s) == 0 {
+		return rect
+	}
+	rect.TopLeft, rect.BottomRight = s[0].BoundingBox()
+	for _, r := range s[1:] {
+		tl, br := r.BoundingBox()
+		rect.TopLeft = rect.TopLeft.Min(tl)
+		rect.BottomRight = rect.BottomRight.Max(br)
+	}
+	return rect
+}
+
 // Flatten Converts all non-linear records into line segments and returns a new Shape
 func (s Shape) Flatten() (r Shape) {
 	if s.IsFlat() {

@@ -6,6 +6,36 @@ import (
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 )
 
+func interpolateRadialGradient(self Gradient, overlap, blur float64, gradientSlices int, bb Rectangle[float64]) DrawPathList {
+	//items is max size 8 to 15 depending on SWF version
+	size := GradientBounds.Width()
+
+	//TODO spreadMode
+
+	var paths DrawPathList
+	for _, item := range InterpolateGradient(self, gradientSlices) {
+		//Create concentric circles to cut out a shape
+		var shape Shape
+		radiusStart := (item.Start*size)/2 - overlap/4
+		radiusEnd := (item.End*size)/2 + overlap/4
+		start := NewCircle(math.NewVector2[float64](0, 0), radiusStart).Draw()
+		if radiusStart <= 0 {
+			start = nil
+		}
+		end := NewCircle(math.NewVector2[float64](0, 0), radiusEnd).Draw()
+		shape = append(shape, end...)
+		shape = append(shape, start.Reverse()...)
+		paths = append(paths, DrawPathFill(
+			&FillStyleRecord{
+				Fill: item.Color,
+				Blur: blur,
+			},
+			shape,
+		))
+	}
+	return paths
+}
+
 func RadialGradientFromSWF(records []swfsubtypes.GRADRECORD, transform types.MATRIX, spreadMode swfsubtypes.GradientSpreadMode, interpolationMode swfsubtypes.GradientInterpolationMode) Gradient {
 	items := make([]GradientItem, 0, len(records))
 	for _, r := range records {
@@ -17,37 +47,9 @@ func RadialGradientFromSWF(records []swfsubtypes.GRADRECORD, transform types.MAT
 	return Gradient{
 		Records: items,
 		//TODO: do we need to scale this to pixel world from twips?
-		Transform:         math.MatrixTransformFromSWF(transform),
+		Transform:         math.MatrixTransformFromSWF(transform, 1),
 		SpreadMode:        spreadMode,
 		InterpolationMode: interpolationMode,
-		Interpolation: func(self Gradient, overlap, blur float64, gradientSlices int) DrawPathList {
-			//items is max size 8 to 15 depending on SWF version
-			size := GradientBounds.Width()
-
-			//TODO spreadMode
-
-			var paths DrawPathList
-			for _, item := range InterpolateGradient(self, gradientSlices) {
-				//Create concentric circles to cut out a shape
-				var shape Shape
-				radiusStart := (item.Start*size)/2 - overlap/4
-				radiusEnd := (item.End*size)/2 + overlap/4
-				start := NewCircle(math.NewVector2[float64](0, 0), radiusStart).Draw()
-				if radiusStart <= 0 {
-					start = nil
-				}
-				end := NewCircle(math.NewVector2[float64](0, 0), radiusEnd).Draw()
-				shape = append(shape, end...)
-				shape = append(shape, start.Reverse()...)
-				paths = append(paths, DrawPathFill(
-					&FillStyleRecord{
-						Fill: item.Color,
-						Blur: blur,
-					},
-					shape,
-				))
-			}
-			return paths.ApplyMatrixTransform(self.Transform, true)
-		},
+		Interpolation:     interpolateRadialGradient,
 	}
 }

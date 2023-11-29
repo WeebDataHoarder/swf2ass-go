@@ -16,6 +16,7 @@ type StyleRecord interface {
 
 type Fillable interface {
 	Fill(shape Shape) DrawPathList
+	ApplyMatrixTransform(transform math.MatrixTransform, applyTranslation bool) Fillable
 	ApplyColorTransform(transform math.ColorTransform) Fillable
 }
 
@@ -60,14 +61,27 @@ func (r *FillStyleRecord) Flatten(s Shape) DrawPathList {
 }
 
 func (r *FillStyleRecord) ApplyMatrixTransform(transform math.MatrixTransform, applyTranslation bool) StyleRecord {
+	fill := r.Fill
+	if color, ok := fill.(math.Color); ok {
+		fill = color
+	} else if fillable, ok := r.Fill.(Fillable); ok {
+		fill = fillable.ApplyMatrixTransform(transform, applyTranslation)
+	} else {
+		panic("not supported")
+	}
+
 	if r.Border != nil {
 		return &FillStyleRecord{
-			Fill:   r.Fill,
+			Fill:   fill,
 			Border: r.Border.ApplyMatrixTransform(transform, applyTranslation).(*LineStyleRecord),
 			Blur:   r.Blur, //TODO: scale blur?
 		}
 	}
-	return r
+	return &FillStyleRecord{
+		Fill:   fill,
+		Border: nil,
+		Blur:   r.Blur, //TODO: scale blur?
+	}
 }
 
 func (r *FillStyleRecord) ApplyColorTransform(transform math.ColorTransform) StyleRecord {

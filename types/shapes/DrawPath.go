@@ -9,7 +9,7 @@ type DrawPath struct {
 
 func (p DrawPath) ApplyMatrixTransform(transform math.MatrixTransform, applyTranslation bool) (r DrawPath) {
 	return DrawPath{
-		Style: p.Style,
+		Style: p.Style.ApplyMatrixTransform(transform, applyTranslation),
 		Shape: p.Shape.ApplyMatrixTransform(transform, applyTranslation),
 	}
 }

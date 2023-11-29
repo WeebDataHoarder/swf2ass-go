@@ -43,6 +43,16 @@ func (r CubicSplineCurveRecord) ApplyMatrixTransform(transform math.MatrixTransf
 	}
 }
 
+func (r CubicSplineCurveRecord) BoundingBox() (topLeft, bottomRight math.Vector2[float64]) {
+	topLeft = r.Start.Min(r.Anchor)
+	bottomRight = r.Start.Max(r.Anchor)
+	for _, c := range r.Control {
+		topLeft = topLeft.Min(c)
+		bottomRight = bottomRight.Max(c)
+	}
+	return
+}
+
 func (r CubicSplineCurveRecord) Equals(other Record) bool {
 	if o, ok := other.(CubicSplineCurveRecord); ok {
 		return reflect.DeepEqual(r.Control, o.Control) && r.Start == o.Start && r.Anchor == o.Anchor

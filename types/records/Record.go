@@ -16,6 +16,8 @@ type Record interface {
 
 	ApplyMatrixTransform(transform math.MatrixTransform, applyTranslation bool) Record
 
+	BoundingBox() (topLeft, bottomRight math.Vector2[float64])
+
 	IsFlat() bool
 
 	String() string

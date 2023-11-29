@@ -27,8 +27,8 @@ func (r MoveRecord) Reverse() Record {
 func (r MoveRecord) ApplyMatrixTransform(transform math.MatrixTransform, applyTranslation bool) Record {
 	//TODO: see how accurate this is
 	return MoveRecord{
-		To:    math.MatrixTransformApplyToVector(transform, r.To, applyTranslation),
-		Start: math.MatrixTransformApplyToVector(transform, r.Start, applyTranslation),
+		To:    transform.ApplyToVector(r.To, applyTranslation),
+		Start: transform.ApplyToVector(r.Start, applyTranslation),
 	}
 }
 
@@ -42,6 +42,10 @@ func (r MoveRecord) Equals(other Record) bool {
 func (r MoveRecord) SameType(other Record) bool {
 	_, ok := other.(MoveRecord)
 	return ok
+}
+
+func (r MoveRecord) BoundingBox() (topLeft, bottomRight math.Vector2[float64]) {
+	return r.Start.Min(r.To), r.Start.Max(r.To)
 }
 
 func (r MoveRecord) IsFlat() bool {

@@ -33,7 +33,7 @@ func (d *FontDefinition) ComposeTextSWF(entries []subtypes.GLYPHENTRY, height, y
 		e := d.Entries[g.Index]
 
 		t := math.TranslateTransform(math.NewVector2(xOffset, yOffset)).Multiply(math.ScaleTransform(math.NewVector2(height/d.Scale, height/d.Scale)))
-		for _, dp := range e.List.ApplyMatrixTransform(t, true) {
+		for _, dp := range e.List.ApplyMatrixTransform(t, true).(shapes.DrawPathList) {
 			if _, ok := dp.Style.(*shapes.FillStyleRecord); ok {
 				list = append(list, shapes.DrawPathFill(&shapes.FillStyleRecord{
 					Fill:   c,
@@ -142,7 +142,7 @@ func TextDefinitionFromSWF(collection shapes.ObjectCollection, characterId uint1
 	return &TextDefinition{
 		ObjectId:  characterId,
 		Bounds:    characterBounds,
-		ShapeList: r.ApplyMatrixTransform(math.MatrixTransformFromSWF(matrix), true),
+		ShapeList: r.ApplyMatrixTransform(math.MatrixTransformFromSWF(matrix, 1), true).(shapes.DrawPathList),
 	}
 }
 
@@ -150,9 +150,13 @@ func FontDefinitionFromSWF[T1 uint16 | uint32, T2 uint8 | uint16](fontId uint16,
 
 	styleList := shapes.StyleList{
 		//TODO: why is this needed????
-		FillStyles: []*shapes.FillStyleRecord{{}},
+		FillStyles: []*shapes.FillStyleRecord{{
+			Fill: math.Color{},
+		}},
 		//TODO: why is this needed????
-		LineStyles: []*shapes.LineStyleRecord{{}},
+		LineStyles: []*shapes.LineStyleRecord{{
+			Color: math.Color{},
+		}},
 	}
 
 	var entries []FontEntry

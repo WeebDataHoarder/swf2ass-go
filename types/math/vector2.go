@@ -116,6 +116,14 @@ func (v Vector2[T]) Normals() (a, b Vector2[T]) {
 		}
 }
 
+func (v Vector2[T]) Max(b Vector2[T]) Vector2[T] {
+	return NewVector2(max(v.X, b.X), max(v.Y, b.Y))
+}
+
+func (v Vector2[T]) Min(b Vector2[T]) Vector2[T] {
+	return NewVector2(min(v.X, b.X), min(v.Y, b.Y))
+}
+
 func (v Vector2[T]) Abs() Vector2[T] {
 	x := v.X
 	if x < 0 {

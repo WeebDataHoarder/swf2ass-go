@@ -194,10 +194,10 @@ func (m MatrixTransform) String() string {
 	return fmt.Sprintf("%#v", mat.Formatted(m.matrix, mat.FormatPython()))
 }
 
-func MatrixTransformFromSWF(m types.MATRIX) MatrixTransform {
+func MatrixTransformFromSWF(m types.MATRIX, scale float64) MatrixTransform {
 	return NewMatrixTransform(
 		NewVector2(m.ScaleX.Float64(), m.ScaleY.Float64()),
 		NewVector2(m.RotateSkew0.Float64(), m.RotateSkew1.Float64()),
 		NewVector2(m.TranslateX.Float64(), m.TranslateY.Float64()),
-	)
+	).Multiply(ScaleTransform(NewVector2(scale, scale)))
 }

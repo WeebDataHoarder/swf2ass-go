@@ -264,7 +264,7 @@ func ContainerTagFromPathEntry(path shapes.DrawPath, clip *shapes.ClipPath, colo
 			//TODO: this is broken
 			translationTransform := math.TranslateTransform(matrixTransform.GetTranslation().Multiply(-1))
 			path = shapes.DrawPath{
-				Style: path.Style,
+				Style: path.Style, //TODO: apply transform to Style?
 				Shape: clip.ApplyMatrixTransform(translationTransform, true).ClipShape(path.Shape, true),
 			}
 		}

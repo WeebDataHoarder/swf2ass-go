@@ -32,10 +32,10 @@ func (r CubicCurveRecord) Reverse() Record {
 func (r CubicCurveRecord) ApplyMatrixTransform(transform math2.MatrixTransform, applyTranslation bool) Record {
 	//TODO: see how accurate this is
 	return CubicCurveRecord{
-		Control1: math2.MatrixTransformApplyToVector(transform, r.Control1, applyTranslation),
-		Control2: math2.MatrixTransformApplyToVector(transform, r.Control2, applyTranslation),
-		Anchor:   math2.MatrixTransformApplyToVector(transform, r.Anchor, applyTranslation),
-		Start:    math2.MatrixTransformApplyToVector(transform, r.Start, applyTranslation),
+		Control1: transform.ApplyToVector(r.Control1, applyTranslation),
+		Control2: transform.ApplyToVector(r.Control2, applyTranslation),
+		Anchor:   transform.ApplyToVector(r.Anchor, applyTranslation),
+		Start:    transform.ApplyToVector(r.Start, applyTranslation),
 	}
 }
 
@@ -57,6 +57,10 @@ func (r CubicCurveRecord) IsFlat() bool {
 
 func (r CubicCurveRecord) String() string {
 	return fmt.Sprintf("c %s %s %s", r.Control1, r.Control2, r.Anchor)
+}
+
+func (r CubicCurveRecord) BoundingBox() (topLeft, bottomRight math2.Vector2[float64]) {
+	return r.Start.Min(r.Control1).Min(r.Control2).Min(r.Anchor), r.Start.Max(r.Control1).Max(r.Control2).Max(r.Anchor)
 }
 
 func CubicCurveFromQuadraticRecord(q QuadraticCurveRecord) CubicCurveRecord {

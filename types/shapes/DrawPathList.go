@@ -47,8 +47,8 @@ func (l DrawPathList) ApplyColorTransform(transform math.ColorTransform) Fillabl
 	return r
 }
 
-func (l DrawPathList) ApplyMatrixTransform(transform math.MatrixTransform, applyTranslation bool) (r DrawPathList) {
-	r = make(DrawPathList, 0, len(l))
+func (l DrawPathList) ApplyMatrixTransform(transform math.MatrixTransform, applyTranslation bool) Fillable {
+	r := make(DrawPathList, 0, len(l))
 	for i := range l {
 		r = append(r, l[i].ApplyMatrixTransform(transform, applyTranslation))
 	}
