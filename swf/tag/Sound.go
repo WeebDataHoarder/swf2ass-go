@@ -139,7 +139,7 @@ func (t *SoundStreamHead2) HasLatencySeek(ctx types.ReaderContext) bool {
 }
 
 func (t *SoundStreamHead2) Code() Code {
-	return RecordSoundStreamHead
+	return RecordSoundStreamHead2
 }
 
 type SoundStreamBlock struct {
