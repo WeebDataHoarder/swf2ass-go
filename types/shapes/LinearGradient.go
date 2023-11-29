@@ -28,6 +28,14 @@ func interpolateLinearGradient(self Gradient, overlap, blur float64, gradientSli
 	vOverlap := math.NewVector2(overlap, 0).Divide(2)
 
 	items := InterpolateGradient(self, gradientSlices)
+	for _, i := range items {
+		if i.Color.Alpha != 255 {
+			//transparency! remove overlaps
+			blur = 0
+			overlap = 0
+			break
+		}
+	}
 
 	var paths DrawPathList
 	for _, item := range items {
@@ -68,8 +76,8 @@ func interpolateLinearGradient(self Gradient, overlap, blur float64, gradientSli
 							Blur: blur,
 						},
 						Rectangle[float64]{
-							TopLeft:     math.NewVector2(topLeft1.X, height0),
-							BottomRight: math.NewVector2(bb.BottomRight.X, height1).AddVector(vOverlap),
+							TopLeft:     math.NewVector2(topLeft1.X, height0).SubVector(vOverlap),
+							BottomRight: math.NewVector2(bb.BottomRight.X, height1),
 						}.Draw(),
 					))
 				}

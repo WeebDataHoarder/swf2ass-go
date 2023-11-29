@@ -54,6 +54,7 @@ func (g Gradient) ApplyColorTransform(transform math2.ColorTransform) Fillable {
 func (g Gradient) Fill(shape Shape) DrawPathList {
 	bb := Rectangle[float64]{}
 	if inverse := g.Transform.Inverse(); inverse != nil {
+		//calculate inverse of shape to get bounds gradient has to match to
 		bb = shape.ApplyMatrixTransform(*inverse, true).BoundingBox()
 	}
 	return g.GetInterpolatedDrawPaths(settings.GlobalSettings.GradientOverlap, settings.GlobalSettings.GradientBlur, settings.GlobalSettings.GradientSlices, bb).Fill(shape)
@@ -122,6 +123,7 @@ func InterpolateGradient(gradient Gradient, gradientSlices int) (result []Gradie
 		if maxColorDistance < math.SmallestNonzeroFloat64 {
 			partitions = 1
 		} else if gradientSlices == settings.GradientAutoSlices {
+			//TODO: better heuristic for change including distance in ratio
 			partitions = max(1, int(math.Ceil(min(GradientRatioDivisor/float64(len(items)+1), max(1, math.Ceil(maxColorDistance))))))
 		} else {
 			partitions = max(1, int(math.Ceil((distance/GradientRatioDivisor)*float64(gradientSlices))))

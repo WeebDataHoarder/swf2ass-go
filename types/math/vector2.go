@@ -143,6 +143,10 @@ func (v Vector2[T]) Dot(b Vector2[T]) T {
 	return v.X*b.X + v.Y*b.Y
 }
 
+func (v Vector2[T]) Length() float64 {
+	return math.Sqrt(float64(v.SquaredLength()))
+}
+
 func (v Vector2[T]) SquaredLength() T {
 	return v.X*v.X + v.Y*v.Y
 }
