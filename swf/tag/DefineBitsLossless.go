@@ -74,7 +74,7 @@ func (t *DefineBitsLossless) GetImage() image.Image {
 				if err != nil {
 					return nil
 				}
-				im.SetRGBA(x, y, color.RGBA{R: buf[0], G: buf[1], B: buf[2], A: 255})
+				im.SetRGBA(x, y, color.RGBA{R: buf[1], G: buf[2], B: buf[3], A: 255})
 			}
 		}
 		return im
