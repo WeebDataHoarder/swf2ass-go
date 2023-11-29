@@ -29,10 +29,10 @@ func (t *DefineBitsLossless) GetImage() image.Image {
 	}
 	defer r.Close()
 
-	var buf [3]byte
-
 	switch t.Format {
 	case 3: // 8-bit colormapped image
+
+		var buf [3]byte
 
 		var palette color.Palette
 		for i := 0; i < (int(t.ColorTableSize) + 1); i++ {
@@ -60,6 +60,9 @@ func (t *DefineBitsLossless) GetImage() image.Image {
 	case 4: // 15-bit RGB image
 		panic("15-bit RGB not supported")
 	case 5: // 24-bit RGB image
+
+		//it reads actual 4 bytes
+		var buf [4]byte
 		im := image.NewRGBA(image.Rectangle{
 			Min: image.Point{},
 			Max: image.Point{X: int(t.Width), Y: int(t.Height)},

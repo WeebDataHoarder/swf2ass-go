@@ -130,6 +130,8 @@ func (r *Record) Decode() (readTag Tag, err error) {
 		readTag = &DefineFontName{}
 	case RecordDefineFont4:
 		readTag = &DefineFont4{}
+	case RecordPlaceObject4:
+		readTag = &PlaceObject4{}
 
 	case RecordExportAssets:
 	case RecordImportAssets:

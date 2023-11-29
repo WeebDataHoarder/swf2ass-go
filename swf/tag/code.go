@@ -95,4 +95,7 @@ const (
 	RecordStartSound2
 	RecordDefineBitsJPEG4
 	RecordDefineFont4
+	_
+	_
+	RecordPlaceObject4
 )
