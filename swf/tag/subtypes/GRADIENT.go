@@ -60,18 +60,24 @@ type FOCALGRADIENT struct {
 	Records           []GRADRECORD              `swfCount:"NumGradients"`
 	FocalPoint        types.Fixed8
 
-	BogusCheck struct{} `swfCondition:"BogusCheckField()"`
+	GradientCheck struct{} `swfCondition:"GradientCheckField()"`
 }
 
 func (g *FOCALGRADIENT) BogusCheckField(ctx types.ReaderContext) bool {
 	if g.NumGradients < 1 {
 		panic("wrong length")
 	}
-	if g.SpreadMode != GradientSpreadPad && g.SpreadMode != GradientSpreadReflect && g.SpreadMode != GradientSpreadRepeat {
-		panic("wrong spread")
+
+	if g.SpreadMode == GradientSpreadReserved {
+		// Per SWF19 p. 136, SpreadMode 3 is reserved.
+		// Flash treats it as pad mode.
+		g.SpreadMode = GradientSpreadPad
 	}
-	if g.InterpolationMode != GradientInterpolationRGB && g.InterpolationMode != GradientInterpolationLinearRGB {
-		panic("wrong interpolation")
+
+	if g.InterpolationMode == GradientInterpolationReserved2 || g.InterpolationMode == GradientInterpolationReserved3 {
+		// Per SWF19 p. 136, InterpolationMode 2 and 3 are reserved.
+		// Flash treats them as normal RGB mode interpolation.
+		g.InterpolationMode = GradientInterpolationRGB
 	}
 	return false
 }
