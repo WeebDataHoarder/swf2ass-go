@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/tag"
 	asstime "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/settings"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
 	"regexp"
@@ -123,10 +124,12 @@ func (l *EventLine) Encode(frameDuration time.Duration) string {
 
 	text := make([]string, 0, 1+len(l.Tags))
 
-	eventTimeTags := eventTime.Encode()
+	if settings.GlobalSettings.ASSPreciseTiming {
+		eventTimeTags := eventTime.Encode()
 
-	if len(eventTimeTags) > 0 {
-		text = append(text, eventTimeTags)
+		if len(eventTimeTags) > 0 {
+			text = append(text, eventTimeTags)
+		}
 	}
 
 	for _, t := range l.Tags {

@@ -118,7 +118,6 @@ func (t EventTime) GetDurationFromEndOffset(frameOffset int64) time.Duration {
 func (t EventTime) Encode() string {
 	if t.Start.AdjustedMillisecondError != 0 || t.End.AdjustedMillisecondError != 0 {
 		//Adjust frame precision exactly to frame boundaries. This is necessary due to low ASS timing precision
-		//TODO: Maybe use fade?
 		frameStartTime := t.GetDurationFromStartOffset(0).Milliseconds()
 		frameEndTime := t.GetDurationFromEndOffset(0).Milliseconds()
 		//TODO: maybe needs to be -1?

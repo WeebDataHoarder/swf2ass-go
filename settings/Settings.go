@@ -8,6 +8,11 @@ type Settings struct {
 	// Note that at high ASSDrawingScale >= 5 this will be brought down to 0 regardless
 	ASSDrawingPrecision int
 
+	// ASSPreciseTiming Enables precise timing via \fade transitions for each event.
+	// libass is only precise to 1/100th of a second, causing issues with higher framerate content
+	// Additionally extra \err annotations will be placed to note the current error adjusted
+	ASSPreciseTiming bool
+
 	// VideoRateMultiplier Adjusts the viewport scale. All operations and transforms will be adjusted accordingly
 	// For example, VideoScaleMultiplier = 2 will make a 640x480 viewport become 1280x960
 	VideoScaleMultiplier float64
@@ -49,6 +54,7 @@ const DefaultASSDrawingPrecision = 2
 var GlobalSettings = Settings{
 	ASSDrawingScale:      DefaultASSDrawingScale,
 	ASSDrawingPrecision:  DefaultASSDrawingPrecision,
+	ASSPreciseTiming:     true,
 	VideoScaleMultiplier: 1,
 	VideoRateMultiplier:  1,
 
