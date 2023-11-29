@@ -561,7 +561,7 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 	return tag, actions
 }
 
-func (p *SWFTreeProcessor) NextFrame() *ViewFrame {
+func (p *SWFTreeProcessor) NextFrame(loop bool) *ViewFrame {
 	var actions ActionList
 	if !p.Playing {
 		return p.LastFrame
@@ -588,8 +588,8 @@ func (p *SWFTreeProcessor) NextFrame() *ViewFrame {
 		//p.Frame = 0
 		p.Index = 0
 		//p.Layout = NewViewLayout(p.Layout.GetObjectId(), nil, nil)
-		if p.LastFrame != nil {
-			return p.NextFrame()
+		if loop && p.LastFrame != nil {
+			return p.NextFrame(loop)
 		}
 		return nil
 	}
@@ -608,7 +608,7 @@ func (p *SWFTreeProcessor) NextFrame() *ViewFrame {
 		case *PlayAction:
 			p.Playing = true
 		case *NextFrameAction:
-			return p.NextFrame()
+			return p.NextFrame(loop)
 		default:
 			_ = action
 

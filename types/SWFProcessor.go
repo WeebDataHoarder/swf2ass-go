@@ -83,7 +83,7 @@ func (p *SWFProcessor) subProcess(actions ActionList) (tag swftag.Tag, newAction
 }
 
 func (p *SWFProcessor) NextFrameOutput() *FrameInformation {
-	frame := p.NextFrame()
+	frame := p.NextFrame(false)
 	if frame == nil {
 		return nil
 	}

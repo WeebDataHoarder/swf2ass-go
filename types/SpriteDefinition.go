@@ -65,7 +65,7 @@ func SpriteDefinitionFromSWF(spriteId uint16, frameCount int, p *SWFTreeProcesso
 
 	var lastFrame *ViewFrame
 	for p.Loops == 0 && (len(frames) < frameCount || (frameCount == 0 && len(frames) == 0)) {
-		f := p.NextFrame()
+		f := p.NextFrame(false)
 		if f == nil {
 			break
 		}
