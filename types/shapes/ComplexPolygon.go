@@ -51,17 +51,23 @@ func NewPolygonFromShape(shape Shape) (g polyclip.Polygon) {
 
 	var edges []records.LineRecord
 
-	var lastEdge *records.LineRecord
+	var lastEdgePos *math.Vector2[float64]
 
 	for _, record := range flat {
-		if lastEdge != nil && !lastEdge.GetEnd().Equals(record.GetStart()) {
+		if lastEdgePos != nil && !lastEdgePos.Equals(record.GetStart()) {
 			g = append(g, NewContourFromEdges(edges))
 			edges = edges[:0]
 		}
 
 		if lineRecord, ok := record.(records.LineRecord); ok {
 			edges = append(edges, lineRecord)
-			lastEdge = &lineRecord
+			p := lineRecord.GetEnd()
+			lastEdgePos = &p
+		} else if moveRecord, ok := record.(records.MoveRecord); ok {
+			g = append(g, NewContourFromEdges(edges))
+			edges = edges[:0]
+			p := moveRecord.GetEnd()
+			lastEdgePos = &p
 		} else {
 			panic("invalid record")
 		}
