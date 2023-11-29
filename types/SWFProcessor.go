@@ -61,9 +61,31 @@ func (p *SWFProcessor) subProcess(actions ActionList) (tag swftag.Tag, newAction
 		if p.Loops > 0 {
 			break
 		}
+		//fixes swf without actual audio but a head
+		if !func() bool {
+			for _, t := range p.Tags {
+				if _, ok := t.(*swftag.SoundStreamBlock); ok {
+					return true
+				}
+			}
+			return false
+		}() {
+			break
+		}
 		p.Audio = AudioStreamFromSWF(node.StreamSoundRate, node.StreamSoundSize, node.StreamIsStereo, swftag.SoundFormat(node.StreamSoundCompression))
 	case *swftag.SoundStreamHead2:
 		if p.Loops > 0 {
+			break
+		}
+		//fixes swf without actual audio but a head
+		if !func() bool {
+			for _, t := range p.Tags {
+				if _, ok := t.(*swftag.SoundStreamBlock); ok {
+					return true
+				}
+			}
+			return false
+		}() {
 			break
 		}
 		p.Audio = AudioStreamFromSWF(node.StreamSoundRate, node.StreamSoundSize, node.StreamIsStereo, node.StreamSoundFormat)
@@ -77,6 +99,38 @@ func (p *SWFProcessor) subProcess(actions ActionList) (tag swftag.Tag, newAction
 				p.Audio.Start = &f
 			}
 			p.Audio.AddStreamBlock(node)
+		}
+	case *swftag.DefineSound:
+		if p.Loops > 0 {
+			break
+		}
+		if p.Audio != nil {
+			break
+		}
+		p.Audio = AudioStreamFromSWF(node.SoundRate, node.SoundSize, node.IsStereo, node.SoundFormat)
+		p.Audio.SoundId = node.SoundId
+		p.Audio.SoundData = node.SoundData
+	case *swftag.StartSound:
+		if p.Loops > 0 {
+			break
+		}
+		if p.Audio != nil && p.Audio.SoundId == node.SoundId {
+			if p.Audio.Start == nil {
+				f := p.Frame
+				p.Audio.Start = &f
+			}
+			p.Audio.Data = p.Audio.SoundData
+		}
+	case *swftag.StartSound2:
+		if p.Loops > 0 {
+			break
+		}
+		if p.Audio != nil && p.Audio.SoundId == node.SoundId {
+			if p.Audio.Start == nil {
+				f := p.Frame
+				p.Audio.Start = &f
+			}
+			p.Audio.Data = p.Audio.SoundData
 		}
 	}
 	return p.process(actions)

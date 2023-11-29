@@ -12,12 +12,27 @@ import (
 	"image/color"
 	_ "image/gif"
 	_ "image/jpeg"
+	"image/png"
 	_ "image/png"
+	"os"
 	"runtime"
 	"slices"
 	"sync"
 	"sync/atomic"
 )
+
+func ImageToPNG(im image.Image, fname string) error {
+	f, err := os.Create(fname)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	err = png.Encode(f, im)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 func ConvertBitmapBytesToDrawPathList(imageData []byte, alphaData []byte) (DrawPathList, error) {
 	var im image.Image
@@ -80,6 +95,9 @@ func ConvertBitmapBytesToDrawPathList(imageData []byte, alphaData []byte) (DrawP
 }
 
 func QuantizeBitmap(i image.Image) image.Image {
+	if settings.GlobalSettings.BitmapPaletteSize == -1 {
+		return i
+	}
 	size := i.Bounds().Size()
 
 	palettedImage := image.NewPaletted(i.Bounds(), nil)
@@ -171,18 +189,20 @@ func ConvertBitmapToDrawPathList(i image.Image) (r DrawPathList) {
 					r, g, b, a := i.At(int(iX), y).RGBA()
 
 					p := math.NewPackedColor(uint8(r>>8), uint8(g>>8), uint8(b>>8), uint8(a>>8))
-					poly := polyclip.Polygon{{
+					contour := polyclip.Contour{
 						{float64(iX), float64(y)},
 						{float64(iX), float64(y + 1)},
 						{float64(iX + 1), float64(y + 1)},
 						{float64(iX + 1), float64(y)},
-					}}
-					if existingColor, ok := myResults[p]; ok {
-						u := existingColor.Construct(polyclip.UNION, poly).Simplify()
-						myResults[p] = u
-					} else {
-						myResults[p] = poly
 					}
+
+					myResults[p] = append(myResults[p], contour)
+					/*
+						if _, ok := myResults[p]; ok {
+							//u := existingColor.Construct(polyclip.UNION, poly)
+						} else {
+							myResults[p] = poly
+						}*/
 				}
 			}
 			results[n] = myResults

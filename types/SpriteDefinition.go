@@ -21,7 +21,7 @@ func (d *SpriteDefinition) GetShapeList(p shapes.ObjectProperties) (list shapes.
 }
 
 func (d *SpriteDefinition) NextFrame(frameNumber int64, p shapes.ObjectProperties) *ViewFrame {
-	frameN := frameNumber - p.PlaceFrame
+	frameN := max(0, frameNumber-p.PlaceFrame)
 
 	n := frameN % int64(len(d.Frames))
 

@@ -10,6 +10,9 @@ type AudioStream struct {
 	SampleSize int
 	Channels   int
 
+	SoundId   uint16
+	SoundData []byte
+
 	Start *int64
 
 	Data []byte

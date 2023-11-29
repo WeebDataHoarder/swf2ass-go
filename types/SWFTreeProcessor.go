@@ -537,6 +537,25 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 			Visible:        SomeWith(node.Visible > 0, node.Flag.HasVisible),
 			BlendMode:      SomeWith(node.BlendMode, node.Flag.HasBlendMode),
 		})
+	case *swftag.PlaceObject4:
+		//TODO: handle extra properties
+		var object shapes.ObjectDefinition
+		if node.Flag.HasCharacter {
+			object = p.Objects.Get(node.CharacterId)
+		} else {
+			object = p.Layout.Get(node.Depth).Object
+		}
+
+		p.placeObject(object, placeObjectData{
+			Action:         PlaceActionFromFlags(node.Flag.HasCharacter, node.Flag.Move),
+			Depth:          node.Depth,
+			ClipDepth:      SomeWith(node.ClipDepth, node.Flag.HasClipDepth),
+			Ratio:          SomeWith(float64(node.Ratio)/math2.MaxUint16, node.Flag.HasRatio),
+			Transform:      SomeWith(math.MatrixTransformFromSWF(node.Matrix, 1), node.Flag.HasMatrix),
+			ColorTransform: SomeWith(math.ColorTransformFromSWFAlpha(node.ColorTransform), node.Flag.HasColorTransform),
+			Visible:        SomeWith(node.Visible > 0, node.Flag.HasVisible),
+			BlendMode:      SomeWith(node.BlendMode, node.Flag.HasBlendMode),
+		})
 	case *swftag.ShowFrame:
 	case *swftag.End:
 	case *swftag.DoAction:
