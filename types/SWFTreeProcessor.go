@@ -405,7 +405,12 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 		if p.Loops > 0 {
 			break
 		}
-		bitDef := BitmapDefinitionFromSWFLossless(node.CharacterId, node.GetImage())
+		im, err := node.GetImage()
+		if err != nil {
+			fmt.Printf("Unsupported lossless bitmap: %s\n", err)
+			break
+		}
+		bitDef := BitmapDefinitionFromSWFLossless(node.CharacterId, im)
 		if bitDef == nil {
 			fmt.Printf("Unsupported lossless bitmap\n")
 			break
@@ -415,7 +420,12 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 		if p.Loops > 0 {
 			break
 		}
-		bitDef := BitmapDefinitionFromSWFLossless(node.CharacterId, node.GetImage())
+		im, err := node.GetImage()
+		if err != nil {
+			fmt.Printf("Unsupported lossless bitmap: %s\n", err)
+			break
+		}
+		bitDef := BitmapDefinitionFromSWFLossless(node.CharacterId, im)
 		if bitDef == nil {
 			fmt.Printf("Unsupported lossless bitmap\n")
 			break
