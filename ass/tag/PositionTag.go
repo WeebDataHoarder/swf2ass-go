@@ -15,7 +15,7 @@ type PositionTag struct {
 }
 
 func (t *PositionTag) TransitionMatrixTransform(event Event, transform math2.MatrixTransform) PositioningTag {
-	translation := math2.MatrixTransformApplyToVector(transform, math2.NewVector2[float64](0, 0), true)
+	translation := transform.GetTranslation()
 
 	frame := event.GetEnd() - event.GetStart()
 
@@ -104,7 +104,7 @@ func (t *PositionTag) Equals(tag Tag) bool {
 }
 
 func (t *PositionTag) FromMatrixTransform(transform math2.MatrixTransform) PositioningTag {
-	translation := math2.MatrixTransformApplyToVector(transform, math2.NewVector2[float64](0, 0), true)
+	translation := transform.GetTranslation()
 	t.From = translation
 	t.To = translation
 	t.Start = 1

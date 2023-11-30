@@ -148,11 +148,18 @@ func main() {
 			break
 		}
 
+		//TODO: handle multiple sounds
+
 		if processor.Audio != nil && frameOffset == 0 {
 			if processor.Audio.Start == nil {
+				fmt.Printf("Skipped frame %d: audio not started\n", frame.FrameNumber)
 				continue
 			}
 			frameOffset = *processor.Audio.Start
+		} else if processor.Audio == nil {
+			//TODO: make this an option
+			fmt.Printf("Skipped frame %d: no audio\n", frame.FrameNumber)
+			continue
 		}
 
 		frame.FrameOffset = frameOffset
