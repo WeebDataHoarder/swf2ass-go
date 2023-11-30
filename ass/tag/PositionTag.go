@@ -83,7 +83,7 @@ func (t *PositionTag) Encode(event time.EventTime) string {
 
 	if hasMoved {
 		var start, end int64
-		if shift > 1 || settings.GlobalSettings.SmoothTransitions {
+		if shift > 1 || settings.GlobalSettings.ASSSmoothTransitions {
 			start = event.GetDurationFromStartOffset(t.Start - 1).Milliseconds()
 			end = event.GetDurationFromStartOffset(t.End).Milliseconds()
 		} else {

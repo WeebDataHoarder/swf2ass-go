@@ -13,25 +13,25 @@ type Settings struct {
 	// Additionally extra \err annotations will be placed to note the current error adjusted
 	ASSPreciseTiming bool
 
+	// ASSSmoothTransitions Attempt to merge multiple fixed transitions into a single long one if they happen at constant rate
+	// \move and \t tags will be emitted
+	// Note currently only linear changes are tracked, TODO: track changes in non-linear supported by ASS override tags
+	ASSSmoothTransitions bool
+
+	// ASSBakeClips Clip any shape that has a clip directly, instead of emitting \clip tags
+	ASSBakeClips bool
+
+	// ASSBakeMatrixTransforms Transforms the shapes directly instead of writing ASS override tags
+	// Reduces compressibility, but not affect positioning. \pos tags will still be emitted
+	// Enabling this is very expensive on players, also increases output size.
+	ASSBakeMatrixTransforms bool
+
 	// VideoRateMultiplier Adjusts the viewport scale. All operations and transforms will be adjusted accordingly
 	// For example, VideoScaleMultiplier = 2 will make a 640x480 viewport become 1280x960
 	VideoScaleMultiplier float64
 
 	// VideoRateMultiplier Adjusts framerate multiplier. Leave at 1 unless you know what you are doing.
 	VideoRateMultiplier float64
-
-	// BakeClips Clip any shape that has a clip directly, instead of emitting \clip tags
-	BakeClips bool
-
-	// BakeMatrixTransforms Transforms the shapes directly instead of writing ASS override tags
-	// Reduces compressibility, but not affect positioning. \pos tags will still be emitted
-	// Enabling this is very expensive on players, also increases output size.
-	BakeMatrixTransforms bool
-
-	// SmoothTransitions Attempt to merge multiple fixed transitions into a single long one if they happen at constant rate
-	// \move and \t tags will be emitted
-	// Note currently only linear changes are tracked, TODO: track changes in non-linear supported by ASS override tags
-	SmoothTransitions bool
 
 	// GradientSlices Number of slices each gradient will get for each step when rendering them.
 	// It is recommended to leave at shapes.GradientAutoSlices as that will automatically pick slices based on color differences across steps.
@@ -43,7 +43,11 @@ type Settings struct {
 	// GradientBlur Amount of blur to apply to gradients
 	GradientBlur float64
 
-	BitmapPaletteSize  int
+	// BitmapPaletteSize Number of colors bitmap shapes will be paletted into.
+	// Transparency is not included and will be handled separately. Set to 0 to disable.
+	BitmapPaletteSize int
+	// BitmapMaxDimension Highest dimension, width or height, that a bitmap can be sized
+	// If higher, the bitmap will be resized accordingly. Set to 0 to disable.
 	BitmapMaxDimension int
 }
 
@@ -52,17 +56,15 @@ const DefaultASSDrawingScale = 6
 const DefaultASSDrawingPrecision = 2
 
 var GlobalSettings = Settings{
-	ASSDrawingScale:      DefaultASSDrawingScale,
-	ASSDrawingPrecision:  DefaultASSDrawingPrecision,
-	ASSPreciseTiming:     true,
+	ASSDrawingScale:         DefaultASSDrawingScale,
+	ASSDrawingPrecision:     DefaultASSDrawingPrecision,
+	ASSPreciseTiming:        true,
+	ASSSmoothTransitions:    false,
+	ASSBakeClips:            false,
+	ASSBakeMatrixTransforms: false,
+
 	VideoScaleMultiplier: 1,
 	VideoRateMultiplier:  1,
-
-	BakeClips: false,
-
-	BakeMatrixTransforms: false,
-
-	SmoothTransitions: false,
 
 	GradientSlices:  GradientAutoSlices,
 	GradientOverlap: 2,

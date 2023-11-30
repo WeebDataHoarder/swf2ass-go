@@ -95,7 +95,7 @@ func ConvertBitmapBytesToDrawPathList(imageData []byte, alphaData []byte) (DrawP
 }
 
 func QuantizeBitmap(i image.Image) image.Image {
-	if settings.GlobalSettings.BitmapPaletteSize == -1 {
+	if settings.GlobalSettings.BitmapPaletteSize == 0 {
 		return i
 	}
 	size := i.Bounds().Size()
@@ -147,23 +147,25 @@ func ConvertBitmapToDrawPathList(i image.Image) (r DrawPathList) {
 	ratioX := 1.0
 	ratioY := 1.0
 	maxDimension := max(size.X, size.Y)
-	if maxDimension > settings.GlobalSettings.BitmapMaxDimension && size.X == maxDimension {
+	if settings.GlobalSettings.BitmapMaxDimension > 0 {
+		if maxDimension > settings.GlobalSettings.BitmapMaxDimension && size.X == maxDimension {
 
-		ratio := float64(maxDimension) / float64(settings.GlobalSettings.BitmapMaxDimension)
-		w, h := uint(settings.GlobalSettings.BitmapMaxDimension), uint(float64(size.Y)/ratio)
+			ratio := float64(maxDimension) / float64(settings.GlobalSettings.BitmapMaxDimension)
+			w, h := uint(settings.GlobalSettings.BitmapMaxDimension), uint(float64(size.Y)/ratio)
 
-		i = resize.Resize(w, h, i, resize.Bicubic)
-		ratioX = float64(size.X+1) / float64(w+1)
-		ratioY = float64(size.Y+1) / float64(h+1)
+			i = resize.Resize(w, h, i, resize.Bicubic)
+			ratioX = float64(size.X+1) / float64(w+1)
+			ratioY = float64(size.Y+1) / float64(h+1)
 
-	} else if maxDimension > settings.GlobalSettings.BitmapMaxDimension && size.Y == maxDimension {
+		} else if maxDimension > settings.GlobalSettings.BitmapMaxDimension && size.Y == maxDimension {
 
-		ratio := float64(maxDimension) / float64(settings.GlobalSettings.BitmapMaxDimension)
-		w, h := uint(float64(size.X)/ratio), uint(settings.GlobalSettings.BitmapMaxDimension)
+			ratio := float64(maxDimension) / float64(settings.GlobalSettings.BitmapMaxDimension)
+			w, h := uint(float64(size.X)/ratio), uint(settings.GlobalSettings.BitmapMaxDimension)
 
-		i = resize.Resize(w, h, i, resize.Bicubic)
-		ratioX = float64(size.X+1) / float64(w+1)
-		ratioY = float64(size.Y+1) / float64(h+1)
+			i = resize.Resize(w, h, i, resize.Bicubic)
+			ratioX = float64(size.X+1) / float64(w+1)
+			ratioY = float64(size.Y+1) / float64(h+1)
+		}
 	}
 
 	i = QuantizeBitmap(i)

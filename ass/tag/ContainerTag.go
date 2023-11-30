@@ -214,7 +214,7 @@ func (t *ContainerTag) Encode(event time.EventTime) string {
 		//TODO: clone line?
 		//TODO: animations with smoothing really don't play well. maybe allow them when only one animation "direction" exists, or smooth them manually?
 		//Or just don't animate MatrixTransform / do it in a single tick
-		if settings.GlobalSettings.SmoothTransitions {
+		if settings.GlobalSettings.ASSSmoothTransitions {
 			startTime = event.GetDurationFromStartOffset(index-1).Milliseconds() + 1
 			endTime = event.GetDurationFromStartOffset(index+1).Milliseconds() - 1
 		} else {
@@ -257,7 +257,7 @@ func ContainerTagFromPathEntry(path shapes.DrawPath, clip *shapes.ClipPath, colo
 		}
 	}
 
-	if settings.GlobalSettings.BakeClips {
+	if settings.GlobalSettings.ASSBakeClips {
 		if clip != nil {
 			//Clip is given in absolute coordinates. path is relative to translation
 			//TODO: is this true for ClipPath???

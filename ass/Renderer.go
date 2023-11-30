@@ -215,7 +215,7 @@ func (r *Renderer) RenderFrame(frameInfo types.FrameInformation, frame types.Ren
 		} else {
 			r.RunningBuffer = append(r.RunningBuffer, tagsToTransition...)
 
-			for _, l := range line.EventLinesFromRenderObject(frameInfo, object, settings.GlobalSettings.BakeMatrixTransforms) {
+			for _, l := range line.EventLinesFromRenderObject(frameInfo, object, settings.GlobalSettings.ASSBakeMatrixTransforms) {
 				l.DropCache()
 				runningBuffer = append(runningBuffer, l)
 			}
