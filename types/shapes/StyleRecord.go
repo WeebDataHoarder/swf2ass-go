@@ -151,7 +151,7 @@ func FillStyleRecordFromSWF(collection ObjectCollection, fillType swfsubtypes.Fi
 		//TODO: repeating
 
 		//TODO: what blur factor should it pick
-		blurFactor := 1.0
+		blurFactor := 0.1
 		//TODO: extend color
 		return &FillStyleRecord{
 			Fill: BitmapFillFromSWF(bitmap.GetShapeList(ObjectProperties{}).ApplyFunction(func(p DrawPath) DrawPath {

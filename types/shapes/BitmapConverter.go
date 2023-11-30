@@ -10,6 +10,7 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	math2 "math"
 	"os"
 	"runtime"
 	"slices"
@@ -119,69 +120,64 @@ func ConvertBitmapToDrawPathList(i image.Image) (r DrawPathList) {
 	size = i.Bounds().Size()
 
 	var wg sync.WaitGroup
-	var x atomic.Uint64
 
-	results := make([]map[math.PackedColor]polyclip.Polygon, runtime.NumCPU())
-	for n := 0; n < runtime.NumCPU(); n++ {
+	var hasAlpha bool
+	colors := make(map[math.PackedColor]polyclip.Polygon)
+
+	for y := 0; y < size.Y; y++ {
+		for x := 0; x < size.X; x++ {
+			r, g, b, a := i.At(x, y).RGBA()
+			p := math.NewPackedColor(uint8(r>>8), uint8(g>>8), uint8(b>>8), uint8(a>>8))
+			contour := polyclip.Contour{
+				{float64(x), float64(y)},
+				{float64(x), float64(y + 1)},
+				{float64(x + 1), float64(y + 1)},
+				{float64(x + 1), float64(y)},
+			}
+			if p.Alpha() < math2.MaxUint8 {
+				hasAlpha = true
+			}
+			colors[p] = append(colors[p], contour)
+		}
+	}
+
+	keys := maps.Keys(colors)
+
+	var n atomic.Uint64
+
+	type result struct {
+		Color   math.PackedColor
+		Polygon polyclip.Polygon
+	}
+
+	results := make([][]result, runtime.NumCPU())
+
+	for cpuN := 0; cpuN < runtime.NumCPU(); cpuN++ {
 		wg.Add(1)
-		go func(n int) {
+		go func(cpuN int) {
 			defer wg.Done()
-			myResults := make(map[math.PackedColor]polyclip.Polygon)
 			for {
-				iX := x.Add(1) - 1
-				if iX >= uint64(size.X) {
+				i := n.Add(1) - 1
+				if i >= uint64(len(keys)) {
 					break
 				}
 
-				for y := 0; y < size.Y; y++ {
-					r, g, b, a := i.At(int(iX), y).RGBA()
-
-					p := math.NewPackedColor(uint8(r>>8), uint8(g>>8), uint8(b>>8), uint8(a>>8))
-					contour := polyclip.Contour{
-						{float64(iX), float64(y)},
-						{float64(iX), float64(y + 1)},
-						{float64(iX + 1), float64(y + 1)},
-						{float64(iX + 1), float64(y)},
-					}
-
-					myResults[p] = append(myResults[p], contour)
-					/*
-						if _, ok := myResults[p]; ok {
-							//u := existingColor.Construct(polyclip.UNION, poly)
-						} else {
-							myResults[p] = poly
-						}*/
-				}
+				results[cpuN] = append(results[cpuN], result{
+					Color:   keys[i],
+					Polygon: colors[keys[i]].Simplify(),
+				})
 			}
-			results[n] = myResults
-		}(n)
+		}(cpuN)
 	}
 	wg.Wait()
 
-	var hasAlpha bool
-
-	colors := make(map[math.PackedColor]polyclip.Polygon)
-
-	for _, r := range results {
-		for k, c := range r {
-			if k.Alpha() < 255 {
-				hasAlpha = true
-			}
-			if k.Alpha() == 0 {
-				//Skip fully transparent pixels
-				continue
-			}
-			if existingColor, ok := colors[k]; ok {
-				u := existingColor.Construct(polyclip.UNION, c).Simplify()
-				colors[k] = u
-			} else {
-				colors[k] = c.Simplify()
-			}
+	for _, cs := range results {
+		for _, v := range cs {
+			colors[v.Color] = v.Polygon
 		}
 	}
 
 	//Sort from the highest size to lowest
-	keys := maps.Keys(colors)
 	getSize := func(p polyclip.Polygon) (r int) {
 		for _, c := range p {
 			r += c.Len()
@@ -233,6 +229,10 @@ func ConvertBitmapToDrawPathList(i image.Image) (r DrawPathList) {
 		}.Draw()))
 
 		for _, k := range keys[1:] {
+			if k.Alpha() == 0 {
+				//Skip fully transparent pixels
+				continue
+			}
 			pol := colors[k]
 			//Draw resulting shape
 			r = append(r, DrawPathFill(&FillStyleRecord{
