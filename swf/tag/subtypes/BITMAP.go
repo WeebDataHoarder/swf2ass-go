@@ -36,6 +36,8 @@ func DecodeImageBits(data []byte, width, height int, format ImageBitsFormat, pal
 	switch format {
 	// 8-bit colormapped image
 	case ImageBitsFormatPaletted:
+		advanceWidth := make([]byte, ((uint16(width)+0b11)&(^uint16(0b11)))-uint16(width))
+
 		if hasAlpha {
 			buf = make([]byte, 4)
 		} else {
@@ -66,6 +68,13 @@ func DecodeImageBits(data []byte, width, height int, format ImageBitsFormat, pal
 				}
 				im.SetColorIndex(x, y, buf[0])
 			}
+
+			if len(advanceWidth) > 0 {
+				_, err = io.ReadFull(r, advanceWidth[:])
+				if err != nil {
+					return nil, err
+				}
+			}
 		}
 		return im, nil
 	case ImageBitsFormatRGB15:
@@ -78,7 +87,7 @@ func DecodeImageBits(data []byte, width, height int, format ImageBitsFormat, pal
 			Max: image.Point{X: width, Y: height},
 		})
 
-		advanceWidth := make([]byte, ((uint16(width)+1)&(^uint16(0b1)))-uint16(width))
+		advanceWidth := make([]byte, ((uint16(width)+0b1)&(^uint16(0b1)))-uint16(width))
 		buf = make([]byte, 2)
 
 		//TODO: check if correct
