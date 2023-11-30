@@ -63,7 +63,7 @@ type FOCALGRADIENT struct {
 	GradientCheck struct{} `swfCondition:"GradientCheckField()"`
 }
 
-func (g *FOCALGRADIENT) BogusCheckField(ctx types.ReaderContext) bool {
+func (g *FOCALGRADIENT) GradientCheckField(ctx types.ReaderContext) bool {
 	if g.NumGradients < 1 {
 		panic("wrong length")
 	}
