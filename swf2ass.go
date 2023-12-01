@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/settings"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf"
 	swftag "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/tag"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
@@ -104,10 +105,6 @@ func main() {
 	processor := types.NewSWFProcessor(tags, shapes.RectangleFromSWF(swfReader.Header().FrameSize), swfReader.Header().FrameRate.Float64(), int64(swfReader.Header().FrameCount), swfReader.Header().Version)
 
 	assRenderer := ass.NewRenderer(processor.FrameRate, processor.ViewPort)
-
-	const KeyFrameEveryNSeconds = 10
-
-	keyframeInterval := int64(-1) //int64(KeyFrameEveryNSeconds * processor.FrameRate)
 
 	var ks KnownSignature
 
@@ -221,12 +218,7 @@ func main() {
 			}*/
 		}
 
-		outputLines(assRenderer.RenderFrame(*frame, filteredRendered)...)
-
-		//TODO: do this per object transition? GlobalSettings?
-		if frame.GetFrameNumber() > 0 && keyframeInterval != -1 && frame.GetFrameNumber()%keyframeInterval == 0 {
-			outputLines(assRenderer.Flush(*frame)...)
-		}
+		outputLines(assRenderer.RenderFrame(*frame, filteredRendered, settings.GlobalSettings.KeyFrameInterval)...)
 
 		if *toFrame != math2.MaxInt64 && frame.GetFrameNumber() >= *toFrame {
 			break

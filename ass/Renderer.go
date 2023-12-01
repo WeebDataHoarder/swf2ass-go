@@ -149,7 +149,7 @@ func (r *Renderer) AggregateStatistics() (s RendererStatistics) {
 	return s
 }
 
-func (r *Renderer) RenderFrame(frameInfo types.FrameInformation, frame types.RenderedFrame) (result []string) {
+func (r *Renderer) RenderFrame(frameInfo types.FrameInformation, frame types.RenderedFrame, maxInterval int) (result []string) {
 	if len(r.Header) != 0 {
 		result = append(result, r.Header...)
 		r.Header = nil
@@ -186,7 +186,7 @@ func (r *Renderer) RenderFrame(frameInfo types.FrameInformation, frame types.Ren
 
 		for i := len(r.RunningBuffer) - 1; i >= 0; i-- {
 			tag := r.RunningBuffer[i]
-			if depth.Equals(tag.Layer) && object.ObjectId == tag.ObjectId {
+			if depth.Equals(tag.Layer) && object.ObjectId == tag.ObjectId && (maxInterval == 0 || tag.GetDuration() < int64(maxInterval)) {
 				tagsToTransition = append(tagsToTransition, tag)
 				r.RunningBuffer = slices.Delete(r.RunningBuffer, i, i+1)
 			}

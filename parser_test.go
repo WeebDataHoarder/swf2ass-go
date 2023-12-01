@@ -2,7 +2,9 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/settings"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf"
 	swftag "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/tag"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
@@ -14,7 +16,7 @@ import (
 )
 
 func TestParser(t *testing.T) {
-	file, err := os.Open("azumanga_vector.swf")
+	file, err := os.Open("im_alive.swf")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -60,10 +62,6 @@ func TestParser(t *testing.T) {
 
 	assRenderer := ass.NewRenderer(processor.FrameRate, processor.ViewPort)
 
-	const KeyFrameEveryNSeconds = 10
-
-	keyframeInterval := int64(KeyFrameEveryNSeconds * processor.FrameRate)
-
 	var lastFrame *types.FrameInformation
 	for {
 		frame := processor.NextFrameOutput()
@@ -75,11 +73,18 @@ func TestParser(t *testing.T) {
 			break
 		}
 
+		//TODO: handle multiple sounds
+
 		if processor.Audio != nil && frameOffset == 0 {
 			if processor.Audio.Start == nil {
+				fmt.Printf("Skipped frame %d: audio not started\n", frame.FrameNumber)
 				continue
 			}
 			frameOffset = *processor.Audio.Start
+		} else if processor.Audio == nil {
+			//TODO: make this an option
+			fmt.Printf("Skipped frame %d: no audio\n", frame.FrameNumber)
+			continue
 		}
 
 		frame.FrameOffset = frameOffset
@@ -121,12 +126,7 @@ func TestParser(t *testing.T) {
 			clipItems,
 		)
 
-		assRenderer.RenderFrame(*frame, filteredRendered)
-
-		//TODO: do this per object transition? GlobalSettings?
-		if frame.GetFrameNumber() > 0 && frame.GetFrameNumber()%keyframeInterval == 0 {
-			assRenderer.Flush(*frame)
-		}
+		assRenderer.RenderFrame(*frame, filteredRendered, settings.GlobalSettings.KeyFrameInterval)
 	}
 
 	if lastFrame == nil {

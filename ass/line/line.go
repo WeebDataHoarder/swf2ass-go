@@ -48,6 +48,10 @@ func (l *EventLine) GetEnd() int64 {
 	return l.End
 }
 
+func (l *EventLine) GetDuration() int64 {
+	return l.End - l.Start
+}
+
 func (l *EventLine) Transition(frameInfo types.FrameInformation, object *types.RenderedObject) *EventLine {
 	line := *l
 	line.End = frameInfo.GetFrameNumber()
