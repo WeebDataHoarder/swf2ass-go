@@ -78,7 +78,7 @@ func (r *Reader) Header() types.Header {
 	return r.header
 }
 
-func (r *Reader) readTagRecord() (record *tag.Record, err error) {
+func (r *Reader) Record() (record *tag.Record, err error) {
 	record = &tag.Record{}
 	err = types.ReadType(r.r, types.ReaderContext{
 		Version: r.header.Version,
@@ -90,7 +90,7 @@ func (r *Reader) readTagRecord() (record *tag.Record, err error) {
 }
 
 func (r *Reader) Tag() (readTag tag.Tag, err error) {
-	record, err := r.readTagRecord()
+	record, err := r.Record()
 	if err != nil {
 		return nil, err
 	}
@@ -105,5 +105,5 @@ func (r *Reader) Tag() (readTag tag.Tag, err error) {
 		}
 	}
 
-	return readTag, nil
+	return readTag, err
 }
