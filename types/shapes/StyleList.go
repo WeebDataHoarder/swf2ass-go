@@ -1,7 +1,7 @@
 package shapes
 
 import (
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/tag/subtypes"
+	"git.gammaspectra.live/WeebDataHoarder/swf-go/subtypes"
 )
 
 type StyleList struct {

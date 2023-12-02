@@ -1,6 +1,6 @@
 package types
 
-import "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/tag/subtypes"
+import "git.gammaspectra.live/WeebDataHoarder/swf-go/subtypes"
 
 type ActionList []Action
 

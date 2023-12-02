@@ -2,9 +2,9 @@ package tag
 
 import (
 	"fmt"
+	swftypes "git.gammaspectra.live/WeebDataHoarder/swf-go/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/settings"
-	swftypes "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/records"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"

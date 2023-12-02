@@ -1,7 +1,7 @@
 package shapes
 
 import (
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
+	"git.gammaspectra.live/WeebDataHoarder/swf-go/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/records"
 )

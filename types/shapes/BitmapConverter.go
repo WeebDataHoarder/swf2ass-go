@@ -1,8 +1,8 @@
 package shapes
 
 import (
+	"git.gammaspectra.live/WeebDataHoarder/swf-go/subtypes"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/settings"
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/tag/subtypes"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"github.com/ctessum/polyclip-go"
 	"github.com/nfnt/resize"

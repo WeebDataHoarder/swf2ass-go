@@ -2,8 +2,8 @@ package shapes
 
 import (
 	"fmt"
-	swfsubtypes "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/tag/subtypes"
-	swftypes "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
+	swfsubtypes "git.gammaspectra.live/WeebDataHoarder/swf-go/subtypes"
+	swftypes "git.gammaspectra.live/WeebDataHoarder/swf-go/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	math2 "math"
 	"slices"

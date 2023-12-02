@@ -5,10 +5,10 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"git.gammaspectra.live/WeebDataHoarder/swf-go"
+	swftag "git.gammaspectra.live/WeebDataHoarder/swf-go/tag"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/settings"
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf"
-	swftag "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/tag"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
@@ -76,6 +76,9 @@ func main() {
 	for {
 		readTag, err := swfReader.Tag()
 		if err != nil {
+			if errors.Is(err, swftag.ErrUnknownTag) {
+				continue
+			}
 			if errors.Is(err, io.EOF) {
 				break
 			}

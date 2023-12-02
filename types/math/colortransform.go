@@ -2,7 +2,7 @@ package math
 
 import (
 	"fmt"
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/types"
+	"git.gammaspectra.live/WeebDataHoarder/swf-go/types"
 	"math"
 )
 

@@ -2,8 +2,8 @@ package types
 
 import (
 	"fmt"
-	swftag "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/tag"
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/swf/tag/subtypes"
+	"git.gammaspectra.live/WeebDataHoarder/swf-go/subtypes"
+	swftag "git.gammaspectra.live/WeebDataHoarder/swf-go/tag"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
 	math2 "math"
