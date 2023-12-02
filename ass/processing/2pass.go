@@ -71,7 +71,8 @@ func PostProcess(r io.ReadSeeker, w io.WriteSeeker) (err error) {
 						sections[currentSectionName] = currentSection
 					}
 					currentSectionName = string(h)
-					currentSection = nil
+					//allow re-entering a section
+					currentSection = sections[currentSectionName]
 					return true
 				}
 			}

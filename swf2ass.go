@@ -108,7 +108,7 @@ func main() {
 
 	processor := types.NewSWFProcessor(tags, shapes.RectangleFromSWF(swfReader.Header().FrameSize), swfReader.Header().FrameRate.Float64(), int64(swfReader.Header().FrameCount), swfReader.Header().Version)
 
-	assRenderer := ass.NewRenderer(processor.FrameRate, processor.ViewPort)
+	assRenderer := ass.NewRenderer(path.Base(*inputFile), processor.FrameRate, processor.ViewPort)
 
 	var ks KnownSignature
 
