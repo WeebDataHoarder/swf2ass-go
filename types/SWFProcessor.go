@@ -152,7 +152,7 @@ func (p *SWFProcessor) NextFrameOutput() *FrameInformation {
 
 	//TODO: actions?
 
-	frame.AddChild(BackgroundObjectDepth, NewViewFrame(BackgroundObjectId, &shapes.DrawPathList{shapes.DrawPathFill(p.Background, p.ViewPort.Draw())}))
+	frame.AddChild(BackgroundObjectDepth, NewViewFrame(BackgroundObjectId, Some(shapes.DrawPathList{shapes.DrawPathFill(p.Background, p.ViewPort.Draw())})))
 	return &FrameInformation{
 		FrameNumber: p.Frame - 1,
 		FrameRate:   p.FrameRate,

@@ -12,7 +12,7 @@ type ViewFrame struct {
 
 	DepthMap map[uint16]*ViewFrame
 
-	DrawPathList *shapes.DrawPathList
+	DrawPathList Option[shapes.DrawPathList]
 
 	ColorTransform  Option[math.ColorTransform]
 	MatrixTransform Option[math.MatrixTransform]
@@ -20,7 +20,7 @@ type ViewFrame struct {
 	ClipDepth Option[uint16]
 }
 
-func NewClippingFrame(objectId, clipDepth uint16, list *shapes.DrawPathList) *ViewFrame {
+func NewClippingFrame(objectId, clipDepth uint16, list Option[shapes.DrawPathList]) *ViewFrame {
 	return &ViewFrame{
 		ObjectId:     objectId,
 		ClipDepth:    Some(clipDepth),
@@ -29,7 +29,7 @@ func NewClippingFrame(objectId, clipDepth uint16, list *shapes.DrawPathList) *Vi
 	}
 }
 
-func NewViewFrame(objectId uint16, list *shapes.DrawPathList) *ViewFrame {
+func NewViewFrame(objectId uint16, list Option[shapes.DrawPathList]) *ViewFrame {
 	return &ViewFrame{
 		ObjectId:     objectId,
 		DrawPathList: list,
@@ -38,7 +38,7 @@ func NewViewFrame(objectId uint16, list *shapes.DrawPathList) *ViewFrame {
 }
 
 func (f *ViewFrame) AddChild(depth uint16, frame *ViewFrame) {
-	if f.DrawPathList != nil {
+	if _, ok := f.DrawPathList.Some(); ok {
 		panic("adding child to item with draw list")
 	}
 	f.DepthMap[depth] = frame
@@ -53,11 +53,11 @@ func (f *ViewFrame) Render(baseDepth uint16, depthChain Depth, parentColor Optio
 
 	var renderedFrame RenderedFrame
 
-	if f.DrawPathList != nil {
+	if dpl, ok := f.DrawPathList.Some(); ok {
 		renderedFrame = append(renderedFrame, &RenderedObject{
 			Depth:           depthChain,
 			ObjectId:        f.ObjectId,
-			DrawPathList:    *f.DrawPathList,
+			DrawPathList:    dpl,
 			Clip:            nil,
 			ColorTransform:  SomeDefault(colorTransform, math.IdentityColorTransform()).Unwrap(),
 			MatrixTransform: SomeDefault(matrixTransform, math.IdentityTransform()).Unwrap(),

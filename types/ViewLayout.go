@@ -103,10 +103,10 @@ func (v *ViewLayout) nextFrame(frameNumber int64, actions ActionList) (frame *Vi
 			frame = mfod.NextFrame(frameNumber, v.Properties)
 		} else {
 			list := v.Object.GetShapeList(v.Properties)
-			frame = NewViewFrame(v.GetObjectId(), &list)
+			frame = NewViewFrame(v.GetObjectId(), Some(list))
 		}
 	} else {
-		frame = NewViewFrame(v.GetObjectId(), nil)
+		frame = NewViewFrame(v.GetObjectId(), None[shapes.DrawPathList]())
 
 		keys := maps.Keys(v.DepthMap)
 		slices.Sort(keys)

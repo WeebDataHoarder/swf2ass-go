@@ -25,7 +25,7 @@ func (d *SpriteDefinition) NextFrame(frameNumber int64, p shapes.ObjectPropertie
 
 	n := frameN % int64(len(d.Frames))
 
-	spriteFrame := NewViewFrame(d.ObjectId, nil)
+	spriteFrame := NewViewFrame(d.ObjectId, None[shapes.DrawPathList]())
 
 	for _, e := range d.Frames[n] {
 		var frame *ViewFrame
@@ -33,7 +33,7 @@ func (d *SpriteDefinition) NextFrame(frameNumber int64, p shapes.ObjectPropertie
 			frame = mfod.NextFrame(frameN, e.Properties)
 		} else {
 			list := e.Object.GetShapeList(e.Properties)
-			frame = NewViewFrame(e.Object.GetObjectId(), &list)
+			frame = NewViewFrame(e.Object.GetObjectId(), Some(list))
 		}
 
 		frame.ColorTransform = e.ColorTransform
