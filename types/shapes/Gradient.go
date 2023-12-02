@@ -80,11 +80,11 @@ var GradientBounds = Rectangle[float64]{
 
 const GradientRatioDivisor = math.MaxUint8
 
-func InterpolateGradient(gradient Gradient, gradientSlices int) (result []GradientSlice) {
-	items := gradient.GetItems()
+func (g Gradient) Interpolate(gradientSlices int) (result []GradientSlice) {
+	items := g.GetItems()
 	//TODO: spread modes
 
-	interpolationMode := gradient.InterpolationMode
+	interpolationMode := g.InterpolationMode
 
 	first := items[0]
 	last := items[len(items)-1]
@@ -115,8 +115,8 @@ func InterpolateGradient(gradient Gradient, gradientSlices int) (result []Gradie
 
 		maxColorDistance := max(math.Abs(float64(prevColor.R)-float64(currentColor.R)), math.Abs(float64(prevColor.G)-float64(currentColor.G)), math.Abs(float64(prevColor.B)-float64(currentColor.B)), math.Abs(float64(prevColor.Alpha)-float64(currentColor.Alpha)))
 
-		prevPosition := float64(prevItem.Ratio)
-		currentPosition := float64(item.Ratio)
+		prevPosition := float64(prevItem.Ratio) / GradientRatioDivisor
+		currentPosition := float64(item.Ratio) / GradientRatioDivisor
 		distance := math.Abs(currentPosition - prevPosition)
 
 		var partitions int
@@ -126,7 +126,7 @@ func InterpolateGradient(gradient Gradient, gradientSlices int) (result []Gradie
 			//TODO: better heuristic for change including distance in ratio
 			partitions = max(1, int(math.Ceil(min(GradientRatioDivisor/float64(len(items)+1), max(1, math.Ceil(maxColorDistance))))))
 		} else {
-			partitions = max(1, int(math.Ceil((distance/GradientRatioDivisor)*float64(gradientSlices))))
+			partitions = max(1, int(math.Ceil(distance*float64(gradientSlices))))
 		}
 
 		fromPos := prevPosition
@@ -141,8 +141,8 @@ func InterpolateGradient(gradient Gradient, gradientSlices int) (result []Gradie
 			toPos := math2.Lerp(prevPosition, currentPosition, ratio)
 
 			result = append(result, GradientSlice{
-				Start: fromPos / GradientRatioDivisor,
-				End:   toPos / GradientRatioDivisor,
+				Start: fromPos,
+				End:   toPos,
 				Color: color,
 			})
 			fromPos = toPos

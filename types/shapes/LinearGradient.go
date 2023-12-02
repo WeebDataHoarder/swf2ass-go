@@ -3,6 +3,7 @@ package shapes
 import (
 	swfsubtypes "git.gammaspectra.live/WeebDataHoarder/swf-go/subtypes"
 	"git.gammaspectra.live/WeebDataHoarder/swf-go/types"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/settings"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 )
 
@@ -27,13 +28,16 @@ func interpolateLinearGradient(self Gradient, overlap, blur float64, gradientSli
 
 	vOverlap := math.NewVector2(overlap, 0).Divide(2)
 
-	items := InterpolateGradient(self, gradientSlices)
-	for _, i := range items {
-		if i.Color.Alpha != 255 {
-			//transparency! remove overlaps
-			blur = 0
-			overlap = 0
-			break
+	items := self.Interpolate(gradientSlices)
+
+	if !settings.GlobalSettings.GradientApplyOverlapOnTransparency {
+		for _, i := range items {
+			if i.Color.Alpha != 255 {
+				//transparency! remove overlaps
+				blur = 0
+				overlap = 0
+				break
+			}
 		}
 	}
 

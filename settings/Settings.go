@@ -46,6 +46,8 @@ type Settings struct {
 	// GradientBlur Amount of blur to apply to gradients
 	GradientBlur float64
 
+	GradientApplyOverlapOnTransparency bool
+
 	// BitmapPaletteSize Number of colors bitmap shapes will be paletted into.
 	// Transparency is not included and will be handled separately. Set to 0 to disable.
 	BitmapPaletteSize int
@@ -55,6 +57,9 @@ type Settings struct {
 }
 
 const GradientAutoSlices = -1
+
+// DefaultASSDrawingScale libass uses a fixed precision decimal of size 26.6
+// Using scale 6 allows getting accurate precision without using decimals, as it will be later divided by the drawing scale.
 const DefaultASSDrawingScale = 6
 const DefaultASSDrawingPrecision = 2
 
@@ -71,9 +76,11 @@ var GlobalSettings = Settings{
 
 	KeyFrameInterval: 0,
 
-	GradientSlices:  GradientAutoSlices,
-	GradientOverlap: 2,
-	GradientBlur:    0.1,
+	GradientSlices: GradientAutoSlices,
+	//TODO: this has issues with transparent backgrounds
+	GradientOverlap:                    2,
+	GradientBlur:                       0.1,
+	GradientApplyOverlapOnTransparency: false,
 
 	BitmapPaletteSize:  32,
 	BitmapMaxDimension: 256,
