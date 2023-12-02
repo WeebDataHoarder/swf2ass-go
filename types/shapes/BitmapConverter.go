@@ -74,7 +74,7 @@ func QuantizeBitmap(i image.Image) image.Image {
 					A: 255,
 				})
 			} else {
-
+				//reduce alpha resolution a bit
 				newIm.SetRGBA(x, y, color.RGBA{
 					R: uint8(r >> 8),
 					G: uint8(g >> 8),
@@ -198,28 +198,6 @@ func ConvertBitmapToDrawPathList(i image.Image) (r DrawPathList) {
 
 	// Full shape optimizations when alpha is not in use
 	if !hasAlpha {
-
-		/*
-			for i, k := range keys {
-				pol := colors[k]
-				pol1 := pol
-				//Iterate through all previous layers and merge
-				for _, k2 := range keys[:i] {
-					//Check each sub-polygon of the shape to see if it is within previous indicative of a good merge, merge only those
-					for _, pol4 := range colors[k2].Union(pol).Polygons() {
-						if pol4.Bounds().Within(pol) == geom.Inside {
-							pol = pol.Union(pol4)
-						}
-					}
-				}
-				//Draw resulting shape
-				r = append(r, DrawPathFill(&FillStyleRecord{
-					Fill: k.Color(),
-				}, ComplexPolygon{
-					Pol: pol.Simplify(PolygonSimplifyTolerance).(geom.Polygonal),
-				}.GetShape(), nil))
-			}*/
-
 		//make a rectangle covering the whole first area to optimize this case
 		r = append(r, DrawPathFill(&FillStyleRecord{
 			Fill: keys[0].Color(),
@@ -228,30 +206,21 @@ func ConvertBitmapToDrawPathList(i image.Image) (r DrawPathList) {
 			BottomRight: math.NewVector2(float64(size.X+1), float64(size.Y+1)),
 		}.Draw()))
 
-		for _, k := range keys[1:] {
-			if k.Alpha() == 0 {
-				//Skip fully transparent pixels
-				continue
-			}
-			pol := colors[k]
-			//Draw resulting shape
-			r = append(r, DrawPathFill(&FillStyleRecord{
-				Fill: k.Color(),
-			}, ComplexPolygon{
-				Pol: pol,
-			}.GetShape()))
-		}
+		keys = keys[1:]
+	}
 
-	} else {
-		for _, k := range keys {
-			pol := colors[k]
-			//Draw resulting shape
-			r = append(r, DrawPathFill(&FillStyleRecord{
-				Fill: k.Color(),
-			}, ComplexPolygon{
-				Pol: pol,
-			}.GetShape()))
+	for _, k := range keys {
+		if k.Alpha() == 0 {
+			//Skip fully transparent pixels
+			continue
 		}
+		pol := colors[k]
+		//Draw resulting shape
+		r = append(r, DrawPathFill(&FillStyleRecord{
+			Fill: k.Color(),
+		}, ComplexPolygon{
+			Pol: pol,
+		}.GetShape()))
 	}
 
 	scale := math.ScaleTransform(math.NewVector2(ratioX, ratioY))
