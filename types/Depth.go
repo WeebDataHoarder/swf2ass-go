@@ -1,6 +1,7 @@
 package types
 
 import (
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -28,6 +29,19 @@ func (d Depth) GetPackedLayer() (layer int32) {
 	return layer
 }
 
+func DepthFromString(layer string) (d Depth, err error) {
+	layers := strings.Split(layer, ".")
+	d = make(Depth, 0, len(layers))
+	for _, l := range layers {
+		e, err := strconv.ParseUint(l, 10, 16)
+		if err != nil {
+			return nil, err
+		}
+		d = append(d, uint16(e))
+	}
+	return d, nil
+}
+
 func DepthFromPackedLayer(layer int32) (d Depth) {
 	d = append(d, uint16(layer>>16))
 	if layer&1 == 1 {
@@ -39,16 +53,12 @@ func DepthFromPackedLayer(layer int32) (d Depth) {
 	return d
 }
 
+func (d Depth) Compare(o Depth) int {
+	return slices.Compare(d, o)
+}
+
 func (d Depth) Equals(o Depth) bool {
-	if len(d) != len(o) {
-		return false
-	}
-	for i := range d {
-		if d[i] != o[i] {
-			return false
-		}
-	}
-	return true
+	return d.Compare(o) == 0
 }
 
 func (d Depth) String() string {

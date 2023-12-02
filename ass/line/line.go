@@ -112,9 +112,11 @@ func (l *EventLine) Encode(frameDuration time.Duration) string {
 
 	line := make([]string, 0, 10)
 	if l.IsComment {
-		line = append(line, fmt.Sprintf("Comment: %d", l.Layer.GetPackedLayer()))
+		//line = append(line, fmt.Sprintf("Comment: %d", l.Layer.GetPackedLayer()))
+		line = append(line, fmt.Sprintf("Comment: %s", l.Layer.String()))
 	} else {
-		line = append(line, fmt.Sprintf("Dialogue: %d", l.Layer.GetPackedLayer()))
+		//line = append(line, fmt.Sprintf("Dialogue: %d", l.Layer.GetPackedLayer()))
+		line = append(line, fmt.Sprintf("Dialogue: %s", l.Layer.String()))
 	}
 
 	line = append(line, eventTime.Start.String())
@@ -164,15 +166,14 @@ func (l *EventLine) Equalish(o *EventLine) bool {
 
 var eventLineRegexp = regexp.MustCompile(`^(?P<Kind>[^:]+): (?P<Layer>\d+),(?P<StartTimecode>[\d:.]+),(?P<EndTimecode>[\d:.]+),(?P<Style>[^,]*),(?P<Name>[^,]*),(?P<MarginL>\d+),(?P<MarginR>\d+),(?P<MarginV>\d+),(?P<Effect>[^,]*),(?P<Text>.*)$`)
 
-func EventLineFromString(line string) (out *EventLine) {
+func EventLineFromString(line string) (out *EventLine, start, end asstime.Time) {
 	var l EventLine
 
 	matches := eventLineRegexp.FindStringSubmatch(strings.TrimSpace(line))
 	if matches == nil {
-		return nil
+		return nil, start, end
 	}
 
-	var start, end asstime.Time
 	var text string
 	var err error
 	for i, name := range eventLineRegexp.SubexpNames() {
@@ -184,23 +185,23 @@ func EventLineFromString(line string) (out *EventLine) {
 			} else if val == "Comment" {
 				l.IsComment = true
 			} else {
-				return nil
+				return nil, start, end
 			}
 		case "Layer":
 			layer, err := strconv.ParseInt(val, 10, 32)
 			if err != nil {
-				return nil
+				return nil, start, end
 			}
 			l.Layer = types.DepthFromPackedLayer(int32(layer))
 		case "StartTimecode":
 			start, err = asstime.FromString(val)
 			if err != nil {
-				return nil
+				return nil, start, end
 			}
 		case "EndTimecode":
 			end, err = asstime.FromString(val)
 			if err != nil {
-				return nil
+				return nil, start, end
 			}
 		case "Style":
 			l.Style = val
@@ -209,17 +210,17 @@ func EventLineFromString(line string) (out *EventLine) {
 		case "MarginL":
 			l.Margin.Left, err = strconv.ParseInt(val, 10, 0)
 			if err != nil {
-				return nil
+				return nil, start, end
 			}
 		case "MarginR":
 			l.Margin.Right, err = strconv.ParseInt(val, 10, 0)
 			if err != nil {
-				return nil
+				return nil, start, end
 			}
 		case "MarginV":
 			l.Margin.Vertical, err = strconv.ParseInt(val, 10, 0)
 			if err != nil {
-				return nil
+				return nil, start, end
 			}
 		case "Effect":
 			l.Effect = val
@@ -233,11 +234,12 @@ func EventLineFromString(line string) (out *EventLine) {
 		}
 	}
 
+	//TODO
 	eventTime := asstime.EventLineFromText(start, end, text)
 
 	_ = eventTime
 
-	return out
+	return out, start, end
 }
 
 func EventLinesFromRenderObject(frameInfo types.FrameInformation, object *types.RenderedObject, bakeMatrixTransforms bool) (out []*EventLine) {

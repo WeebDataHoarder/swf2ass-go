@@ -8,6 +8,7 @@ import (
 	"git.gammaspectra.live/WeebDataHoarder/swf-go"
 	swftag "git.gammaspectra.live/WeebDataHoarder/swf-go/tag"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/processing"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/settings"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
@@ -118,19 +119,19 @@ func main() {
 		}
 	}
 
-	output, err := os.Create(*outputFile)
+	temporaryOutput, err := os.Create(*outputFile + ".tmp")
 	if err != nil {
 		panic(err)
 	}
-	defer output.Close()
+	defer temporaryOutput.Close()
 
 	outputLines := func(lines ...string) {
 		for _, line := range lines {
-			_, err = output.Write([]byte(line))
+			_, err = temporaryOutput.Write([]byte(line))
 			if err != nil {
 				panic(err)
 			}
-			_, err = output.Write([]byte("\n"))
+			_, err = temporaryOutput.Write([]byte("\n"))
 			if err != nil {
 				panic(err)
 			}
@@ -244,4 +245,17 @@ func main() {
 		print(s + "\n")
 	}
 
+	output, err := os.Create(*outputFile)
+	if err != nil {
+		panic(err)
+	}
+	defer output.Close()
+
+	err = processing.PostProcess(temporaryOutput, output)
+	if err != nil {
+		panic(err)
+	}
+
+	temporaryOutput.Close()
+	os.Remove(*outputFile + ".tmp")
 }
