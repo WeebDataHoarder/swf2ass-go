@@ -32,13 +32,21 @@ func (p ComplexPolygon) GetShape() (r Shape) {
 		panic(err)
 	}
 	for _, contour := range p.Pol {
+		start := math.NewVector2(contour[0].X, contour[0].Y)
 		r = append(r, records.LineRecord{
 			To:    math.NewVector2(contour[1].X, contour[1].Y),
-			Start: math.NewVector2(contour[0].X, contour[0].Y),
+			Start: start,
 		})
 		for _, point := range contour[2:] {
 			r = append(r, records.LineRecord{
 				To:    math.NewVector2(point.X, point.Y),
+				Start: r[len(r)-1].GetEnd(),
+			})
+		}
+
+		if !r[len(r)-1].GetEnd().Equals(start) { //not closed
+			r = append(r, records.LineRecord{
+				To:    start,
 				Start: r[len(r)-1].GetEnd(),
 			})
 		}
