@@ -18,18 +18,12 @@ func CubicRecursiveBezier(points []math.Vector2[float64], cuspLimit, angleTolera
 
 	// Calculate all the mid-points of the line segments
 	//----------------------
-	x12 := (v1.X + v2.X) / 2
-	y12 := (v1.Y + v2.Y) / 2
-	x23 := (v2.X + v3.X) / 2
-	y23 := (v2.Y + v3.Y) / 2
-	x34 := (v3.X + v4.X) / 2
-	y34 := (v3.Y + v4.Y) / 2
-	x123 := (x12 + x23) / 2
-	y123 := (y12 + y23) / 2
-	x234 := (x23 + x34) / 2
-	y234 := (y23 + y34) / 2
-	x1234 := (x123 + x234) / 2
-	y1234 := (y123 + y234) / 2
+	mid12 := v1.AddVector(v2).Divide(2)
+	mid23 := v2.AddVector(v3).Divide(2)
+	mid34 := v3.AddVector(v4).Divide(2)
+	mid123 := mid12.AddVector(mid23).Divide(2)
+	mid234 := mid23.AddVector(mid34).Divide(2)
+	mid1234 := mid123.AddVector(mid234).Divide(2)
 
 	// Try to approximate the full cubic curve by a single straight line
 	//------------------
@@ -102,7 +96,7 @@ func CubicRecursiveBezier(points []math.Vector2[float64], cuspLimit, angleTolera
 		//----------------------
 		if d3*d3 <= distanceToleranceSquare*(dx*dx+dy*dy) {
 			if angleTolerance < BezierCurveAngleToleranceEpsilon {
-				return append(points, math.NewVector2(x23, y23))
+				return append(points, mid23)
 			}
 
 			// Angle Condition
@@ -129,7 +123,7 @@ func CubicRecursiveBezier(points []math.Vector2[float64], cuspLimit, angleTolera
 		//----------------------
 		if d2*d2 <= distanceToleranceSquare*(dx*dx+dy*dy) {
 			if angleTolerance < BezierCurveAngleToleranceEpsilon {
-				return append(points, math.NewVector2(x23, y23))
+				return append(points, mid23)
 			}
 
 			// Angle Condition
@@ -159,7 +153,7 @@ func CubicRecursiveBezier(points []math.Vector2[float64], cuspLimit, angleTolera
 			// we tend to finish subdivisions.
 			//----------------------
 			if angleTolerance < BezierCurveAngleToleranceEpsilon {
-				return append(points, math.NewVector2(x23, y23))
+				return append(points, mid23)
 			}
 
 			// Angle & Cusp Condition
@@ -177,7 +171,7 @@ func CubicRecursiveBezier(points []math.Vector2[float64], cuspLimit, angleTolera
 			if da1+da2 < angleTolerance {
 				// Finally we can stop the recursion
 				//----------------------
-				return append(points, math.NewVector2(x23, y23))
+				return append(points, mid23)
 			}
 
 			if cuspLimit != 0.0 {
@@ -195,8 +189,8 @@ func CubicRecursiveBezier(points []math.Vector2[float64], cuspLimit, angleTolera
 
 	// Continue subdivision
 	//----------------------
-	points = CubicRecursiveBezier(points, cuspLimit, angleTolerance, distanceToleranceSquare, v1, math.NewVector2(x12, y12), math.NewVector2(x123, y123), math.NewVector2(x1234, y1234), level+1)
-	return CubicRecursiveBezier(points, cuspLimit, angleTolerance, distanceToleranceSquare, math.NewVector2(x1234, y1234), math.NewVector2(x234, y234), math.NewVector2(x34, y34), v4, level+1)
+	points = CubicRecursiveBezier(points, cuspLimit, angleTolerance, distanceToleranceSquare, v1, mid12, mid123, mid1234, level+1)
+	return CubicRecursiveBezier(points, cuspLimit, angleTolerance, distanceToleranceSquare, mid1234, mid234, mid34, v4, level+1)
 }
 
 // QuadraticRecursiveBezier Converts a Quadratic bezier curve into line segments
@@ -207,12 +201,9 @@ func QuadraticRecursiveBezier(points []math.Vector2[float64], angleTolerance, di
 
 	// Calculate all the mid-points of the line segments
 	//----------------------
-	x12 := (v1.X + v2.X) / 2
-	y12 := (v1.Y + v2.Y) / 2
-	x23 := (v2.X + v3.X) / 2
-	y23 := (v2.Y + v3.Y) / 2
-	x123 := (x12 + x23) / 2
-	y123 := (y12 + y23) / 2
+	mid12 := v1.AddVector(v2).Divide(2)
+	mid23 := v2.AddVector(v3).Divide(2)
+	mid123 := mid12.AddVector(mid23).Divide(2)
 
 	dx := v3.X - v1.X
 	dy := v3.Y - v1.Y
@@ -226,7 +217,7 @@ func QuadraticRecursiveBezier(points []math.Vector2[float64], angleTolerance, di
 			// we tend to finish subdivisions.
 			//----------------------
 			if angleTolerance < BezierCurveAngleToleranceEpsilon {
-				return append(points, math.NewVector2(x123, y123))
+				return append(points, mid123)
 			}
 
 			// Angle & Cusp Condition
@@ -239,7 +230,7 @@ func QuadraticRecursiveBezier(points []math.Vector2[float64], angleTolerance, di
 			if da < angleTolerance {
 				// Finally we can stop the recursion
 				//----------------------
-				return append(points, math.NewVector2(x123, y123))
+				return append(points, mid123)
 			}
 		}
 	} else {
@@ -271,6 +262,6 @@ func QuadraticRecursiveBezier(points []math.Vector2[float64], angleTolerance, di
 
 	// Continue subdivision
 	//----------------------
-	points = QuadraticRecursiveBezier(points, angleTolerance, distanceToleranceSquare, v1, math.NewVector2(x12, y12), math.NewVector2(x123, y123), level+1)
-	return QuadraticRecursiveBezier(points, angleTolerance, distanceToleranceSquare, math.NewVector2(x123, y123), math.NewVector2(x23, y23), v3, level+1)
+	points = QuadraticRecursiveBezier(points, angleTolerance, distanceToleranceSquare, v1, mid12, mid123, level+1)
+	return QuadraticRecursiveBezier(points, angleTolerance, distanceToleranceSquare, mid123, mid23, v3, level+1)
 }
