@@ -223,6 +223,7 @@ func (t *ContainerTag) Encode(event time.EventTime) string {
 	}
 	keys := maps.Keys(t.Transitions)
 	slices.Sort(keys)
+	var lastTransitionText []string
 	for _, index := range keys {
 		if len(t.Transitions[index]) == 0 {
 			continue
@@ -240,10 +241,18 @@ func (t *ContainerTag) Encode(event time.EventTime) string {
 			endTime = event.GetDurationFromStartOffset(index).Milliseconds()
 		}
 		transitionText := make([]string, 0, len(t.Transitions[index]))
+
 		for _, ttag := range t.Transitions[index] {
-			transitionText = append(transitionText, ttag.Encode(event))
+			thisTransitionText := ttag.Encode(event)
+			//TODO: make this better with per-tag lookup for previous transition
+			if !slices.Contains(lastTransitionText, thisTransitionText) {
+				transitionText = append(transitionText, thisTransitionText)
+			}
 		}
-		text = append(text, fmt.Sprintf("\\t(%d,%d,%s)", startTime, endTime, strings.Join(transitionText, "")))
+		if len(transitionText) > 0 {
+			text = append(text, fmt.Sprintf("\\t(%d,%d,%s)", startTime, endTime, strings.Join(transitionText, "")))
+			lastTransitionText = transitionText
+		}
 	}
 
 	for _, tag := range t.Tags {
