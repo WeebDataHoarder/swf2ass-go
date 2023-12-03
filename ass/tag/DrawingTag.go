@@ -4,6 +4,7 @@ import (
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/records"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
+	math2 "math"
 	"strconv"
 )
 
@@ -35,6 +36,13 @@ func entryToPrecisionAndScaleTag(buf []byte, tag string, scale, precision int, v
 
 func vectorToPrecisionAndScale(buf []byte, scale, precision int, v math.Vector2[float64]) []byte {
 	coords := v.Multiply(float64(scale))
+	if precision == 0 {
+		//fast path
+		buf = strconv.AppendInt(buf, int64(math2.Round(coords.X)), 10)
+		buf = append(buf, ' ')
+		buf = strconv.AppendInt(buf, int64(math2.Round(coords.Y)), 10)
+		return buf
+	}
 	buf = strconv.AppendFloat(buf, coords.X, 'f', precision, 64)
 	buf = append(buf, ' ')
 	buf = strconv.AppendFloat(buf, coords.Y, 'f', precision, 64)
