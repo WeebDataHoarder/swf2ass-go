@@ -177,6 +177,7 @@ func main() {
 				continue
 			}
 			frameOffset = *processor.Audio.Start
+			fmt.Printf("Set start frame offset to %d\n", frameOffset)
 		} else if processor.Audio == nil {
 			//TODO: make this an option
 			fmt.Printf("Skipped frame %d: no audio\n", frame.FrameNumber)
