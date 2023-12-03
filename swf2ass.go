@@ -145,6 +145,12 @@ func main() {
 			break
 		}
 		lastFrame = frame
+
+		//Force playback
+		if !processor.Playing {
+			processor.Playing = true
+		}
+
 		if !processor.Playing || processor.Loops > 0 {
 			break
 		}

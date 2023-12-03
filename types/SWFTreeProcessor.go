@@ -228,6 +228,8 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 		if p.Loops > 0 {
 			break
 		}
+		offsetTable := slices.Clone(node.OffsetTable)
+		offsetTable = slices.Insert(offsetTable, 0, node.NumGlyphsEntries)
 		p.Objects.Add(FontDefinitionFromSWF(
 			node.FontId,
 			nil,
@@ -237,7 +239,7 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 			false,
 			nil,
 			node.ShapeTable,
-			node.OffsetTable,
+			offsetTable,
 			[]uint8{},
 			node.Scale(),
 		))
@@ -630,6 +632,7 @@ func (p *SWFTreeProcessor) NextFrame(loop bool) *ViewFrame {
 	p.LastFrame = frame
 
 	//TODO: this might need to be elsewhere?
+	//TODO: handle this for sprites
 	for _, action := range actions {
 		switch action := action.(type) {
 		case *StopAction:

@@ -3,7 +3,7 @@ module git.gammaspectra.live/WeebDataHoarder/swf2ass-go
 go 1.21
 
 require (
-	git.gammaspectra.live/WeebDataHoarder/swf-go v0.0.0-20231202012532-b95c08f9aa18
+	git.gammaspectra.live/WeebDataHoarder/swf-go v0.0.0-20231203035451-0793f5bb9aab
 	github.com/ctessum/polyclip-go v1.1.0
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa
