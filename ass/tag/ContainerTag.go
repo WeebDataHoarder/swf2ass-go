@@ -216,14 +216,16 @@ func (t *ContainerTag) Equals(tag Tag) bool {
 
 func (t *ContainerTag) Encode(event time.EventTime) string {
 	text := make([]string, 0, len(t.Tags)*2)
+	var lastTransitionText []string
 	for _, tag := range t.Tags {
 		if _, ok := tag.(DrawingTag); !ok {
-			text = append(text, tag.Encode(event))
+			thisText := tag.Encode(event)
+			text = append(text, thisText)
+			lastTransitionText = append(lastTransitionText, thisText)
 		}
 	}
 	keys := maps.Keys(t.Transitions)
 	slices.Sort(keys)
-	var lastTransitionText []string
 	for _, index := range keys {
 		if len(t.Transitions[index]) == 0 {
 			continue
