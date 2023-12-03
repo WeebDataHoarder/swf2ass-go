@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/settings"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
 	"golang.org/x/exp/maps"
@@ -15,7 +16,7 @@ type ContainerTag struct {
 	Tags        []Tag
 	Transitions map[int64][]Tag
 
-	BakeTransforms *math.MatrixTransform
+	BakedTransform types.Option[math.MatrixTransform]
 }
 
 func (t *ContainerTag) HasColor() bool {
@@ -59,9 +60,9 @@ func (t *ContainerTag) TransitionColor(event Event, transform math.ColorTransfor
 }
 
 func (t *ContainerTag) TransitionMatrixTransform(event Event, transform math.MatrixTransform) PositioningTag {
-	if t.BakeTransforms != nil {
+	if bakedTransform, ok := t.BakedTransform.Some(); ok {
 		//Do not allow matrix changes, except moves
-		if !transform.EqualsWithoutTranslation(*t.BakeTransforms, math.TransformCompareEpsilon) {
+		if !transform.EqualsWithoutTranslation(bakedTransform, math.TransformCompareEpsilon) {
 			return nil
 		}
 	}
@@ -159,11 +160,8 @@ func (t *ContainerTag) FromStyleRecord(record shapes.StyleRecord, transform math
 }
 
 func (t *ContainerTag) Clone(cloneTags bool) *ContainerTag {
-	var transform *math.MatrixTransform
-	if t.BakeTransforms != nil {
-		t2 := *t.BakeTransforms
-		transform = &t2
-	}
+	bakedTransform := types.SomeWith(t.BakedTransform.Some())
+
 	transitions := make(map[int64][]Tag, len(t.Transitions))
 	for k := range t.Transitions {
 		transitions[k] = slices.Clone(t.Transitions[k])
@@ -172,13 +170,13 @@ func (t *ContainerTag) Clone(cloneTags bool) *ContainerTag {
 		return &ContainerTag{
 			Tags:           slices.Clone(t.Tags),
 			Transitions:    transitions,
-			BakeTransforms: transform,
+			BakedTransform: bakedTransform,
 		}
 	} else {
 		return &ContainerTag{
 			Tags:           t.Tags,
 			Transitions:    transitions,
-			BakeTransforms: transform,
+			BakedTransform: bakedTransform,
 		}
 	}
 }
@@ -264,14 +262,12 @@ func (t *ContainerTag) TryAppend(tag Tag) {
 	panic("tag is nil")
 }
 
-var identityMatrixTransform = math.IdentityTransform()
-
 func ContainerTagFromPathEntry(path shapes.DrawPath, clip *shapes.ClipPath, colorTransform math.ColorTransform, matrixTransform math.MatrixTransform, bakeMatrixTransforms bool) *ContainerTag {
 	container := &ContainerTag{
 		Transitions: make(map[int64][]Tag),
 	}
 
-	if !matrixTransform.EqualsExact(identityMatrixTransform) {
+	if !matrixTransform.IsIdentity() {
 		if bakeMatrixTransforms {
 			path = path.ApplyMatrixTransform(matrixTransform, false)
 		}
@@ -304,7 +300,7 @@ func ContainerTagFromPathEntry(path shapes.DrawPath, clip *shapes.ClipPath, colo
 	}
 
 	if bakeMatrixTransforms {
-		container.BakeTransforms = &matrixTransform
+		container.BakedTransform = types.Some(matrixTransform)
 		container.TryAppend((&PositionTag{}).FromMatrixTransform(matrixTransform))
 	} else {
 		container.TryAppend((&PositionTag{}).FromMatrixTransform(matrixTransform))

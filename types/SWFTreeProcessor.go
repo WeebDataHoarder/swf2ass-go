@@ -535,8 +535,8 @@ func (p *SWFTreeProcessor) process(actions ActionList) (tag swftag.Tag, newActio
 		var object shapes.ObjectDefinition
 		if node.Flag.HasCharacter {
 			object = p.Objects.Get(node.CharacterId)
-		} else {
-			object = p.Layout.Get(node.Depth).Object
+		} else if layout := p.Layout.Get(node.Depth); layout != nil {
+			object = layout.Object
 		}
 
 		p.placeObject(object, placeObjectData{

@@ -40,7 +40,7 @@ func (v Vector2[T]) Equals(b Vector2[T]) bool {
 }
 
 func (v Vector2[T]) equalsFloat(b Vector2[T]) bool {
-	return v == b || ((math.Abs(float64(b.Y-v.Y))) <= epsilon && (math.Abs(float64(b.X-v.Y))) <= epsilon)
+	return v == b || ((math.Abs(float64(b.X-v.X))) <= epsilon && (math.Abs(float64(b.Y-v.Y))) <= epsilon)
 }
 
 func (v Vector2[T]) equalsInt(b Vector2[T]) bool {
