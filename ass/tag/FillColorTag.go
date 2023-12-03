@@ -5,6 +5,7 @@ import (
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
+	math2 "math"
 )
 
 type FillColorTag struct {
@@ -31,6 +32,10 @@ func (t *FillColorTag) TransitionStyleRecord(event Event, record shapes.StyleRec
 	t2 := &FillColorTag{}
 	t2.FromStyleRecord(record, transform)
 	return t2
+}
+
+func (t *FillColorTag) HasColor() bool {
+	return t.Color != nil && t.Color.Alpha > 0
 }
 
 func (t *FillColorTag) ApplyColorTransform(transform math.ColorTransform) ColorTag {
@@ -60,6 +65,6 @@ func (t *FillColorTag) Encode(event time.EventTime) string {
 	if t.Color == nil {
 		return "\\1a&HFF&"
 	} else {
-		return fmt.Sprintf("\\1c&H%02X%02X%02X&\\1a&H%02X&", t.Color.B, t.Color.G, t.Color.R, 255-t.Color.Alpha)
+		return fmt.Sprintf("\\1c&H%02X%02X%02X&\\1a&H%02X&", t.Color.B, t.Color.G, t.Color.R, math2.MaxUint8-t.Color.Alpha)
 	}
 }

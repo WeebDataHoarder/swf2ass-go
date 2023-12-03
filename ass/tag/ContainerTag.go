@@ -18,6 +18,26 @@ type ContainerTag struct {
 	BakeTransforms *math.MatrixTransform
 }
 
+func (t *ContainerTag) HasColor() bool {
+	for _, tag := range t.Tags {
+		if colorTag, ok := tag.(ColorTag); ok {
+			if colorTag.HasColor() {
+				return true
+			}
+		}
+	}
+	for _, tags := range t.Transitions {
+		for _, tag := range tags {
+			if colorTag, ok := tag.(ColorTag); ok {
+				if colorTag.HasColor() {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
 func (t *ContainerTag) TransitionColor(event Event, transform math.ColorTransform) ColorTag {
 	container := t.Clone(false)
 

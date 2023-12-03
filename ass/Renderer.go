@@ -3,6 +3,7 @@ package ass
 import (
 	"fmt"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/line"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/tag"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/settings"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
@@ -167,6 +168,19 @@ func threadedRenderer(stats map[uint16]rendererStatsEntry, buf []*line.EventLine
 					break
 				}
 				l := buf[i]
+				var hasColor bool
+				for _, t := range l.Tags {
+					if ct, ok := t.(tag.ColorTag); ok && ct.HasColor() {
+						hasColor = true
+						break
+					}
+				}
+
+				if !hasColor {
+					//skip lines without any color at all
+					continue
+				}
+
 				stats[l.ObjectId].Lines.Add(1)
 
 				l.Name += fmt.Sprintf(" f:%d>%d~%d", l.Start, l.End, l.End-l.Start+1)

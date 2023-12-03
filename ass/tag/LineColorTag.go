@@ -5,6 +5,7 @@ import (
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
+	math2 "math"
 )
 
 type LineColorTag struct {
@@ -30,6 +31,10 @@ func (t *LineColorTag) TransitionStyleRecord(event Event, record shapes.StyleRec
 	t2 := &LineColorTag{}
 	t2.FromStyleRecord(record, transform)
 	return t2
+}
+
+func (t *LineColorTag) HasColor() bool {
+	return t.Color != nil && t.Color.Alpha > 0
 }
 
 func (t *LineColorTag) ApplyColorTransform(transform math.ColorTransform) ColorTag {
@@ -59,6 +64,6 @@ func (t *LineColorTag) Encode(event time.EventTime) string {
 	if t.Color == nil {
 		return "\\3a&HFF&"
 	} else {
-		return fmt.Sprintf("\\3c&H%02X%02X%02X&\\3a&H%02X&", t.Color.B, t.Color.G, t.Color.R, 255-t.Color.Alpha)
+		return fmt.Sprintf("\\3c&H%02X%02X%02X&\\3a&H%02X&", t.Color.B, t.Color.G, t.Color.R, math2.MaxUint8-t.Color.Alpha)
 	}
 }

@@ -23,3 +23,8 @@ $ ffmpeg -y \
 -c:s copy -disposition:s:0 forced -metadata:s:s:0 language=und \
 -shortest "${FILENAME}.mkv"
 ```
+
+### Compress subtitles
+```bash
+zstd -19 -T24 file.ass -o file.ass.zst
+```
