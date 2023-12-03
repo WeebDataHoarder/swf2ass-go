@@ -46,5 +46,12 @@
       {"objectId": 13, "depth": null},
       {"objectId": 36, "depth": null}
     ]
+  },
+  "5999765b57004ce602d04cbc71c3ebc71b9831b51c358eefc77543d9ad63ab80": {
+    "name": "dagobah_Shoo_Fly.swf",
+    "description": "remove playback menu",
+    "remove": [
+      {"objectId": null, "_objectId": 60, "depth": [0, 156]}
+    ]
   }
 }

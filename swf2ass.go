@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -112,10 +114,22 @@ func main() {
 
 	var ks KnownSignature
 
-	for _, s := range knownSignatures {
-		if s.Name == path.Base(*inputFile) {
-			ks = s
-			break
+	_, err = file.Seek(0, io.SeekStart)
+	if err == nil {
+		hasher := sha256.New()
+		_, err = io.Copy(hasher, file)
+
+		if err == nil {
+			ks = knownSignatures[hex.EncodeToString(hasher.Sum(nil))]
+		}
+	}
+
+	if ks.Name == "" || ks.Description == "" {
+		for _, s := range knownSignatures {
+			if s.Name == path.Base(*inputFile) {
+				ks = s
+				break
+			}
 		}
 	}
 
