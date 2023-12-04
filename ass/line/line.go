@@ -253,7 +253,8 @@ func EventLinesFromRenderObject(frameInfo types.FrameInformation, object *types.
 		} else {
 			panic("unsupported")
 		}
-		t := tag.ContainerTagFromPathEntry(drawPath, object.Clip, object.ColorTransform, object.MatrixTransform, bakeMatrixTransforms)
+
+		t := tag.ContainerTagFromPathEntry(drawPath, types.SomePointer(object.Clip), object.ColorTransform, object.MatrixTransform, bakeMatrixTransforms)
 		if t == nil {
 			continue
 		}

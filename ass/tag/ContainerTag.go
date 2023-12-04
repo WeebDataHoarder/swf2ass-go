@@ -273,7 +273,7 @@ func (t *ContainerTag) TryAppend(tag Tag) {
 	panic("tag is nil")
 }
 
-func ContainerTagFromPathEntry(path shapes.DrawPath, clip *shapes.ClipPath, colorTransform math.ColorTransform, matrixTransform math.MatrixTransform, bakeMatrixTransforms bool) *ContainerTag {
+func ContainerTagFromPathEntry(path shapes.DrawPath, clip types.Option[shapes.ClipPath], colorTransform math.ColorTransform, matrixTransform math.MatrixTransform, bakeMatrixTransforms bool) *ContainerTag {
 	container := &ContainerTag{
 		Transitions: make(map[int64][]Tag),
 	}
@@ -284,8 +284,8 @@ func ContainerTagFromPathEntry(path shapes.DrawPath, clip *shapes.ClipPath, colo
 		}
 	}
 
-	if settings.GlobalSettings.ASSBakeClips {
-		if clip != nil {
+	if clip, ok := clip.Some(); ok {
+		if settings.GlobalSettings.ASSBakeClips {
 			//Clip is given in absolute coordinates. path is relative to translation
 			//TODO: is this true for ClipPath???
 			//TODO: this is broken
@@ -294,9 +294,11 @@ func ContainerTagFromPathEntry(path shapes.DrawPath, clip *shapes.ClipPath, colo
 				Style: path.Style, //TODO: apply transform to Style?
 				Shape: clip.ApplyMatrixTransform(translationTransform, true).ClipShape(path.Shape, true),
 			}
+		} else {
+			container.TryAppend(NewClipTag(&clip, settings.GlobalSettings.ASSDrawingScale))
 		}
 	} else {
-		container.TryAppend(NewClipTag(clip, settings.GlobalSettings.ASSDrawingScale))
+		container.TryAppend(NewClipTag(nil, settings.GlobalSettings.ASSDrawingScale))
 	}
 
 	/*

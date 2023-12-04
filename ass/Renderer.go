@@ -8,6 +8,7 @@ import (
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
+	"github.com/ctessum/polyclip-go"
 	"runtime"
 	"slices"
 	"strconv"
@@ -82,6 +83,8 @@ func (r *Renderer) RenderFrame(frameInfo types.FrameInformation, frame types.Ren
 
 	animated := 0
 
+	viewPortClip := shapes.NewClipPath(r.Display.Draw()).ApplyMatrixTransform(scale, true)
+
 	for _, object := range frame {
 		obEntry := *BakeRenderedObjectsFillables(object)
 		object = &obEntry
@@ -96,7 +99,20 @@ func (r *Renderer) RenderFrame(frameInfo types.FrameInformation, frame types.Ren
 
 		object.MatrixTransform = scale.Multiply(object.MatrixTransform) //TODO: order?
 		if object.Clip != nil {
-			object.Clip = object.Clip.ApplyMatrixTransform(scale, true)
+			//apply scale, then clip to viewPort
+			newClip := object.Clip.ApplyMatrixTransform(scale, true)
+			newClipIntersected := newClip.Intersect(viewPortClip)
+			if len(newClipIntersected.Clip.Pol) == 0 {
+				//shape clip does not intersect with viewport! we can safely drop this
+				continue
+			}
+			diffPol := viewPortClip.Clip.Pol.Construct(polyclip.DIFFERENCE, newClipIntersected.Clip.Pol)
+			if len(diffPol) == 0 {
+				//omit viewport that is exactly the display area
+				object.Clip = nil
+			} else {
+				object.Clip = newClipIntersected
+			}
 		}
 
 		depth := object.GetDepth()
