@@ -230,6 +230,9 @@ func (t *ContainerTag) Encode(event time.EventTime) string {
 		if len(t.Transitions[index]) == 0 {
 			continue
 		}
+		if index > event.Duration {
+			continue
+		}
 
 		var startTime, endTime int64
 		//TODO: clone line?

@@ -243,7 +243,7 @@ func main() {
 			}*/
 		}
 
-		outputLines(assRenderer.RenderFrame(*frame, filteredRendered, settings.GlobalSettings.KeyFrameInterval)...)
+		outputLines(assRenderer.RenderFrame(*frame, filteredRendered, settings.GlobalSettings.KeyFrameInterval, settings.GlobalSettings.FlushInterval, settings.GlobalSettings.FlushCountLimit)...)
 
 		if *toFrame != math2.MaxInt64 && frame.GetFrameNumber() >= *toFrame {
 			break

@@ -6,6 +6,7 @@ import (
 	asstime "git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/settings"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
 	"regexp"
 	"strconv"
@@ -19,6 +20,8 @@ type EventLine struct {
 	ObjectId   uint16
 
 	Start, End int64
+
+	LastTransition int64
 
 	Style string
 	Name  string
@@ -51,10 +54,14 @@ func (l *EventLine) GetEnd() int64 {
 func (l *EventLine) GetDuration() int64 {
 	return l.End - l.Start
 }
+func (l *EventLine) GetSinceLastTransition() int64 {
+	return l.End - l.LastTransition
+}
 
 func (l *EventLine) Transition(frameInfo types.FrameInformation, object *types.RenderedObject) *EventLine {
 	line := *l
 	line.End = frameInfo.GetFrameNumber()
+	line.LastTransition = frameInfo.GetFrameNumber()
 	line.Tags = make([]tag.Tag, 0, len(l.Tags))
 	//TODO: clip?
 
@@ -103,12 +110,37 @@ func (l *EventLine) Transition(frameInfo types.FrameInformation, object *types.R
 	return &line
 }
 
+func (l *EventLine) TransitionVisible(frameInfo types.FrameInformation, visible bool) *EventLine {
+	line := *l
+	line.End = frameInfo.GetFrameNumber()
+	line.Tags = make([]tag.Tag, 0, len(l.Tags))
+	//TODO: clip?
+
+	cx := math.IdentityColorTransform()
+	if !visible {
+		cx.Multiply.Alpha = 0
+	}
+
+	for _, t := range l.Tags {
+		if colorTag, ok := t.(tag.ColorTag); ok {
+			t = colorTag.TransitionColor(&line, cx)
+			if t == nil {
+				return nil
+			}
+		}
+		line.Tags = append(line.Tags, t)
+	}
+
+	line.DropCache()
+	return &line
+}
+
 func (l *EventLine) Encode(frameDuration time.Duration) string {
 	if frameDuration == 1000*time.Millisecond && l.cachedEncode != nil {
 		return *l.cachedEncode
 	}
 
-	eventTime := asstime.NewEventTime(l.Start, l.End-l.Start+1, frameDuration)
+	eventTime := asstime.NewEventTime(l.Start, l.LastTransition-l.Start+1, frameDuration)
 
 	line := make([]string, 0, 10)
 	if l.IsComment {
@@ -259,14 +291,15 @@ func EventLinesFromRenderObject(frameInfo types.FrameInformation, object *types.
 			continue
 		}
 		out = append(out, &EventLine{
-			Layer:      object.GetDepth(),
-			ShapeIndex: i,
-			ObjectId:   object.ObjectId,
-			Start:      frameInfo.GetFrameNumber(),
-			End:        frameInfo.GetFrameNumber(),
-			Tags:       []tag.Tag{t},
-			Name:       fmt.Sprintf("o:%d d:%s", object.ObjectId, object.GetDepth().String()),
-			Style:      style,
+			Layer:          object.GetDepth(),
+			ShapeIndex:     i,
+			ObjectId:       object.ObjectId,
+			Start:          frameInfo.GetFrameNumber(),
+			LastTransition: frameInfo.GetFrameNumber(),
+			End:            frameInfo.GetFrameNumber(),
+			Tags:           []tag.Tag{t},
+			Name:           fmt.Sprintf("o:%d d:%s", object.ObjectId, object.GetDepth().String()),
+			Style:          style,
 		})
 	}
 	return out

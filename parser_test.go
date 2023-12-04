@@ -129,7 +129,7 @@ func TestParser(t *testing.T) {
 			clipItems,
 		)
 
-		assRenderer.RenderFrame(*frame, filteredRendered, settings.GlobalSettings.KeyFrameInterval)
+		assRenderer.RenderFrame(*frame, filteredRendered, settings.GlobalSettings.KeyFrameInterval, settings.GlobalSettings.FlushInterval, settings.GlobalSettings.FlushCountLimit)
 	}
 
 	if lastFrame == nil {

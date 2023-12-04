@@ -69,7 +69,7 @@ func NewRenderer(title string, frameRate float64, display shapes.Rectangle[float
 		},
 	}
 }
-func (r *Renderer) RenderFrame(frameInfo types.FrameInformation, frame types.RenderedFrame, maxInterval int) (result []string) {
+func (r *Renderer) RenderFrame(frameInfo types.FrameInformation, frame types.RenderedFrame, keyframeInterval, flushInterval, flushCountLimit int) (result []string) {
 	if len(r.Header) != 0 {
 		result = append(result, r.Header...)
 		r.Header = nil
@@ -77,7 +77,8 @@ func (r *Renderer) RenderFrame(frameInfo types.FrameInformation, frame types.Ren
 
 	slices.SortStableFunc(frame, RenderedObjectDepthSort)
 
-	var runningBuffer []*line.EventLine
+	var linesKeptOrTransitioned []*line.EventLine
+	var linesNotTransitioned []*line.EventLine
 
 	scale := math.ScaleTransform(math.NewVector2(settings.GlobalSettings.VideoScaleMultiplier, settings.GlobalSettings.VideoScaleMultiplier))
 
@@ -121,7 +122,7 @@ func (r *Renderer) RenderFrame(frameInfo types.FrameInformation, frame types.Ren
 
 		for i := len(r.RunningBuffer) - 1; i >= 0; i-- {
 			tag := r.RunningBuffer[i]
-			if depth.Equals(tag.Layer) && object.ObjectId == tag.ObjectId && (maxInterval == 0 || tag.GetDuration() < int64(maxInterval)) {
+			if depth.Equals(tag.Layer) && object.ObjectId == tag.ObjectId && (keyframeInterval == 0 || tag.GetDuration() < int64(keyframeInterval)) {
 				tagsToTransition = append(tagsToTransition, tag)
 				r.RunningBuffer = slices.Delete(r.RunningBuffer, i, i+1)
 			}
@@ -146,22 +147,55 @@ func (r *Renderer) RenderFrame(frameInfo types.FrameInformation, frame types.Ren
 
 		if canTransition && len(transitionedTags) > 0 {
 			animated += len(transitionedTags)
-			runningBuffer = append(runningBuffer, transitionedTags...)
+			linesKeptOrTransitioned = append(linesKeptOrTransitioned, transitionedTags...)
 		} else {
-			r.RunningBuffer = append(r.RunningBuffer, tagsToTransition...)
+			linesNotTransitioned = append(linesNotTransitioned, tagsToTransition...)
 
 			for _, l := range line.EventLinesFromRenderObject(frameInfo, object, settings.GlobalSettings.ASSBakeMatrixTransforms) {
 				l.DropCache()
-				runningBuffer = append(runningBuffer, l)
+				linesKeptOrTransitioned = append(linesKeptOrTransitioned, l)
 			}
 		}
 	}
 
-	fmt.Printf("[ASS] Total %d objects, %d flush, %d buffer, %d animated tags.\n", len(frame), len(r.RunningBuffer), len(runningBuffer), animated)
+	//Flush tags that explicitly could not transition
+	result = append(result, r.flush(frameInfo, linesNotTransitioned)...)
 
-	//Flush non dupes
+	var tagsToKeep []*line.EventLine
+	if flushInterval > 0 {
+		//loop things kept in buffer that could not transition, and see which must be flushed
+
+		for i := len(r.RunningBuffer) - 1; i >= 0; i-- {
+			eventLine := r.RunningBuffer[i]
+			// keep tag for further transitions, BUT try to hide it
+			if flushInterval == 0 || eventLine.GetSinceLastTransition() < int64(flushInterval) {
+				eventLine := eventLine.TransitionVisible(frameInfo, false)
+				if eventLine != nil {
+					//we can transition!
+					tagsToKeep = append(tagsToKeep, eventLine)
+					r.RunningBuffer = slices.Delete(r.RunningBuffer, i, i+1)
+				}
+			}
+		}
+		slices.Reverse(tagsToKeep)
+
+		if len(tagsToKeep) > flushCountLimit {
+			slices.SortFunc(tagsToKeep, func(a, b *line.EventLine) int {
+				return int(a.GetSinceLastTransition() - b.GetSinceLastTransition())
+			})
+			//append back tail of buffer
+			r.RunningBuffer = append(r.RunningBuffer, tagsToKeep[flushCountLimit:]...)
+			tagsToKeep = tagsToKeep[:flushCountLimit]
+		}
+	}
+
+	fmt.Printf("[ASS] Total %d objects, %d flush, %d buffer, %d kept, %d animated tags.\n", len(frame), len(r.RunningBuffer)+len(linesNotTransitioned), len(linesKeptOrTransitioned), len(tagsToKeep), animated)
+
+	linesKeptOrTransitioned = append(linesKeptOrTransitioned, tagsToKeep...)
+
+	//Flush non dupes on Running buffer
 	result = append(result, r.Flush(frameInfo)...)
-	r.RunningBuffer = runningBuffer
+	r.RunningBuffer = linesKeptOrTransitioned
 
 	return result
 }
@@ -199,7 +233,7 @@ func threadedRenderer(stats map[uint16]rendererStatsEntry, buf []*line.EventLine
 
 				stats[l.ObjectId].Lines.Add(1)
 
-				l.Name += fmt.Sprintf(" f:%d>%d~%d", l.Start, l.End, l.End-l.Start+1)
+				l.Name += fmt.Sprintf(" f:%d>%d~%d", l.Start, l.LastTransition, l.LastTransition-l.Start+1)
 				l.DropCache()
 				encode := l.Encode(duration)
 				results[i] = encode
@@ -212,9 +246,13 @@ func threadedRenderer(stats map[uint16]rendererStatsEntry, buf []*line.EventLine
 }
 
 func (r *Renderer) Flush(frameInfo types.FrameInformation) (result []string) {
-	result = threadedRenderer(r.Statistics, r.RunningBuffer, frameInfo.GetFrameDuration())
+	result = r.flush(frameInfo, r.RunningBuffer)
 	r.RunningBuffer = r.RunningBuffer[:0]
-	return result
+	return
+}
+
+func (r *Renderer) flush(frameInfo types.FrameInformation, buf []*line.EventLine) (result []string) {
+	return threadedRenderer(r.Statistics, buf, frameInfo.GetFrameDuration())
 }
 
 func BakeRenderedObjectsFillables(o *types.RenderedObject) *types.RenderedObject {

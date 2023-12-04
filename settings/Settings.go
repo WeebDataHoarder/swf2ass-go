@@ -33,8 +33,13 @@ type Settings struct {
 	// VideoRateMultiplier Adjusts framerate multiplier. Leave at 1 unless you know what you are doing.
 	VideoRateMultiplier float64
 
-	// KeyFrameInterval Flush a shape at least every N frames if it's doing transitions. Set to 0 to disable.
+	// KeyFrameInterval Flush a shape at least after N frames even if it's doing transitions. Set to 0 to disable.
 	KeyFrameInterval int
+
+	// FlushInterval Flush a shape after N frames of no transitions. Basically a buffer. Set to 0 to disable.
+	// This more or less controls how far frames are delayed before being flushed, sometimes these can be reused later on some loops.
+	FlushInterval   int
+	FlushCountLimit int
 
 	// GradientSlices Number of slices each gradient will get for each step when rendering them.
 	// It is recommended to leave at shapes.GradientAutoSlices as that will automatically pick slices based on color differences across steps.
@@ -75,6 +80,8 @@ var GlobalSettings = Settings{
 	VideoRateMultiplier:  1,
 
 	KeyFrameInterval: 0,
+	FlushInterval:    0,
+	FlushCountLimit:  2048,
 
 	GradientSlices: GradientAutoSlices,
 	//TODO: this has issues with transparent backgrounds
