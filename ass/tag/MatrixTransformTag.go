@@ -57,29 +57,109 @@ func (t *MatrixTransformTag) Equals(tag Tag) bool {
 	return false
 }
 
-func MatrixTransformTagFromTransformStable(transform math2.MatrixTransform) *MatrixTransformTag {
-	//Numerically stable implementation by MrSmile
+// MatrixTransformTagFromTransformUnstable Finds matching ASS \fscx, \fscy, \frx, \fry, \frz, \fax, \fay for a given math.MatrixTransform
+// Numerically unstable implementation by Oneric
+func MatrixTransformTagFromTransformUnstable(transform math2.MatrixTransform) *MatrixTransformTag {
 
 	a := transform.GetA()
-	//TODO: why swap
-	b := transform.GetC()
-	c := transform.GetB()
+	b := transform.GetB()
+	c := transform.GetC()
 	d := transform.GetD()
-
-	ac2 := (a * a) + (c * c)
-	bd2 := (b * b) + (d * d)
-
-	det := (a * d) - (b * c)
-	dot := (a * b) + (c * d)
 
 	var scaleX, scaleY, frx, fry, frz, fax, fay float64
 
-	if ac2 > bd2 {
-		if ac2 > 0 {
-			frz = math.Atan2(c, a) * (180 / math.Pi)
-			scaleX = math.Sqrt(ac2)
-			scaleY = math.Abs(det) / math.Sqrt(ac2)
-			fax = dot / ac2
+	isZero := func(v float64) bool {
+		return math.Abs(v) <= math2.TransformCompareEpsilon
+	}
+
+	if !((isZero(a) && !isZero(b)) || (isZero(d) && !isZero(c))) {
+		//Trivial case
+		scaleX = a
+		scaleY = d
+
+		if !isZero(a) {
+			fax = b / a
+		}
+		if !isZero(d) {
+			fay = c / d
+		}
+
+		if scaleX < 0 {
+			fry = 180
+		}
+
+		if scaleY < 0 {
+			frx = 180
+		}
+	} else if !((isZero(b) && !isZero(a)) || (isZero(c) && !isZero(d))) {
+		//Rowswap
+		frz = 90
+		scaleX = c
+		scaleY = -b
+
+		if !isZero(c) {
+			fax = d / c
+		}
+		if !isZero(b) {
+			fay = a / b
+		}
+
+		if scaleX < 0 {
+			fry = 180
+		}
+
+		if scaleY < 0 {
+			frx = 180
+		}
+	} else if isZero(a) && isZero(c) && !isZero(b) && !isZero(d) {
+		//Zero col left
+		scaleX = math.Sqrt(b*b + d*d)
+		frz = math.Atan(-b/d) * (180 / math.Pi)
+		if a < 0 { // atan always yields positive cos
+			frz += 180
+		}
+	} else if !isZero(a) && !isZero(c) && isZero(b) && isZero(d) {
+		//Zero col right
+		scaleX = math.Sqrt(a*a + c*c)
+		frz = math.Atan(c/a) * (180 / math.Pi)
+		if a < 0 { // atan always yields positive cos
+			frz += 180
+		}
+	} else {
+		panic("invalid transform state")
+	}
+
+	frz = -frz
+
+	fscx := math.Abs(scaleX) * 100
+	fscy := math.Abs(scaleY) * 100
+
+	return NewMatrixTransformTag(transform, math2.NewVector2(fscx, fscy), frx, fry, frz, math2.NewVector2(fax, fay))
+}
+
+// MatrixTransformTagFromTransformStable Finds matching ASS \fscx, \fscy, \frx, \fry, \frz, \fax, \fay for a given math.MatrixTransform
+// Numerically stable implementation by MrSmile
+func MatrixTransformTagFromTransformStable(transform math2.MatrixTransform) *MatrixTransformTag {
+
+	a := transform.GetA()
+	b := transform.GetB()
+	c := transform.GetC()
+	d := transform.GetD()
+
+	ab2 := (a * a) + (b * b)
+	cd2 := (c * c) + (d * d)
+
+	det := (a * d) - (c * b)
+	dot := (a * c) + (b * d)
+
+	var scaleX, scaleY, frx, fry, frz, fax, fay float64
+
+	if ab2 > cd2 {
+		if ab2 > 0 {
+			frz = math.Atan2(b, a) * (180 / math.Pi)
+			scaleX = math.Sqrt(ab2)
+			scaleY = math.Abs(det) / math.Sqrt(ab2)
+			fax = dot / ab2
 
 			if det < 0 {
 				frz = -frz
@@ -87,11 +167,11 @@ func MatrixTransformTagFromTransformStable(transform math2.MatrixTransform) *Mat
 			}
 		}
 	} else {
-		if bd2 > 0 {
-			frz = math.Atan2(-b, d) * (180 / math.Pi)
-			scaleX = math.Abs(det) / math.Sqrt(bd2)
-			scaleY = math.Sqrt(bd2)
-			fay = dot / bd2
+		if cd2 > 0 {
+			frz = math.Atan2(-c, d) * (180 / math.Pi)
+			scaleX = math.Abs(det) / math.Sqrt(cd2)
+			scaleY = math.Sqrt(cd2)
+			fay = dot / cd2
 
 			if det < 0 {
 				frz = -frz
