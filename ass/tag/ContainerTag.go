@@ -287,8 +287,8 @@ func ContainerTagFromPathEntry(path shapes.DrawPath, clip types.Option[shapes.Cl
 		}
 	}
 
-	if clip, ok := clip.Some(); ok {
-		if settings.GlobalSettings.ASSBakeClips {
+	if settings.GlobalSettings.ASSBakeClips {
+		clip.With(func(clip shapes.ClipPath) {
 			//Clip is given in absolute coordinates. path is relative to translation
 			//TODO: is this true for ClipPath???
 			//TODO: this is broken
@@ -297,11 +297,13 @@ func ContainerTagFromPathEntry(path shapes.DrawPath, clip types.Option[shapes.Cl
 				Style: path.Style, //TODO: apply transform to Style?
 				Shape: clip.ApplyMatrixTransform(translationTransform, true).ClipShape(path.Shape, true),
 			}
-		} else {
-			container.TryAppend(NewClipTag(&clip, settings.GlobalSettings.ASSDrawingScale))
-		}
+		})
 	} else {
-		container.TryAppend(NewClipTag(nil, settings.GlobalSettings.ASSDrawingScale))
+		if clip, ok := clip.Some(); ok {
+			container.TryAppend(NewClipTag(types.Some(clip.GetShape()), settings.GlobalSettings.ASSDrawingScale))
+		} else {
+			container.TryAppend(NewClipTag(types.None[shapes.Shape](), settings.GlobalSettings.ASSDrawingScale))
+		}
 	}
 
 	/*

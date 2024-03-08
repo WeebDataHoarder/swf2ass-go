@@ -2,12 +2,12 @@ package tag
 
 import (
 	"fmt"
-	swftypes "git.gammaspectra.live/WeebDataHoarder/swf-go/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/ass/time"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/settings"
+	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/math"
-	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/records"
 	"git.gammaspectra.live/WeebDataHoarder/swf2ass-go/types/shapes"
+	"github.com/ctessum/polyclip-go"
 )
 
 type ClipTag struct {
@@ -16,26 +16,17 @@ type ClipTag struct {
 	IsNull bool
 }
 
-func NewClipTag(clip *shapes.ClipPath, scale int) *ClipTag {
-	if clip == nil {
+func NewClipTag(clip types.Option[shapes.Shape], scale int) *ClipTag {
+	if c, ok := clip.Some(); ok && len(c) > 0 {
+		return &ClipTag{
+			Scale:          scale,
+			BaseDrawingTag: BaseDrawingTag(c),
+			IsNull:         len(c) == 0,
+		}
+	} else {
 		return &ClipTag{
 			IsNull: true,
 			Scale:  scale,
-		}
-	} else {
-		shape := clip.GetShape()
-		if len(shape) == 0 { //full clip
-			shape = shapes.Shape{
-				records.LineRecord{
-					//TODO: ??? why TwipFactor here???
-					To:    math.NewVector2[float64](0, swftypes.Twip(swftypes.TwipFactor).Float64()),
-					Start: math.NewVector2[float64](0, 0),
-				},
-			}
-		}
-		return &ClipTag{
-			Scale:          scale,
-			BaseDrawingTag: BaseDrawingTag(shape),
 		}
 	}
 }
@@ -73,6 +64,18 @@ func (t *ClipTag) Encode(event time.EventTime) string {
 	if t.IsNull {
 		return ""
 	}
+
+	shape := t.AsShape()
+	bb := shape.BoundingBox()
+	//uses pixel coords
+	if bb.TopLeft.Int64().Float64().Equals(bb.TopLeft) && bb.BottomRight.Int64().Float64().Equals(bb.BottomRight) {
+		diffPol := shapes.NewPolygonFromShape(bb.Draw()).Construct(polyclip.DIFFERENCE, shapes.NewPolygonFromShape(shape))
+		if len(diffPol) == 0 { //it's the same!
+			//we can use square clip!
+			return fmt.Sprintf("\\clip(%d,%d,%d,%d)", bb.TopLeft.Int64().X, bb.TopLeft.Int64().Y, bb.BottomRight.Int64().X, bb.BottomRight.Int64().Y)
+		}
+	}
+
 	scaleMultiplier := 1 << (t.Scale - 1)
 	precision := settings.GlobalSettings.ASSDrawingPrecision
 	if t.Scale >= 5 {

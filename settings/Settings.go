@@ -38,6 +38,7 @@ type Settings struct {
 
 	// FlushInterval Flush a shape after N frames of no transitions. Basically a buffer. Set to 0 to disable.
 	// This more or less controls how far frames are delayed before being flushed, sometimes these can be reused later on some loops.
+	// TODO: this has issues with layer re-stacking
 	FlushInterval   int
 	FlushCountLimit int
 
