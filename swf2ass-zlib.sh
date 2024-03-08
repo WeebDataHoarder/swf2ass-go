@@ -18,5 +18,10 @@ mkvmerge --title "${INPUT}" -o "${INPUT}.swf2ass.mkv" --clusters-in-meta-seek \
 --language 0:zxx --track-name 0:"bogus video" "${INPUT}.video.mkv" \
 --cues 0:all --forced-track 0:1 --default-track 0:1 --compression 0:none --language 0:zxx --track-name 0:"Vector from ${INPUT}" "${INPUT}.ass"
 
+mkvmerge --title "${INPUT}" -o "${INPUT}.swf2ass.zlib.mkv" --clusters-in-meta-seek \
+--attachment-mime-type "application/x-shockwave-flash" --attachment-description "SWF Source" --attach-file "${INPUT}" \
+--language 0:zxx --track-name 0:"bogus video" "${INPUT}.video.mkv" \
+--cues 0:all --forced-track 0:1 --default-track 0:1 --compression 0:zlib --language 0:zxx --track-name 0:"Vector from ${INPUT}" "${INPUT}.ass"
+
 
 rm "${INPUT}.ass" "${INPUT}.video.mkv" "${INPUT}.mp3"
