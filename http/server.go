@@ -27,7 +27,7 @@ func main() {
 			if path.Ext(e.Name()) == ".swf" {
 				files["/"+e.Name()] = path.Join(*servePath, e.Name())
 				files["/"+e.Name()+".swf2ass.mkv"] = path.Join(*servePath, e.Name()+".swf2ass.mkv")
-				files["/"+e.Name()+".swf2ass.mkv.zstd"] = path.Join(*servePath, e.Name()+".swf2ass.mkv.zstd")
+				files["/"+e.Name()+".swf2ass.mkv.zst"] = path.Join(*servePath, e.Name()+".swf2ass.mkv.zst")
 				files["/"+e.Name()+".swf2ass.mkv.br"] = path.Join(*servePath, e.Name()+".swf2ass.mkv.br")
 				files["/"+e.Name()+".swf2ass.mkv.gzip"] = path.Join(*servePath, e.Name()+".swf2ass.mkv.gzip")
 			}
@@ -50,7 +50,7 @@ func main() {
 						if err != nil {
 							continue
 						}
-						output += fmt.Sprintf("<tr><th align=\"right\">%s</th><td>%d MiB</td><td><a href=\"/%s.swf2ass.mkv\">MKV</a> <a href=\"/%s.swf2ass.mkv.zstd\">Zstandard</a> <a href=\"/%s.swf2ass.mkv.br\">Brotli</a> <a href=\"/%s.swf2ass.mkv.gzip\">gzip</a> <a href=\"/%s\">SWF</a></td></tr>", e.Name(), stat.Size()/(1024*1024), e.Name(), e.Name(), e.Name(), e.Name(), e.Name())
+						output += fmt.Sprintf("<tr><th align=\"right\">%s</th><td>%d MiB</td><td><a href=\"/%s.swf2ass.mkv\">MKV</a> <a href=\"/%s.swf2ass.mkv.zst\">Zstandard</a> <a href=\"/%s.swf2ass.mkv.br\">Brotli</a> <a href=\"/%s.swf2ass.mkv.gzip\">gzip</a> <a href=\"/%s\">SWF</a></td></tr>", e.Name(), stat.Size()/(1024*1024), e.Name(), e.Name(), e.Name(), e.Name(), e.Name())
 					}
 				}
 				output += "</table></body></html>"
@@ -85,7 +85,7 @@ func main() {
 
 					if slices.Contains(encodings, "zstd") {
 						writer.Header().Set("Content-Encoding", "zstd")
-						fpath += ".zstd"
+						fpath += ".zst"
 						request.Header.Del("Range")
 					} else if slices.Contains(encodings, "br") {
 						writer.Header().Set("Content-Encoding", "br")
